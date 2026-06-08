@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mario English - Tuyển Sinh Lớp 10 (Bé Tuyến)</title>
+    <style>
+        body {
+            margin: 0; padding: 0;
+            background-color: #2c3e50;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            height: 100vh; touch-action: none; font-family: Arial, sans-serif;
+        }
+        #app-wrapper {
+            width: 100%; max-width: 800px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.7);
+            border-radius: 10px; overflow: hidden;
+            display: flex; flex-direction: column; position: relative;
+        }
+        #ui-panel {
+            background: #ecf0f1; padding: 15px;
+            color: #2c3e50; border-bottom: 4px solid #bdc3c7;
+        }
+        .header-info {
+            display: flex; justify-content: space-between; align-items: center; font-weight: bold; margin-bottom: 10px;
+            color: #e74c3c; font-size: 16px; flex-wrap: wrap; gap: 5px;
+        }
+        .level-controls { display: flex; align-items: center; gap: 5px; color: #2c3e50; }
+        #level-input { width: 40px; text-align: center; border: 1px solid #95a5a6; border-radius: 5px; padding: 3px; font-weight: bold;}
+        #btn-jump-level { background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 4px 10px; font-weight: bold; }
+        #btn-jump-level:active { background: #2ecc71; }
+        #health-display { background: #ff7675; color: white; padding: 4px 10px; border-radius: 15px; }
+
+        #instruction { font-style: italic; margin-bottom: 5px; font-size: 14px; color: #2980b9;}
+        #context { 
+            background: #fff; padding: 10px; border: 1px solid #ccc; 
+            border-radius: 5px; font-size: 14px; max-height: 80px; overflow-y: auto;
+            margin-bottom: 10px; display: none; line-height: 1.4;
+        }
+        #question { font-weight: bold; font-size: 16px; margin-bottom: 10px; }
+        #options-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 5px; font-size: 14px;
+        }
+        
+        #game-container {
+            position: relative; width: 100%; background: #87CEEB;
+        }
+        canvas { display: block; width: 100%; height: auto; }
+        
+        #notification {
+            position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+            background: rgba(0, 0, 0, 0.8); padding: 10px 20px; border-radius: 8px;
+            font-size: 16px; font-weight: bold; text-align: center;
+            opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.3s ease;
+        }
+
+        #end-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.95); z-index: 200;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; box-sizing: border-box;
+        }
+        #end-msg { font-size: 24px; font-weight: bold; margin-bottom: 20px; line-height: 1.4; }
+        #btn-restart {
+            background: #f1c40f; border: none; border-bottom: 4px solid #f39c12; color: #2c3e50;
+            font-size: 18px; padding: 15px 30px; border-radius: 10px; cursor: pointer; font-weight: bold;
+        }
+        #btn-restart:active { border-bottom: 0; transform: translateY(4px); }
+
+        #controls {
+            display: flex; justify-content: space-around; flex-wrap: wrap;
+            background: #34495e; padding: 10px 0; gap: 10px;
+        }
+        .btn {
+            background: #3498db; border: none; border-bottom: 4px solid #2980b9;
+            color: white; font-size: 18px; padding: 15px 20px; border-radius: 10px;
+            user-select: none; cursor: pointer; flex: 1; margin: 0 5px; font-weight: bold;
+        }
+        .btn:active { border-bottom: 0; transform: translateY(4px); }
+        .btn-help { background: #f39c12; border-bottom: 4px solid #e67e22; }
+        .btn-help:disabled { background: #95a5a6; border-bottom: 4px solid #7f8c8d; opacity: 0.7; cursor: not-allowed; }
+    </style>
+</head>
+<body>
+
+<div id="app-wrapper">
+    <div id="ui-panel">
+        <div class="header-info">
+            <div class="level-controls">
+                <span id="health-display">❤️ 10</span>
+                <span style="margin-left: 10px;">Level: <span id="level-display">1</span>/100</span>
+                <span style="margin-left: 5px;">| Tới:</span>
+                <input type="number" id="level-input" min="1" max="100" value="1">
+                <button id="btn-jump-level">🚀</button>
+            </div>
+            <span id="status-display">Tìm chìa khóa! 🔑</span>
+        </div>
+        <div id="instruction"></div>
+        <div id="context"></div>
+        <div id="question"></div>
+        <div id="options-grid">
+            <div id="opt-A">A. </div>
+            <div id="opt-B">B. </div>
+            <div id="opt-C">C. </div>
+            <div id="opt-D">D. </div>
+        </div>
+    </div>
+
+    <div id="game-container">
+        <div id="notification"></div>
+        <div id="end-screen">
+            <div id="end-msg"></div>
+            <button id="btn-restart">Làm lại không gian lận</button>
+        </div>
+        <canvas id="gameCanvas" width="800" height="300"></canvas>
+    </div>
+
+    <div id="controls">
+        <button class="btn" id="btnLeft">⬅️ Trái</button>
+        <button class="btn" id="btnJump">⬆️ Nhảy</button>
+        <button class="btn" id="btnRight">➡️ Phải</button>
+        <button class="btn btn-help" id="btnHelp">🆘 50:50</button>
+    </div>
+</div>
+
+<script>
+    const questionBank = [
+        { id: 1, instruction: "Choose the word whose underlined part is pronounced differently.", content: "A. attr[a]ction B. [a]rtisan C. fr[a]me D. h[a]ndicraft", options: { A: "attr[a]ction", B: "[a]rtisan", C: "fr[a]me", D: "h[a]ndicraft" }, correct_answer: "C" },
+        { id: 2, instruction: "Choose the word whose underlined part is pronounced differently.", content: "A. p[u]blish B. m[u]lticultural C. fr[u]strated D. f[u]ture", options: { A: "p[u]blish", B: "m[u]lticultural", C: "fr[u]strated", D: "f[u]ture" }, correct_answer: "A" },
+        { id: 3, instruction: "Choose the word whose underlined part is pronounced differently.", content: "A. d[e]pressed B. r[e]solve C. t[e]nse D. h[e]lpline", options: { A: "d[e]pressed", B: "r[e]solve", C: "t[e]nse", D: "h[e]lpline" }, correct_answer: "C" },
+        { id: 4, instruction: "Choose the word whose underlined part is pronounced differently.", content: "A. wonder[s] B. cavern[s] C. fortress[es] D. tomb[s]", options: { A: "wonder[s]", B: "cavern[s]", C: "fortress[es]", D: "tomb[s]" }, correct_answer: "C" },
+        { id: 5, instruction: "Choose the word whose underlined part is pronounced differently.", content: "A. [ch]ef B. [ch]opping C. [ch]eese D. [ch]ange", options: { A: "[ch]ef", B: "[ch]opping", C: "[ch]eese", D: "[ch]ange" }, correct_answer: "A" },
+        { id: 6, instruction: "Choose the word with a different stress pattern.", content: "A. fabulous B. reliable C. metropolitan D. multicultural", options: { A: "fabulous", B: "reliable", C: "metropolitan", D: "multicultural" }, correct_answer: "B" },
+        { id: 7, instruction: "Choose the word with a different stress pattern.", content: "A. cognitive B. emotion C. indicator D. adolescence", options: { A: "cognitive", B: "emotion", C: "indicator", D: "adolescence" }, correct_answer: "B" },
+        { id: 8, instruction: "Choose the word with a different stress pattern.", content: "A. illiterate B. traditional C. entertain D. behaviour", options: { A: "illiterate", B: "traditional", C: "entertain", D: "behaviour" }, correct_answer: "C" },
+        { id: 9, instruction: "Choose the word with a different stress pattern.", content: "A. spectacular B. recognition C. informative D. affordable", options: { A: "spectacular", B: "recognition", C: "informative", D: "affordable" }, correct_answer: "A" },
+        { id: 10, instruction: "Choose the word with a different stress pattern.", content: "A. astronaut B. satellite C. meteorite D. astronomy", options: { A: "astronaut", B: "satellite", C: "meteorite", D: "astronomy" }, correct_answer: "D" },
+        { id: 11, instruction: "Choose the correct answer.", content: "Traditional ______ in our village have been passed down from generation to generation.", options: { A: "handicrafts", B: "artifacts", C: "attractions", D: "artisan" }, correct_answer: "A" },
+        { id: 12, instruction: "Choose the correct answer.", content: "I was ______ to find out that I had passed the entrance exam to Pleiku High School.", options: { A: "delight", B: "delighted", C: "delighting", D: "delightfully" }, correct_answer: "B" },
+        { id: 13, instruction: "Choose the correct answer.", content: "If you don't know the meaning of this word, you can ______ in the dictionary.", options: { A: "look it up", B: "look for it", C: "look it after", D: "look into it" }, correct_answer: "A" },
+        { id: 14, instruction: "Choose the correct answer.", content: "They ______ up the idea of visiting Chu Dang Ya volcano this weekend.", options: { A: "caught", B: "came", C: "kept", D: "gave" }, correct_answer: "B" },
+        { id: 15, instruction: "Choose the correct answer.", content: "He asked me ______ I had ever visited the Bien Ho (T'Nung Lake) before.", options: { A: "that", B: "if", C: "what", D: "how" }, correct_answer: "B" },
+        { id: 16, instruction: "Choose the correct answer.", content: "In the past, women were expected to be ______ and do all the housework.", options: { A: "breadwinners", B: "housewives", C: "directors", D: "astronauts" }, correct_answer: "B" },
+        { id: 17, instruction: "Choose the correct answer.", content: "I wish I ______ speak English as fluently as a native speaker.", options: { A: "can", B: "will", C: "could", D: "must" }, correct_answer: "C" },
+        { id: 18, instruction: "Choose the correct answer.", content: "The boy ______ won the first prize in the English speaking contest is my classmate.", options: { A: "who", B: "whom", C: "which", D: "whose" }, correct_answer: "A" },
+        { id: 19, instruction: "Choose the correct answer.", content: "We decided to ______ a walk around the city center to enjoy the cool weather.", options: { A: "make", B: "take", C: "do", D: "have" }, correct_answer: "B" },
+        { id: 20, instruction: "Choose the correct answer.", content: "Adolescence is the period ______ a child develops into an adult.", options: { A: "when", B: "where", C: "which", D: "why" }, correct_answer: "A" },
+        { id: 21, instruction: "Choose the correct answer.", content: "Physical changes are different for every teenager, ______?", options: { A: "aren't they", B: "are they", C: "isn't it", D: "is it" }, correct_answer: "A" },
+        { id: 22, instruction: "Choose the correct answer.", content: "\"I am feeling really stressed out about the exam.\" - \"______\"", options: { A: "Congratulations!", B: "I understand how you feel.", C: "That's a great idea!", D: "You're welcome." }, correct_answer: "B" },
+        { id: 23, instruction: "Choose the correct answer.", content: "The more you practice speaking, ______ you will become.", options: { A: "the most fluent", B: "more fluently", C: "the more fluent", D: "fluently" }, correct_answer: "C" },
+        { id: 24, instruction: "Choose the correct answer.", content: "We should use reusable bags ______ we can reduce plastic waste.", options: { A: "so that", B: "because", C: "although", D: "in spite of" }, correct_answer: "A" },
+        { id: 25, instruction: "Choose the correct answer.", content: "By the time I arrived at the station, the train ______.", options: { A: "leaves", B: "had left", C: "left", D: "has left" }, correct_answer: "B" },
+        { id: 26, instruction: "Choose the correct answer.", content: "______ my mother was very busy, she helped me with my homework.", options: { A: "Although", B: "Because", C: "Despite", D: "In spite of" }, correct_answer: "A" },
+        { id: 27, instruction: "Choose the correct answer.", content: "Do you know ______ to set up a new Facebook account?", options: { A: "what", B: "how", C: "when", D: "where" }, correct_answer: "B" },
+        { id: 28, instruction: "Choose the correct answer.", content: "My parents always encourage me ______ hard for a better future.", options: { A: "study", B: "studying", C: "to study", D: "studied" }, correct_answer: "C" },
+        { id: 29, instruction: "Choose the correct answer.", content: "A new hospital ______ in our town next year.", options: { A: "is built", B: "will build", C: "will be built", D: "was built" }, correct_answer: "C" },
+        { id: 30, instruction: "Choose the correct answer.", content: "Let's go to the museum this afternoon, ______?", options: { A: "will we", B: "do we", C: "shall we", D: "don't we" }, correct_answer: "C" },
+        { id: 31, instruction: "Choose the correct answer.", content: "The students are looking forward to ______ their teacher again.", options: { A: "see", B: "seeing", C: "saw", D: "be seen" }, correct_answer: "B" },
+        { id: 32, instruction: "Choose the correct answer.", content: "I suggest ______ off the lights before leaving the room to save energy.", options: { A: "turn", B: "turning", C: "to turn", D: "turned" }, correct_answer: "B" },
+        { id: 33, instruction: "Choose the correct answer.", content: "He used to ______ a lot of video games when he was younger.", options: { A: "play", B: "playing", C: "played", D: "plays" }, correct_answer: "A" },
+        { id: 34, instruction: "Choose the correct answer.", content: "The ______ in this city has improved significantly over the last decade.", options: { A: "life standard", B: "standard of living", C: "live standard", D: "living standard" }, correct_answer: "B" },
+        { id: 35, instruction: "Choose the correct answer.", content: "It is necessary ______ students to wear uniforms when going to school.", options: { A: "for", B: "of", C: "to", D: "with" }, correct_answer: "A" },
+        { id: 36, instruction: "Choose the correct answer.", content: "Many teenagers suffer from ______ because of the pressure to succeed in school.", options: { A: "happiness", B: "depression", C: "excitement", D: "joy" }, correct_answer: "B" },
+        { id: 37, instruction: "Choose the correct answer.", content: "A ______ is a person whose job is to translate written documents from one language to another.", options: { A: "translator", B: "interpreter", C: "speaker", D: "listener" }, correct_answer: "A" },
+        { id: 38, instruction: "Choose the correct answer.", content: "The chef is teaching us how to ______ the egg whites to make a cake.", options: { A: "whisk", B: "slice", C: "grate", D: "marinate" }, correct_answer: "A" },
+        { id: 39, instruction: "Choose the correct answer.", content: "Space exploration has led to many ______ in technology.", options: { A: "discoveries", B: "inventions", C: "innovations", D: "all are correct" }, correct_answer: "D" },
+        { id: 40, instruction: "Choose the correct answer.", content: "My brother ______ his driving test on the first try last week.", options: { A: "passed", B: "is passing", C: "has passed", D: "passes" }, correct_answer: "A" },
+        { id: 41, instruction: "Choose the correct answer.", content: "If I ______ you, I would take that English course.", options: { A: "am", B: "was", C: "were", D: "have been" }, correct_answer: "C" },
+        { id: 42, instruction: "Choose the correct answer.", content: "This is the ______ beautiful painting I have ever seen.", options: { A: "most", B: "more", C: "much", D: "very" }, correct_answer: "A" },
+        { id: 43, instruction: "Choose the correct answer.", content: "The government has ______ measures to protect the environment.", options: { A: "taken", B: "made", C: "done", D: "given" }, correct_answer: "A" },
+        { id: 44, instruction: "Choose the correct answer.", content: "The ______ of the new shopping mall will create many job opportunities.", options: { A: "construction", B: "construct", C: "constructive", D: "constructor" }, correct_answer: "A" },
+        { id: 45, instruction: "Choose the correct answer.", content: "My father is the ______ in our family; he works hard to earn money.", options: { A: "housewife", B: "breadwinner", C: "homemaker", D: "servant" }, correct_answer: "B" },
+        { id: 46, instruction: "Choose the correct answer.", content: "English has ______ words from many other languages.", options: { A: "borrowed", B: "lent", C: "given", D: "taken" }, correct_answer: "A" },
+        { id: 47, instruction: "Choose the correct answer.", content: "We are going on a(n) ______ to the countryside next weekend.", options: { A: "excursion", B: "journey", C: "voyage", D: "flight" }, correct_answer: "A" },
+        { id: 48, instruction: "Choose the correct answer.", content: "The ______ was very helpful and showed us all the famous sights in the city.", options: { A: "tour guide", B: "tourist", C: "traveler", D: "passenger" }, correct_answer: "A" },
+        { id: 49, instruction: "Choose the correct answer.", content: "The recipe says we need a ______ of salt.", options: { A: "slice", B: "bunch", C: "pinch", D: "clove" }, correct_answer: "C" },
+        { id: 50, instruction: "Choose the correct answer.", content: "It’s hard to imagine life ______ the internet.", options: { A: "with", B: "without", C: "in", D: "on" }, correct_answer: "B" },
+        { id: 51, instruction: "Choose the correct answer.", content: "Children in the past used to play ______ in the village yard.", options: { A: "bare-footed", B: "bare-footing", C: "bare-feet", D: "foot-bare" }, correct_answer: "A" },
+        { id: 52, instruction: "Choose the correct answer.", content: "The ______ system in our city needs to be upgraded to reduce traffic jams.", options: { A: "transport", B: "transporting", C: "transporter", D: "transported" }, correct_answer: "A" },
+        { id: 53, instruction: "Choose the correct answer.", content: "The teacher asked the students to ______ down the new words in their notebooks.", options: { A: "write", B: "keep", C: "note", D: "put" }, correct_answer: "A" },
+        { id: 54, instruction: "Choose the correct answer.", content: "Many people believe that ______ families are better than nuclear ones because children can learn from their grandparents.", options: { A: "extended", B: "nuclear", C: "big", D: "small" }, correct_answer: "A" },
+        { id: 55, instruction: "Choose the correct answer.", content: "She ______ me she would be late for the meeting.", options: { A: "said", B: "told", C: "spoke", D: "talked" }, correct_answer: "B" },
+        { id: 56, instruction: "Choose the correct answer.", content: "Can you give me a ______ with this heavy box?", options: { A: "hand", B: "arm", C: "leg", D: "finger" }, correct_answer: "A" },
+        { id: 57, instruction: "Choose the correct answer.", content: "He has a strong ______ of responsibility towards his family.", options: { A: "sense", B: "feeling", C: "emotion", D: "idea" }, correct_answer: "A" },
+        { id: 58, instruction: "Choose the correct answer.", content: "The ______ of the volcano was a spectacular sight.", options: { A: "eruption", B: "erupt", C: "eruptive", D: "erupting" }, correct_answer: "A" },
+        { id: 59, instruction: "Choose the correct answer.", content: "I have been studying English ______ 5 years.", options: { A: "since", B: "for", C: "in", D: "at" }, correct_answer: "B" },
+        { id: 60, instruction: "Choose the correct answer.", content: "The city has recently set ______ a new library for students.", options: { A: "off", B: "out", C: "up", D: "down" }, correct_answer: "C" },
+        { id: 61, instruction: "Choose the most suitable response.", content: "Lan: \"Would you like to join our volunteer group this summer?\" - Mai: \"______\"", options: { A: "Yes, I'd love to.", B: "No, thanks.", C: "You're welcome.", D: "I'm sorry to hear that." }, correct_answer: "A" },
+        { id: 62, instruction: "Choose the most suitable response.", content: "Hoa: \"Congratulations on passing the entrance exam!\" - Nam: \"______\"", options: { A: "Thanks! It's very kind of you to say so.", B: "I don't care.", C: "You're kidding!", D: "Same to you." }, correct_answer: "A" },
+        { id: 63, instruction: "Choose the most suitable response.", content: "Tom: \"How about visiting the Kon Tum Wooden Church tomorrow?\" - Jerry: \"______\"", options: { A: "That sounds great!", B: "I'm not sure.", C: "I don't think so.", D: "No, I wouldn't." }, correct_answer: "A" },
+        { id: 64, instruction: "Choose the most suitable response.", content: "Peter: \"I think we should use public transport to reduce air pollution.\" - Mary: \"______\"", options: { A: "I completely agree.", B: "You're wrong.", C: "I don't like it.", D: "What a pity!" }, correct_answer: "A" },
+        { id: 65, instruction: "Choose the most suitable response.", content: "Mother: \"Don't forget to do your homework before watching TV.\" - Son: \"______\"", options: { A: "I won't, Mom.", B: "Yes, I will.", C: "I do.", D: "No, I don't." }, correct_answer: "A" },
+        { id: 66, instruction: "Choose the most suitable response.", content: "John: \"Could you please tell me the way to the nearest post office?\" - Passer-by: \"______\"", options: { A: "Go straight ahead and take the second turning on the left.", B: "I'm going there too.", C: "It's very far from here.", D: "Yes, I can." }, correct_answer: "A" },
+        { id: 67, instruction: "Choose the most suitable response.", content: "Customer: \"I'd like a bowl of Pho, please.\" - Waiter: \"______\"", options: { A: "Here you are.", B: "Yes, please.", C: "No, thanks.", D: "I'm sorry, we're out of Pho." }, correct_answer: "A" },
+        { id: 68, instruction: "Choose the most suitable response.", content: "Teacher: \"Remember to submit your assignments on time.\" - Students: \"______\"", options: { A: "Yes, we will.", B: "No, we won't.", C: "We promise.", D: "We agree." }, correct_answer: "A" },
+        { id: 69, instruction: "Choose the most suitable response.", content: "Friend: \"I've just bought a new smartphone.\" - You: \"______\"", options: { A: "Wow, it looks amazing!", B: "So what?", C: "I don't care.", D: "How much is it?" }, correct_answer: "A" },
+        { id: 70, instruction: "Choose the most suitable response.", content: "Stranger: \"Excuse me, is this seat taken?\" - You: \"______\"", options: { A: "No, it isn't. Please sit down.", B: "Yes, it is.", C: "I don't know.", D: "Ask someone else." }, correct_answer: "A" },
+        { id: 71, instruction: "Indicate the part that needs correction.", content: "I strongly (A) suggest that you (B) to read the instruction (C) carefully before (D) using the machine.", options: { A: "suggest", B: "to read", C: "carefully", D: "using" }, correct_answer: "B" },
+        { id: 72, instruction: "Indicate the part that needs correction.", content: "The man (A) which is standing (B) over there is (C) my new English (D) teacher.", options: { A: "which", B: "over there", C: "my", D: "teacher" }, correct_answer: "A" },
+        { id: 73, instruction: "Indicate the part that needs correction.", content: "If I (A) have a lot of money, I (B) would travel around the world and (C) help the (D) poor.", options: { A: "have", B: "would travel", C: "help", D: "poor" }, correct_answer: "A" },
+        { id: 74, instruction: "Indicate the part that needs correction.", content: "She asked (A) me where (B) did I live and what I (C) did for a (D) living.", options: { A: "me", B: "did I live", C: "did", D: "living" }, correct_answer: "B" },
+        { id: 75, instruction: "Indicate the part that needs correction.", content: "Despite (A) of the heavy rain, we (B) decided to go (C) camping in the (D) forest.", options: { A: "of", B: "decided", C: "camping", D: "forest" }, correct_answer: "A" },
+        { id: 76, instruction: "Indicate the part that needs correction.", content: "I wish I (A) can speak English (B) as fluently as a (C) native (D) speaker.", options: { A: "can", B: "as fluently as", C: "native", D: "speaker" }, correct_answer: "A" },
+        { id: 77, instruction: "Indicate the part that needs correction.", content: "The (A) more you practice (B) speaking, the (C) fluent you (D) will become.", options: { A: "more", B: "speaking", C: "fluent", D: "will become" }, correct_answer: "C" },
+        { id: 78, instruction: "Indicate the part that needs correction.", content: "My parents (A) always encourage me (B) studying hard (C) for a better (D) future.", options: { A: "always", B: "studying", C: "for", D: "future" }, correct_answer: "B" },
+        { id: 79, instruction: "Indicate the part that needs correction.", content: "The (A) book that I (B) bought it yesterday (C) is very (D) interesting.", options: { A: "book", B: "bought it", C: "is", D: "interesting" }, correct_answer: "B" },
+        { id: 80, instruction: "Indicate the part that needs correction.", content: "It (A) is necessary (B) of students to (C) wear uniforms when (D) going to school.", options: { A: "is", B: "of", C: "wear", D: "going" }, correct_answer: "B" },
+        { id: 81, instruction: "Choose the correct word for the numbered blank.", context: "Gia Lai is a mountainous province located in the northern part of the Central Highlands. It is well-known (81) ______ its breathtaking landscapes and rich cultural heritage. One of the most famous tourist (82) ______ here is Bien Ho (T'Nung Lake), which is often described as the 'Eyes of Pleiku'. The lake is surrounded by pine forests and mountains, providing a peaceful and (83) ______ atmosphere. Visitors can also explore the diverse culture of ethnic minorities such as the Jrai and Bahnar people. They can enjoy traditional music, dance, and taste local specialties (84) ______ as 'com lam' and grilled chicken. Recently, the local government has been trying to (85) ______ eco-tourism while preserving the natural environment.", content: "Choose the correct word for blank (81)", options: { A: "for", B: "with", C: "of", D: "to" }, correct_answer: "A" },
+        { id: 82, instruction: "Choose the correct word for the numbered blank.", context: "Gia Lai is a mountainous province located in the northern part of the Central Highlands. It is well-known (81) ______ its breathtaking landscapes and rich cultural heritage. One of the most famous tourist (82) ______ here is Bien Ho (T'Nung Lake), which is often described as the 'Eyes of Pleiku'. The lake is surrounded by pine forests and mountains, providing a peaceful and (83) ______ atmosphere. Visitors can also explore the diverse culture of ethnic minorities such as the Jrai and Bahnar people. They can enjoy traditional music, dance, and taste local specialties (84) ______ as 'com lam' and grilled chicken. Recently, the local government has been trying to (85) ______ eco-tourism while preserving the natural environment.", content: "Choose the correct word for blank (82)", options: { A: "attracts", B: "attractive", C: "attractions", D: "attract" }, correct_answer: "C" },
+        { id: 83, instruction: "Choose the correct word for the numbered blank.", context: "Gia Lai is a mountainous province located in the northern part of the Central Highlands. It is well-known (81) ______ its breathtaking landscapes and rich cultural heritage. One of the most famous tourist (82) ______ here is Bien Ho (T'Nung Lake), which is often described as the 'Eyes of Pleiku'. The lake is surrounded by pine forests and mountains, providing a peaceful and (83) ______ atmosphere. Visitors can also explore the diverse culture of ethnic minorities such as the Jrai and Bahnar people. They can enjoy traditional music, dance, and taste local specialties (84) ______ as 'com lam' and grilled chicken. Recently, the local government has been trying to (85) ______ eco-tourism while preserving the natural environment.", content: "Choose the correct word for blank (83)", options: { A: "noisy", B: "polluted", C: "relaxing", D: "stressful" }, correct_answer: "C" },
+        { id: 84, instruction: "Choose the correct word for the numbered blank.", context: "Gia Lai is a mountainous province located in the northern part of the Central Highlands. It is well-known (81) ______ its breathtaking landscapes and rich cultural heritage. One of the most famous tourist (82) ______ here is Bien Ho (T'Nung Lake), which is often described as the 'Eyes of Pleiku'. The lake is surrounded by pine forests and mountains, providing a peaceful and (83) ______ atmosphere. Visitors can also explore the diverse culture of ethnic minorities such as the Jrai and Bahnar people. They can enjoy traditional music, dance, and taste local specialties (84) ______ as 'com lam' and grilled chicken. Recently, the local government has been trying to (85) ______ eco-tourism while preserving the natural environment.", content: "Choose the correct word for blank (84)", options: { A: "like", B: "such", C: "same", D: "so" }, correct_answer: "B" },
+        { id: 85, instruction: "Choose the correct word for the numbered blank.", context: "Gia Lai is a mountainous province located in the northern part of the Central Highlands. It is well-known (81) ______ its breathtaking landscapes and rich cultural heritage. One of the most famous tourist (82) ______ here is Bien Ho (T'Nung Lake), which is often described as the 'Eyes of Pleiku'. The lake is surrounded by pine forests and mountains, providing a peaceful and (83) ______ atmosphere. Visitors can also explore the diverse culture of ethnic minorities such as the Jrai and Bahnar people. They can enjoy traditional music, dance, and taste local specialties (84) ______ as 'com lam' and grilled chicken. Recently, the local government has been trying to (85) ______ eco-tourism while preserving the natural environment.", content: "Choose the correct word for blank (85)", options: { A: "promote", B: "discover", C: "damage", D: "destroy" }, correct_answer: "A" },
+        { id: 86, instruction: "Read the passage and answer the question.", context: "Choosing a future career is one of the most important decisions in a teenager's life. In the past, children often followed in their parents' footsteps and took up the same profession. Today, however, the job market is rapidly changing due to technological advancements. Many traditional jobs are disappearing, while new ones are constantly being created. To make a wise career choice, students need to consider several factors. First, they should identify their personal interests and strengths. Doing a job you love will bring you satisfaction and motivation. Second, it is crucial to research the current job market to understand which skills are in high demand. For example, fields related to Information Technology, renewable energy, and healthcare are currently experiencing significant growth. Finally, students should not hesitate to seek advice from teachers, career counselors, or professionals working in their fields of interest.", content: "What is the main idea of the passage?", options: { A: "The disappearance of traditional jobs.", B: "How to choose a future career in a changing world.", C: "The importance of Information Technology.", D: "Following parents' professions." }, correct_answer: "B" },
+        { id: 87, instruction: "Read the passage and answer the question.", context: "Choosing a future career is one of the most important decisions in a teenager's life. In the past, children often followed in their parents' footsteps and took up the same profession. Today, however, the job market is rapidly changing due to technological advancements. Many traditional jobs are disappearing, while new ones are constantly being created. To make a wise career choice, students need to consider several factors. First, they should identify their personal interests and strengths. Doing a job you love will bring you satisfaction and motivation. Second, it is crucial to research the current job market to understand which skills are in high demand. For example, fields related to Information Technology, renewable energy, and healthcare are currently experiencing significant growth. Finally, students should not hesitate to seek advice from teachers, career counselors, or professionals working in their fields of interest.", content: "According to the passage, why is the job market changing rapidly?", options: { A: "Because students don't want to work.", B: "Because of technological advancements.", C: "Because parents force their children to change.", D: "Because traditional jobs are boring." }, correct_answer: "B" },
+        { id: 88, instruction: "Read the passage and answer the question.", context: "Choosing a future career is one of the most important decisions in a teenager's life. In the past, children often followed in their parents' footsteps and took up the same profession. Today, however, the job market is rapidly changing due to technological advancements. Many traditional jobs are disappearing, while new ones are constantly being created. To make a wise career choice, students need to consider several factors. First, they should identify their personal interests and strengths. Doing a job you love will bring you satisfaction and motivation. Second, it is crucial to research the current job market to understand which skills are in high demand. For example, fields related to Information Technology, renewable energy, and healthcare are currently experiencing significant growth. Finally, students should not hesitate to seek advice from teachers, career counselors, or professionals working in their fields of interest.", content: "The word 'ones' in paragraph 1 refers to:", options: { A: "parents", B: "children", C: "jobs", D: "advancements" }, correct_answer: "C" },
+        { id: 89, instruction: "Read the passage and answer the question.", context: "Choosing a future career is one of the most important decisions in a teenager's life. In the past, children often followed in their parents' footsteps and took up the same profession. Today, however, the job market is rapidly changing due to technological advancements. Many traditional jobs are disappearing, while new ones are constantly being created. To make a wise career choice, students need to consider several factors. First, they should identify their personal interests and strengths. Doing a job you love will bring you satisfaction and motivation. Second, it is crucial to research the current job market to understand which skills are in high demand. For example, fields related to Information Technology, renewable energy, and healthcare are currently experiencing significant growth. Finally, students should not hesitate to seek advice from teachers, career counselors, or professionals working in their fields of interest.", content: "Which field is NOT mentioned as experiencing significant growth?", options: { A: "Information Technology", B: "Agriculture", C: "Healthcare", D: "Renewable energy" }, correct_answer: "B" },
+        { id: 90, instruction: "Read the passage and answer the question.", context: "Choosing a future career is one of the most important decisions in a teenager's life. In the past, children often followed in their parents' footsteps and took up the same profession. Today, however, the job market is rapidly changing due to technological advancements. Many traditional jobs are disappearing, while new ones are constantly being created. To make a wise career choice, students need to consider several factors. First, they should identify their personal interests and strengths. Doing a job you love will bring you satisfaction and motivation. Second, it is crucial to research the current job market to understand which skills are in high demand. For example, fields related to Information Technology, renewable energy, and healthcare are currently experiencing significant growth. Finally, students should not hesitate to seek advice from teachers, career counselors, or professionals working in their fields of interest.", content: "Who should students seek advice from when choosing a career?", options: { A: "Only their parents", B: "Teachers, counselors, or professionals", C: "Strangers on the internet", D: "Nobody" }, correct_answer: "B" },
+        { id: 91, instruction: "Choose the sentence closest in meaning to the original one.", content: "\"Why don't we go to Chu Dang Ya volcano this weekend?\" said Lan.", options: { A: "Lan suggested going to Chu Dang Ya volcano that weekend.", B: "Lan suggested to go to Chu Dang Ya volcano that weekend.", C: "Lan asked why we didn't go to Chu Dang Ya volcano this weekend.", D: "Lan advised us going to Chu Dang Ya volcano that weekend." }, correct_answer: "A" },
+        { id: 92, instruction: "Choose the sentence closest in meaning to the original one.", content: "People believe that the weather is changing because of global warming.", options: { A: "The weather is believed changing because of global warming.", B: "It is believed that the weather was changing because of global warming.", C: "The weather is believed to be changing because of global warming.", D: "Global warming is believed to change the weather." }, correct_answer: "C" },
+        { id: 93, instruction: "Choose the sentence closest in meaning to the original one.", content: "The test was so difficult that I couldn't finish it on time.", options: { A: "It was such a difficult test that I couldn't finish it on time.", B: "The test was too difficult for me to finish it on time.", C: "The test was not easy enough for me to finish on time.", D: "All of the above are correct." }, correct_answer: "D" },
+        { id: 94, instruction: "Choose the sentence closest in meaning to the original one.", content: "I haven't visited my grandparents in the countryside for two months.", options: { A: "The last time I visited my grandparents in the countryside was two months ago.", B: "I last visited my grandparents in the countryside for two months.", C: "It is two months since I last visit my grandparents in the countryside.", D: "I didn't visit my grandparents in the countryside two months ago." }, correct_answer: "A" },
+        { id: 95, instruction: "Choose the sentence closest in meaning to the original one.", content: "Despite working hard, he didn't get a promotion.", options: { A: "Although he worked hard, he didn't get a promotion.", B: "Because he worked hard, he didn't get a promotion.", C: "He worked hard, so he didn't get a promotion.", D: "If he worked hard, he would get a promotion." }, correct_answer: "A" },
+        { id: 96, instruction: "Choose the sentence closest in meaning to the original one.", content: "If you don't study harder, you will fail the final exam.", options: { A: "Unless you study harder, you won't fail the final exam.", B: "Unless you study harder, you will fail the final exam.", C: "If you study harder, you will fail the final exam.", D: "Provided that you don't study harder, you won't fail the final exam." }, correct_answer: "B" },
+        { id: 97, instruction: "Choose the sentence closest in meaning to the original one.", content: "\"Where did you buy this beautiful dress?\" he asked me.", options: { A: "He asked me where I had bought that beautiful dress.", B: "He asked me where did I buy that beautiful dress.", C: "He asked me where had I bought that beautiful dress.", D: "He asked me where I bought this beautiful dress." }, correct_answer: "A" },
+        { id: 98, instruction: "Choose the sentence closest in meaning to the original one.", content: "They are building a new school in my neighborhood.", options: { A: "A new school is built in my neighborhood.", B: "A new school is being built in my neighborhood.", C: "A new school has been built in my neighborhood.", D: "A new school was built in my neighborhood." }, correct_answer: "B" },
+        { id: 99, instruction: "Choose the sentence closest in meaning to the original one.", content: "She is the most intelligent student in our class.", options: { A: "No one in our class is as intelligent as her.", B: "She is more intelligent than any other student in our class.", C: "Both A and B are correct.", D: "No one in our class is more intelligent than her." }, correct_answer: "C" },
+        { id: 100, instruction: "Choose the sentence closest in meaning to the original one.", content: "It's a pity I don't know how to play the guitar.", options: { A: "I wish I know how to play the guitar.", B: "I wish I knew how to play the guitar.", C: "I wish I had known how to play the guitar.", D: "I wish I will know how to play the guitar." }, correct_answer: "B" }
+    ];
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let health = 10;
+    let hasCheated = false;
+    let mistakesThisLevel = 0;
+
+    let currentLevel = 1;
+    const MAX_LEVEL = 100;
+    let currentQData = null;
+    let hasKey = false;
+    let helpUsed = false;
+    let blocks = [];
+    
+    const player = { x: 50, y: 200, width: 40, height: 40, vx: 0, vy: 0, speed: 5, jumpPower: -13, grounded: false };
+    const gravity = 0.8;
+    const floorY = 260; 
+    const door = { x: 720, y: 160, width: 60, height: 100 };
+    const keys = { left: false, right: false, jump: false };
+
+    const playerImg = new Image(); playerImg.src = 'nhanvat.png';
+    const doorImg = new Image(); doorImg.src = 'cua.png';
+    const blockImg = new Image(); blockImg.src = 'gach.png';
+
+    let notifyTimeout = null;
+    function showNotification(msg, type) {
+        const noti = document.getElementById('notification');
+        noti.innerText = msg;
+        if (type === 'error') {
+            noti.style.border = "3px solid #e74c3c";
+            noti.style.color = "#ff7675";
+        } else {
+            noti.style.border = "3px solid #2ecc71";
+            noti.style.color = "#55efc4";
+        }
+        noti.style.opacity = 1;
+        if (notifyTimeout) clearTimeout(notifyTimeout);
+        notifyTimeout = setTimeout(() => { noti.style.opacity = 0; }, 2000); 
+    }
+
+    function updateHealthUI() {
+        document.getElementById('health-display').innerText = `❤️ ${health}`;
+    }
+
+    function fullResetGame() {
+        health = 10;
+        currentLevel = 1;
+        hasCheated = false;
+        updateHealthUI();
+        loadLevel();
+    }
+
+    function loadLevel() {
+        mistakesThisLevel = 0;
+        hasKey = false;
+        helpUsed = false;
+        
+        document.getElementById('btnHelp').disabled = false;
+        document.getElementById('level-display').innerText = currentLevel;
+        document.getElementById('status-display').innerText = "Tìm chìa khóa! 🔑";
+        document.getElementById('status-display').style.color = "#e74c3c";
+
+        player.x = 50; player.y = floorY - player.height;
+        player.vx = 0; player.vy = 0;
+
+        currentQData = questionBank[currentLevel - 1];
+
+        document.getElementById('instruction').innerText = currentQData.instruction;
+        document.getElementById('question').innerText = currentQData.content;
+        
+        const contextDiv = document.getElementById('context');
+        if(currentQData.context) {
+            contextDiv.style.display = "block";
+            contextDiv.innerText = currentQData.context;
+            contextDiv.scrollTop = 0; 
+        } else {
+            contextDiv.style.display = "none";
+        }
+
+        ['A','B','C','D'].forEach(id => {
+            document.getElementById('opt-'+id).style.textDecoration = "none";
+            document.getElementById('opt-'+id).style.color = "#2c3e50";
+            document.getElementById('opt-'+id).innerText = `${id}. ${currentQData.options[id]}`;
+        });
+
+        blocks = [
+            { id: 'A', x: 120, y: 100, w: 50, h: 50, active: true },
+            { id: 'B', x: 280, y: 100, w: 50, h: 50, active: true },
+            { id: 'C', x: 440, y: 100, w: 50, h: 50, active: true },
+            { id: 'D', x: 600, y: 100, w: 50, h: 50, active: true }
+        ];
+    }
+
+    function useHelp5050() {
+        if (helpUsed || hasKey) return;
+        helpUsed = true;
+        document.getElementById('btnHelp').disabled = true;
+
+        let wrongBlocks = blocks.filter(b => b.id !== currentQData.correct_answer && b.active);
+        wrongBlocks.sort(() => Math.random() - 0.5);
+        if(wrongBlocks.length >= 2) {
+            wrongBlocks[0].active = false;
+            wrongBlocks[1].active = false;
+            
+            document.getElementById('opt-' + wrongBlocks[0].id).style.textDecoration = "line-through";
+            document.getElementById('opt-' + wrongBlocks[0].id).style.color = "#bdc3c7";
+            document.getElementById('opt-' + wrongBlocks[1].id).style.textDecoration = "line-through";
+            document.getElementById('opt-' + wrongBlocks[1].id).style.color = "#bdc3c7";
+        }
+    }
+
+    function checkHitBlock(block) {
+        if (!block.active) return;
+        
+        if (block.id === currentQData.correct_answer) {
+            hasKey = true;
+            block.active = false; 
+            document.getElementById('status-display').innerText = "Vào Cửa Đi ^.^ 🚪";
+            document.getElementById('status-display').style.color = "#2ecc71";
+            showNotification("Đúng rồi nè! Có chìa khóa rồi!", "success");
+        } else {
+            health--;
+            mistakesThisLevel++;
+            updateHealthUI();
+            
+            showNotification("Ựaaaaa", "error");
+            block.active = false; 
+            document.getElementById('opt-' + block.id).style.textDecoration = "line-through";
+            document.getElementById('opt-' + block.id).style.color = "#bdc3c7";
+
+            if (health <= 0) {
+                showNotification("Bé Tuyến lười biếng rồi, dạy lại bé Tuyến rồi làm lại thôi!", "error");
+                setTimeout(fullResetGame, 1500);
+            }
+        }
+    }
+
+    function update() {
+        if (keys.left) player.vx = -player.speed;
+        else if (keys.right) player.vx = player.speed;
+        else player.vx = 0;
+
+        if (keys.jump && player.grounded) {
+            player.vy = player.jumpPower;
+            player.grounded = false;
+        }
+
+        player.x += player.vx;
+        player.y += player.vy;
+        player.vy += gravity;
+
+        if (player.x < 0) player.x = 0;
+        if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+
+        if (player.y + player.height >= floorY) {
+            player.y = floorY - player.height;
+            player.vy = 0;
+            player.grounded = true;
+        }
+
+        blocks.forEach(block => {
+            if (block.active) {
+                if (player.vy < 0 && 
+                    player.y <= block.y + block.h && player.y + player.height > block.y + block.h &&
+                    player.x + player.width > block.x && player.x < block.x + block.w) {
+                    player.y = block.y + block.h; 
+                    player.vy = 0; 
+                    checkHitBlock(block);
+                }
+                if (player.vy > 0 && 
+                    player.y + player.height >= block.y && player.y < block.y &&
+                    player.x + player.width > block.x && player.x < block.x + block.w) {
+                    player.y = block.y - player.height;
+                    player.vy = 0;
+                    player.grounded = true;
+                }
+            }
+        });
+
+        if (hasKey && player.x + player.width > door.x && player.y + player.height > door.y && player.x < door.x + door.width) {
+            if (currentLevel === MAX_LEVEL) {
+                const endScreen = document.getElementById('end-screen');
+                const endMsg = document.getElementById('end-msg');
+                const btnRestart = document.getElementById('btn-restart');
+                endScreen.style.display = "flex";
+                
+                if (hasCheated) {
+                    endMsg.innerText = "GIAN LẬN RỒI BÉ NÀY HƯ QUÁ!\nPHẢI DẠY LẠI THÔI.";
+                    endMsg.style.color = "#e74c3c";
+                    btnRestart.innerText = "Làm lại không gian lận";
+                } else {
+                    endMsg.innerText = "Bé Tuyến giỏi quá nè 🎉";
+                    endMsg.style.color = "#2ecc71";
+                    btnRestart.innerText = "Chơi lại từ đầu";
+                }
+
+                btnRestart.onclick = () => {
+                    endScreen.style.display = "none";
+                    fullResetGame();
+                }
+            } 
+            else {
+                if (mistakesThisLevel > 0) {
+                    showNotification("cố gắng làm tốt hơn nha bé oii", "error");
+                } else {
+                    showNotification("Hmmm, bé này cũng dỏi đó chớ, làm câu nữa đi", "success");
+                }
+                currentLevel++;
+                loadLevel(); 
+            }
+        }
+    }
+
+    function draw() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        
+        ctx.fillStyle = '#8B4513';
+        ctx.fillRect(0, floorY, canvas.width, canvas.height - floorY);
+        ctx.fillStyle = '#2ecc71'; 
+        ctx.fillRect(0, floorY, canvas.width, 15);
+
+        blocks.forEach(block => {
+            if (block.active) {
+                if (blockImg.complete && blockImg.naturalHeight !== 0) {
+                    ctx.drawImage(blockImg, block.x, block.y, block.w, block.h);
+                } else {
+                    ctx.fillStyle = '#e67e22'; 
+                    ctx.fillRect(block.x, block.y, block.w, block.h);
+                    ctx.strokeStyle = '#d35400';
+                    ctx.lineWidth = 3;
+                    ctx.strokeRect(block.x, block.y, block.w, block.h);
+                }
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 28px Arial';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.lineWidth = 2; ctx.strokeStyle = 'black';
+                ctx.strokeText(block.id, block.x + block.w / 2, block.y + block.h / 2);
+                ctx.fillText(block.id, block.x + block.w / 2, block.y + block.h / 2);
+            }
+        });
+
+        if (doorImg.complete && doorImg.naturalHeight !== 0) {
+            ctx.drawImage(doorImg, door.x, door.y, door.width, door.height);
+        } else {
+            ctx.fillStyle = hasKey ? '#3498db' : '#7f8c8d';
+            ctx.fillRect(door.x, door.y, door.width, door.height);
+            ctx.fillStyle = '#f1c40f';
+            ctx.beginPath();
+            ctx.arc(door.x + 10, door.y + door.height / 2, 5, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // VẼ NHÂN VẬT
+        if (playerImg.complete && playerImg.naturalHeight !== 0) {
+            ctx.drawImage(playerImg, player.x, player.y, player.width, player.height);
+        } else {
+            ctx.fillStyle = '#e74c3c';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.fillStyle = 'white'; ctx.fillRect(player.x + 25, player.y + 10, 8, 8);
+            ctx.fillStyle = 'black'; ctx.fillRect(player.x + 28, player.y + 12, 4, 4);
+        }
+
+        // TÊN NHÂN VẬT LƠ LỬNG TRÊN ĐẦU
+        ctx.fillStyle = '#ffffff'; 
+        ctx.font = 'bold 16px Arial';
+        ctx.textAlign = 'center';
+        ctx.strokeStyle = '#000000'; // Viền đen để dễ nhìn
+        ctx.lineWidth = 3;
+        ctx.strokeText("Bé Tuyến", player.x + player.width / 2, player.y - 10);
+        ctx.fillText("Bé Tuyến", player.x + player.width / 2, player.y - 10);
+    }
+
+    function gameLoop() {
+        update();
+        draw();
+        requestAnimationFrame(gameLoop);
+    }
+
+    document.getElementById('btn-jump-level').addEventListener('click', () => {
+        let inputVal = parseInt(document.getElementById('level-input').value);
+        if (inputVal >= 1 && inputVal <= MAX_LEVEL) {
+            hasCheated = true; 
+            currentLevel = inputVal;
+            showNotification("Đã dùng tính năng Dịch Chuyển!", "error");
+            loadLevel();
+        } else {
+            showNotification(`Vui lòng nhập từ 1 đến ${MAX_LEVEL}`, 'error');
+        }
+    });
+
+    function bindButton(btnId, keyName) {
+        const btn = document.getElementById(btnId);
+        btn.addEventListener('touchstart', (e) => { e.preventDefault(); keys[keyName] = true; }, {passive: false});
+        btn.addEventListener('touchend', (e) => { e.preventDefault(); keys[keyName] = false; }, {passive: false});
+        btn.addEventListener('mousedown', () => keys[keyName] = true);
+        btn.addEventListener('mouseup', () => keys[keyName] = false);
+        btn.addEventListener('mouseleave', () => keys[keyName] = false);
+    }
+
+    bindButton('btnLeft', 'left');
+    bindButton('btnRight', 'right');
+    bindButton('btnJump', 'jump');
+    
+    document.getElementById('btnHelp').addEventListener('click', useHelp5050);
+    document.getElementById('btnHelp').addEventListener('touchstart', (e) => { e.preventDefault(); useHelp5050(); }, {passive: false});
+
+    loadLevel();
+    gameLoop();
+</script>
+</body>
+</html>
