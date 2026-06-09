@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mario English 3D - Cửa Nhà Thông Thường</title>
+    <title>Mario English 3D - Có Tính Năng Nhảy</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body, html {
@@ -37,8 +37,6 @@
             display: none; white-space: pre-wrap; line-height: 1.4; color: #34495e;
         }
         #question { font-weight: bold; font-size: 15px; color: #2c3e50; margin-bottom: 10px; }
-        
-        /* Đã nâng cấp lưới đáp án chống dính chữ */
         #options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
         .opt-box {
             background: #ffffff; border: 1px solid #bdc3c7; padding: 8px 10px; 
@@ -83,6 +81,17 @@
             background: rgba(255, 255, 255, 0.7); border-radius: 50%;
             transform: translate(-50%, -50%); pointer-events: none;
         }
+        
+        /* Nút Nhảy 3D */
+        #btn-jump-3d {
+            position: absolute; bottom: 40px; right: 40px; width: 70px; height: 70px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
+            color: white; font-weight: bold; font-size: 14px;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 20; pointer-events: auto; cursor: pointer; user-select: none;
+        }
+        #btn-jump-3d:active { background: rgba(255, 255, 255, 0.5); }
+
         #crosshair {
             position: absolute; top: 50%; left: 50%; width: 12px; height: 12px;
             border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%);
@@ -124,6 +133,7 @@
 <div id="crosshair"></div>
 
 <div id="joystick-zone"><div id="joystick-knob"></div></div>
+<div id="btn-jump-3d">NHẢY</div>
 <div id="touch-look-zone"></div>
 
 <div id="end-screen">
@@ -215,7 +225,7 @@
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // Tường hầm (Trái & Phải)
+    // Tường hầm
     const wallGeo = new THREE.BoxGeometry(2, 25, 400);
     const wallMat = new THREE.MeshLambertMaterial({ color: 0xa34b1f });
     const leftWall = new THREE.Mesh(wallGeo, wallMat);
@@ -225,7 +235,7 @@
     rightWall.position.set(21, 12.5, 0);
     scene.add(rightWall);
 
-    // Tường cuối bít kín hở
+    // Tường cuối
     const endWallGeo = new THREE.BoxGeometry(40, 25, 2);
     const endWallMat = new THREE.MeshLambertMaterial({ color: 0xc0392b }); 
     const endWall = new THREE.Mesh(endWallGeo, endWallMat);
@@ -319,7 +329,7 @@
         doorGroups.push(group);
     }
 
-    // ================= LOGIC GAME =================
+    // ================= LOGIC GAME & VẬT LÝ =================
     let health = 10;
     let hasCheated = false;
     let mistakesThisLevel = 0;
@@ -328,8 +338,13 @@
     let currentQData = null;
     let helpUsed = false;
 
-    let playerY = 5.5; 
+    // Các biến Vật Lý cho tính năng nhảy
+    const basePlayerY = 5.5; 
     let moveSpeed = 0.55;
+    let velocityY = 0;
+    const gravity3D = -0.015;
+    const jumpForce = 0.3;
+    let isGrounded = true;
     
     const keys = { forward: false, backward: false, left: false, right: false };
     let joyX = 0, joyY = 0; 
@@ -362,7 +377,7 @@
         document.getElementById('level-display').innerText = currentLevel;
         updateHealthUI();
 
-        camera.position.set(0, playerY, 35);
+        camera.position.set(0, basePlayerY, 35);
         camYaw = 0; camPitch = 0;
         camera.rotation.set(0, 0, 0);
 
@@ -382,7 +397,7 @@
             contextDiv.style.display = "block";contextDiv.innerText = currentQData.context;contextDiv.scrollTop = 0; 
         } else { contextDiv.style.display = "none"; }
 
-        // Đổ đáp án sạch sẽ (Thay đổi thuộc tính CSS để ô text nhìn rõ ràng)
+        // Đổ đáp án sạch sẽ
         ['A','B','C','D'].forEach(id => {
             const optDiv = document.getElementById('opt-'+id);
             optDiv.style.textDecoration = "none";
@@ -491,11 +506,26 @@
     });
 
     // ================= CONTROLS =================
+
+    // Hàm thực hiện Nhảy
+    function triggerJump() {
+        if (isGrounded) {
+            velocityY = jumpForce;
+            isGrounded = false;
+        }
+    }
+
+    // Sự kiện Nút Nhảy trên Màn hình
+    const btnJump3D = document.getElementById('btn-jump-3d');
+    btnJump3D.addEventListener('touchstart', (e) => { e.preventDefault(); triggerJump(); }, {passive: false});
+    btnJump3D.addEventListener('mousedown', (e) => { e.preventDefault(); triggerJump(); });
+
     window.addEventListener('keydown', (e) => {
         if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = true;
         if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.backward = true;
         if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.left = true;
         if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.right = true;
+        if (e.code === 'Space') triggerJump(); // Gắn phím Spacebar để nhảy
     });
     window.addEventListener('keyup', (e) => {
         if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = false;
@@ -572,6 +602,7 @@
             if(cloud.position.x < -100) cloud.position.x = 100;
         });
 
+        // Xử lý di chuyển
         let moveForward = 0, moveRight = 0;
         if (keys.forward) moveForward = 1;
         if (keys.backward) moveForward = -1;
@@ -584,6 +615,18 @@
             let dir = new THREE.Vector3(moveRight, 0, -moveForward).normalize();
             dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camYaw);
             camera.position.addScaledVector(dir, moveSpeed);
+        }
+
+        // Xử lý Vật lý Trọng lực & Nhảy
+        if (!isGrounded) {
+            velocityY += gravity3D;
+            camera.position.y += velocityY;
+            
+            if (camera.position.y <= basePlayerY) {
+                camera.position.y = basePlayerY;
+                velocityY = 0;
+                isGrounded = true;
+            }
         }
 
         checkDoorCollision();
