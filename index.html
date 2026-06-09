@@ -3,58 +3,97 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mario English 3D - Có Tính Năng Nhảy</title>
+    <title>Mario English 3D - Tối Ưu Mobile</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <style>
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
             background-color: #000; font-family: Arial, sans-serif; user-select: none;
-            touch-action: none;
+            touch-action: none; -webkit-user-select: none;
         }
         
+        /* LỚP NỀN VUỐT XOAY CAMERA (Nằm dưới UI) */
+        #touch-look-zone {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            z-index: 1; pointer-events: auto;
+        }
+
+        /* GIAO DIỆN CÂU HỎI (Nằm trên cùng) */
         #ui-overlay {
             position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 10;
             display: flex; flex-direction: column; align-items: center; padding-top: 10px;
         }
         .panel {
-            background: rgba(236, 240, 241, 0.95); padding: 15px; border-radius: 10px;
-            width: 90%; max-width: 650px; pointer-events: auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid #bdc3c7;
+            background: rgba(236, 240, 241, 0.85); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
+            padding: 10px; border-radius: 8px; width: 92%; max-width: 650px; pointer-events: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid rgba(189, 195, 199, 0.8);
+            max-height: 40vh; overflow-y: auto; /* Giới hạn độ cao để không che 3D */
+            display: flex; flex-direction: column;
         }
         .header-info {
             display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; color: #e74c3c; font-size: 15px; margin-bottom: 8px; gap: 5px;
+            font-weight: bold; color: #e74c3c; font-size: 13px; margin-bottom: 5px; gap: 5px;
         }
-        .level-controls { display: flex; align-items: center; gap: 5px; color: #2c3e50; }
-        #level-input { width: 40px; text-align: center; border: 1px solid #95a5a6; border-radius: 5px; padding: 3px; font-weight: bold;}
-        #btn-jump-level { background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 4px 10px; font-weight: bold; }
-        #health-display { background: #ff7675; color: white; padding: 4px 10px; border-radius: 15px; }
+        .level-controls { display: flex; align-items: center; gap: 4px; color: #2c3e50; }
+        #level-input { width: 30px; text-align: center; border: 1px solid #95a5a6; border-radius: 5px; padding: 2px; font-weight: bold; font-size: 12px;}
+        #btn-jump-level { background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 2px 6px; font-weight: bold; font-size: 12px;}
+        #health-display { background: #ff7675; color: white; padding: 2px 8px; border-radius: 12px; }
 
-        #instruction { font-style: italic; font-size: 13px; color: #2980b9; margin-bottom: 6px; font-weight: bold;}
+        #instruction { font-style: italic; font-size: 12px; color: #2980b9; margin-bottom: 4px; font-weight: bold;}
         #context { 
-            background: #fff; padding: 10px; border: 1px solid #ccc; border-radius: 5px; 
-            font-size: 14px; max-height: 100px; overflow-y: auto; margin-bottom: 8px; 
-            display: none; white-space: pre-wrap; line-height: 1.4; color: #34495e;
+            background: rgba(255,255,255,0.9); padding: 8px; border: 1px solid #ccc; border-radius: 5px; 
+            font-size: 13px; max-height: 80px; overflow-y: auto; margin-bottom: 6px; 
+            display: none; white-space: pre-wrap; line-height: 1.3; color: #34495e;
         }
-        #question { font-weight: bold; font-size: 15px; color: #2c3e50; margin-bottom: 10px; }
-        #options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
+        #question { font-weight: bold; font-size: 14px; color: #2c3e50; margin-bottom: 8px; }
+        
+        #options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 13px; }
         .opt-box {
-            background: #ffffff; border: 1px solid #bdc3c7; padding: 8px 10px; 
-            border-radius: 6px; color: #2c3e50; word-break: break-word; font-weight: bold;
+            background: #ffffff; border: 1px solid #bdc3c7; padding: 6px 8px; 
+            border-radius: 5px; color: #2c3e50; word-break: break-word; font-weight: bold;
         }
 
+        /* NÚT TÍNH NĂNG */
         #btn-help {
             position: absolute; top: 10px; right: 10px; background: #f39c12; color: white;
-            border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold;
-            pointer-events: auto; cursor: pointer; box-shadow: 0 4px #e67e22; z-index: 20;
+            border: none; padding: 8px 12px; border-radius: 8px; font-weight: bold; font-size: 13px;
+            pointer-events: auto; cursor: pointer; box-shadow: 0 3px #e67e22; z-index: 20;
         }
-        #btn-help:active { transform: translateY(4px); box-shadow: none; }
+        #btn-help:active { transform: translateY(3px); box-shadow: none; }
         #btn-help:disabled { background: #95a5a6; box-shadow: none; opacity: 0.7; }
 
+        /* ĐIỀU KHIỂN MOBILE */
+        #joystick-zone {
+            position: absolute; bottom: 25px; left: 25px; width: 110px; height: 110px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
+            z-index: 20; pointer-events: auto;
+        }
+        #joystick-knob {
+            position: absolute; top: 50%; left: 50%; width: 45px; height: 45px;
+            background: rgba(255, 255, 255, 0.7); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        
+        #btn-jump-3d {
+            position: absolute; bottom: 35px; right: 35px; width: 75px; height: 75px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
+            color: white; font-weight: bold; font-size: 15px; text-shadow: 1px 1px 2px #000;
+            display: flex; align-items: center; justify-content: center;
+            z-index: 20; pointer-events: auto; cursor: pointer; user-select: none;
+        }
+        #btn-jump-3d:active { background: rgba(255, 255, 255, 0.4); }
+
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; width: 8px; height: 8px;
+            border: 2px solid rgba(255,255,255,0.8); border-radius: 50%; transform: translate(-50%, -50%);
+            z-index: 5; pointer-events: none;
+        }
+
+        /* POP-UP */
         #notification {
-            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.85); padding: 15px 30px; border-radius: 8px;
-            font-size: 18px; font-weight: bold; text-align: center; color: white;
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85); padding: 12px 25px; border-radius: 8px;
+            font-size: 16px; font-weight: bold; text-align: center; color: white;
             opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.3s ease;
         }
 
@@ -64,46 +103,25 @@
             display: none; flex-direction: column; align-items: center; justify-content: center;
             text-align: center; padding: 20px; box-sizing: border-box; color: white;
         }
-        #end-msg { font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.5; }
+        #end-msg { font-size: 22px; font-weight: bold; margin-bottom: 25px; line-height: 1.5; }
         #btn-restart {
-            background: #f1c40f; border: none; padding: 15px 35px; border-radius: 10px; 
-            font-size: 18px; font-weight: bold; cursor: pointer; color: #2c3e50;
+            background: #f1c40f; border: none; padding: 12px 25px; border-radius: 8px; 
+            font-size: 16px; font-weight: bold; cursor: pointer; color: #2c3e50;
         }
 
-        /* Control Mobile */
-        #joystick-zone {
-            position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
-            z-index: 20; pointer-events: auto;
-        }
-        #joystick-knob {
-            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
-            background: rgba(255, 255, 255, 0.7); border-radius: 50%;
-            transform: translate(-50%, -50%); pointer-events: none;
-        }
-        
-        /* Nút Nhảy 3D */
-        #btn-jump-3d {
-            position: absolute; bottom: 40px; right: 40px; width: 70px; height: 70px;
-            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
-            color: white; font-weight: bold; font-size: 14px;
-            display: flex; align-items: center; justify-content: center;
-            z-index: 20; pointer-events: auto; cursor: pointer; user-select: none;
-        }
-        #btn-jump-3d:active { background: rgba(255, 255, 255, 0.5); }
-
-        #crosshair {
-            position: absolute; top: 50%; left: 50%; width: 12px; height: 12px;
-            border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%);
-            z-index: 5; pointer-events: none; opacity: 0.8;
-        }
-        #touch-look-zone {
-            position: absolute; top: 0; right: 0; width: 60%; height: 100%;
-            z-index: 5; pointer-events: auto;
+        /* Tablet/PC nhỉnh hơn tí */
+        @media (min-width: 768px) {
+            .header-info, #question { font-size: 16px; }
+            .opt-box { font-size: 15px; padding: 10px; }
+            #btn-help { padding: 10px 15px; font-size: 15px; }
+            #joystick-zone { width: 130px; height: 130px; bottom: 40px; left: 40px; }
+            #btn-jump-3d { width: 90px; height: 90px; bottom: 50px; right: 50px; font-size: 18px; }
         }
     </style>
 </head>
 <body>
+
+<div id="touch-look-zone"></div>
 
 <div id="ui-overlay">
     <div class="panel">
@@ -134,7 +152,6 @@
 
 <div id="joystick-zone"><div id="joystick-knob"></div></div>
 <div id="btn-jump-3d">NHẢY</div>
-<div id="touch-look-zone"></div>
 
 <div id="end-screen">
     <div id="end-msg"></div>
@@ -218,29 +235,25 @@
     dirLight.position.set(50, 100, 30);
     scene.add(dirLight);
 
-    // Môi trường: Mặt đất
+    // Mặt đất
     const floorGeo = new THREE.PlaneGeometry(100, 400);
     const floorMat = new THREE.MeshLambertMaterial({ color: 0x2ecc71 });
     const floor = new THREE.Mesh(floorGeo, floorMat);
     floor.rotation.x = -Math.PI / 2;
     scene.add(floor);
 
-    // Tường hầm
+    // Tường
     const wallGeo = new THREE.BoxGeometry(2, 25, 400);
     const wallMat = new THREE.MeshLambertMaterial({ color: 0xa34b1f });
     const leftWall = new THREE.Mesh(wallGeo, wallMat);
-    leftWall.position.set(-21, 12.5, 0);
-    scene.add(leftWall);
+    leftWall.position.set(-21, 12.5, 0); scene.add(leftWall);
     const rightWall = new THREE.Mesh(wallGeo, wallMat);
-    rightWall.position.set(21, 12.5, 0);
-    scene.add(rightWall);
+    rightWall.position.set(21, 12.5, 0); scene.add(rightWall);
 
-    // Tường cuối
     const endWallGeo = new THREE.BoxGeometry(40, 25, 2);
     const endWallMat = new THREE.MeshLambertMaterial({ color: 0xc0392b }); 
     const endWall = new THREE.Mesh(endWallGeo, endWallMat);
-    endWall.position.set(0, 12.5, -61); 
-    scene.add(endWall);
+    endWall.position.set(0, 12.5, -61); scene.add(endWall);
 
     // Mây
     const clouds = [];
@@ -249,8 +262,7 @@
     for(let i=0; i<20; i++){
         const cloud = new THREE.Mesh(cloudGeo, cloudMat);
         cloud.position.set((Math.random() - 0.5) * 180, 35 + Math.random() * 10, (Math.random() - 0.5) * 200);
-        scene.add(cloud);
-        clouds.push(cloud);
+        scene.add(cloud); clouds.push(cloud);
     }
 
     // ================= CỬA NHÀ =================
@@ -269,87 +281,50 @@
         canvas.width = 256; canvas.height = 256;
         const ctx = canvas.getContext('2d');
 
-        ctx.fillStyle = '#8e44ad';
-        ctx.fillRect(0, 0, 256, 256);
-
-        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
-        ctx.lineWidth = 2;
+        ctx.fillStyle = '#8e44ad'; ctx.fillRect(0, 0, 256, 256);
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)'; ctx.lineWidth = 2;
         for(let i=0; i<256; i+=10) {
-            ctx.beginPath();
-            ctx.moveTo(0, i); ctx.lineTo(256, i + (Math.random()-0.5)*20);
-            ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, i); ctx.lineTo(256, i + (Math.random()-0.5)*20); ctx.stroke();
         }
 
-        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
-        ctx.lineWidth = 8;
-        ctx.strokeRect(20, 20, 216, 100); 
-        ctx.strokeRect(20, 136, 216, 100); 
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)'; ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, 216, 100); ctx.strokeRect(20, 136, 216, 100); 
 
-        ctx.fillStyle = 'white';
-        ctx.font = 'bold 160px Arial';
+        ctx.fillStyle = 'white'; ctx.font = 'bold 160px Arial';
         ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
         ctx.lineWidth = 12; ctx.strokeStyle = 'black';
         
         if (state === 'active') {
-            ctx.strokeText(text, 128, 128);
-            ctx.fillText(text, 128, 128);
+            ctx.strokeText(text, 128, 128); ctx.fillText(text, 128, 128);
         } else if (state === 'wrong') {
-            ctx.fillStyle = 'rgba(231, 76, 60, 0.6)'; 
-            ctx.fillRect(0, 0, 256, 256);
-            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
-            ctx.lineWidth = 20;
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.6)'; ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)'; ctx.lineWidth = 20;
             ctx.beginPath(); ctx.moveTo(30, 30); ctx.lineTo(226, 226);
             ctx.moveTo(226, 30); ctx.lineTo(30, 226); ctx.stroke();
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.fillText(text, 128, 128);
+            ctx.fillStyle = 'rgba(255,255,255,0.3)'; ctx.fillText(text, 128, 128);
         }
-
-        const texture = new THREE.CanvasTexture(canvas);
-        return new THREE.MeshLambertMaterial({ map: texture });
+        return new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(canvas) });
     }
 
     for(let i=0; i<4; i++){
-        const group = new THREE.Group();
-        group.position.set(doorPositions[i], 6, -60);
-
-        const frame = new THREE.Mesh(frameGeo, frameMat);
-        frame.position.z = -0.6;
-        group.add(frame);
-
-        const doorMat = createNormalDoorTexture(doorIds[i], 'active');
-        const doorBody = new THREE.Mesh(doorGeo, doorMat);
-        group.add(doorBody);
-
-        const knob = new THREE.Mesh(knobGeo, knobMat);
-        knob.position.set(3, -1, 0.6); 
-        group.add(knob);
+        const group = new THREE.Group(); group.position.set(doorPositions[i], 6, -60);
+        const frame = new THREE.Mesh(frameGeo, frameMat); frame.position.z = -0.6; group.add(frame);
+        const doorBody = new THREE.Mesh(doorGeo, createNormalDoorTexture(doorIds[i], 'active')); group.add(doorBody);
+        const knob = new THREE.Mesh(knobGeo, knobMat); knob.position.set(3, -1, 0.6); group.add(knob);
 
         group.userData = { id: doorIds[i], active: true, doorBody: doorBody, knob: knob };
-        scene.add(group);
-        doorGroups.push(group);
+        scene.add(group); doorGroups.push(group);
     }
 
     // ================= LOGIC GAME & VẬT LÝ =================
-    let health = 10;
-    let hasCheated = false;
-    let mistakesThisLevel = 0;
-    let currentLevel = 1;
-    const MAX_LEVEL = 50; 
-    let currentQData = null;
-    let helpUsed = false;
+    let health = 10; let hasCheated = false; let mistakesThisLevel = 0;
+    let currentLevel = 1; const MAX_LEVEL = 50; let currentQData = null; let helpUsed = false;
 
-    // Các biến Vật Lý cho tính năng nhảy
-    const basePlayerY = 5.5; 
-    let moveSpeed = 0.55;
-    let velocityY = 0;
-    const gravity3D = -0.015;
-    const jumpForce = 0.3;
-    let isGrounded = true;
+    const basePlayerY = 5.5; let moveSpeed = 0.55; let velocityY = 0;
+    const gravity3D = -0.015; const jumpForce = 0.3; let isGrounded = true;
     
     const keys = { forward: false, backward: false, left: false, right: false };
-    let joyX = 0, joyY = 0; 
-    let camYaw = 0, camPitch = 0;
-    const PI_2 = Math.PI / 2;
+    let joyX = 0, joyY = 0; let camYaw = 0, camPitch = 0; const PI_2 = Math.PI / 2;
 
     let notifyTimeout = null;
     function showNotification(msg, type) {
@@ -362,9 +337,7 @@
         notifyTimeout = setTimeout(() => { noti.style.opacity = 0; }, 2200); 
     }
 
-    function updateHealthUI() {
-        document.getElementById('health-display').innerText = `❤️ ${health}`;
-    }
+    function updateHealthUI() { document.getElementById('health-display').innerText = `❤️ ${health}`; }
 
     function fullResetGame() {
         health = 10; currentLevel = 1; hasCheated = false;
@@ -378,12 +351,10 @@
         updateHealthUI();
 
         camera.position.set(0, basePlayerY, 35);
-        camYaw = 0; camPitch = 0;
-        camera.rotation.set(0, 0, 0);
+        camYaw = 0; camPitch = 0; camera.rotation.set(0, 0, 0);
 
         for(let i=0; i<4; i++){
-            const dg = doorGroups[i];
-            dg.userData.active = true;
+            const dg = doorGroups[i]; dg.userData.active = true;
             dg.userData.doorBody.material = createNormalDoorTexture(doorIds[i], 'active');
             dg.userData.knob.visible = true; 
         }
@@ -397,12 +368,9 @@
             contextDiv.style.display = "block";contextDiv.innerText = currentQData.context;contextDiv.scrollTop = 0; 
         } else { contextDiv.style.display = "none"; }
 
-        // Đổ đáp án sạch sẽ
         ['A','B','C','D'].forEach(id => {
             const optDiv = document.getElementById('opt-'+id);
-            optDiv.style.textDecoration = "none";
-            optDiv.style.color = "#2c3e50";
-            optDiv.style.background = "#ffffff";
+            optDiv.style.textDecoration = "none"; optDiv.style.color = "#2c3e50"; optDiv.style.background = "#ffffff";
             optDiv.innerText = `${id}. ${currentQData.options[id]}`;
         });
     }
@@ -412,120 +380,158 @@
             for(let i=0; i<4; i++){
                 const dg = doorGroups[i];
                 if (!dg.userData.active) continue;
-                
                 if (Math.abs(camera.position.x - doorPositions[i]) < 4.2) {
                     if (dg.userData.id === currentQData.correct_answer) {
-                        if (currentLevel === MAX_LEVEL) {
-                            endGame();
-                        } else {
+                        if (currentLevel === MAX_LEVEL) endGame();
+                        else {
                             if (mistakesThisLevel > 0) showNotification("Cố gắng làm tốt hơn nha bé oii", "error");
                             else showNotification("Hmmm, bé này cũng dỏi đó chớ, làm câu nữa đi", "success");
-                            currentLevel++;
-                            loadLevel();
+                            currentLevel++; loadLevel();
                         }
                     } else {
-                        health--; mistakesThisLevel++;
-                        updateHealthUI();
+                        health--; mistakesThisLevel++; updateHealthUI();
                         showNotification("Làm vầy rồi thi tuyển sinh sao đậu trời (Trừ 1 Máu)", "error");
-                        
-                        dg.userData.active = false;
-                        dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong');
+                        dg.userData.active = false; dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong');
                         dg.userData.knob.visible = false; 
 
-                        // Bôi xám đáp án sai
                         const wrongOpt = document.getElementById('opt-' + dg.userData.id);
-                        wrongOpt.style.textDecoration = "line-through";
-                        wrongOpt.style.color = "#95a5a6";
-                        wrongOpt.style.background = "#ecf0f1";
-                        
+                        wrongOpt.style.textDecoration = "line-through"; wrongOpt.style.color = "#95a5a6"; wrongOpt.style.background = "#ecf0f1";
                         camera.position.z = -45;
-
-                        if (health <= 0) {
-                            showNotification("Hết máu! Bắt đầu lại nào...", "error");
-                            setTimeout(fullResetGame, 1500);
-                        }
+                        if (health <= 0) { showNotification("Hết máu! Bắt đầu lại nào...", "error"); setTimeout(fullResetGame, 1500); }
                     }
                     return; 
                 }
             }
             if(camera.position.z < -59.5) camera.position.z = -59.5;
         }
-        
         if(camera.position.z > 50) camera.position.z = 50;
         if(camera.position.x < -18.5) camera.position.x = -18.5;
         if(camera.position.x > 18.5) camera.position.x = 18.5;
     }
 
     function endGame() {
-        const endScreen = document.getElementById('end-screen');
-        const endMsg = document.getElementById('end-msg');
-        const btnRestart = document.getElementById('btn-restart');
+        const endScreen = document.getElementById('end-screen'); const endMsg = document.getElementById('end-msg'); const btnRestart = document.getElementById('btn-restart');
         endScreen.style.display = "flex";
-        
-        if (hasCheated) { 
-            endMsg.innerText = "GIAN LẬN RỒI BÉ NÀY HƯ QUÁ!\nPHẢI DẠY LẠI THÔI."; 
-            endMsg.style.color = "#e74c3c";
-            btnRestart.innerText = "Làm lại không gian lận";
-        } else { 
-            endMsg.innerText = "Bé Tuyến giỏi quá nè 🎉"; 
-            endMsg.style.color = "#2ecc71"; 
-            btnRestart.innerText = "Chơi lại từ đầu";
-        }
+        if (hasCheated) { endMsg.innerText = "GIAN LẬN RỒI BÉ NÀY HƯ QUÁ!\nPHẢI DẠY LẠI THÔI."; endMsg.style.color = "#e74c3c"; btnRestart.innerText = "Làm lại không gian lận"; } 
+        else { endMsg.innerText = "Bé Tuyến giỏi quá nè 🎉"; endMsg.style.color = "#2ecc71"; btnRestart.innerText = "Chơi lại từ đầu"; }
         btnRestart.onclick = () => { endScreen.style.display = "none"; fullResetGame(); }
     }
 
-    // Tính năng 50/50
     document.getElementById('btn-help').addEventListener('click', () => {
-        if (helpUsed) return;
-        helpUsed = true;
-        document.getElementById('btn-help').disabled = true;
-
+        if (helpUsed) return; helpUsed = true; document.getElementById('btn-help').disabled = true;
         let wrongDoors = doorGroups.filter(dg => dg.userData.id !== currentQData.correct_answer && dg.userData.active);
         wrongDoors.sort(() => Math.random() - 0.5);
-        
         for(let i=0; i<Math.min(2, wrongDoors.length); i++){
-            const dg = wrongDoors[i];
-            dg.userData.active = false;
-            dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong');
-            dg.userData.knob.visible = false; 
-
+            const dg = wrongDoors[i]; dg.userData.active = false;
+            dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong'); dg.userData.knob.visible = false; 
             const wrongOpt = document.getElementById('opt-' + dg.userData.id);
-            wrongOpt.style.textDecoration = "line-through";
-            wrongOpt.style.color = "#95a5a6";
-            wrongOpt.style.background = "#ecf0f1";
+            wrongOpt.style.textDecoration = "line-through"; wrongOpt.style.color = "#95a5a6"; wrongOpt.style.background = "#ecf0f1";
         }
     });
 
     document.getElementById('btn-jump-level').addEventListener('click', () => {
         let inputVal = parseInt(document.getElementById('level-input').value);
-        if (inputVal >= 1 && inputVal <= MAX_LEVEL) {
-            hasCheated = true; currentLevel = inputVal;
-            showNotification("Đã dùng tính năng Dịch Chuyển!", "error");
-            loadLevel();
-        }
+        if (inputVal >= 1 && inputVal <= MAX_LEVEL) { hasCheated = true; currentLevel = inputVal; showNotification("Đã dùng tính năng Dịch Chuyển!", "error"); loadLevel(); }
     });
 
-    // ================= CONTROLS =================
+    function triggerJump() { if (isGrounded) { velocityY = jumpForce; isGrounded = false; } }
 
-    // Hàm thực hiện Nhảy
-    function triggerJump() {
-        if (isGrounded) {
-            velocityY = jumpForce;
-            isGrounded = false;
-        }
-    }
-
-    // Sự kiện Nút Nhảy trên Màn hình
     const btnJump3D = document.getElementById('btn-jump-3d');
     btnJump3D.addEventListener('touchstart', (e) => { e.preventDefault(); triggerJump(); }, {passive: false});
     btnJump3D.addEventListener('mousedown', (e) => { e.preventDefault(); triggerJump(); });
 
+    // ================= XỬ LÝ ĐA ĐIỂM (CÔ LẬP CẢM ỨNG) =================
+    
+    // 1. JOYSTICK
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    let joyActive = false; let joyCenter = { x: 0, y: 0 }; let joyTouchId = null;
+
+    joyZone.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        const touch = e.changedTouches[0];
+        joyTouchId = touch.identifier;
+        joyActive = true;
+        let rect = joyZone.getBoundingClientRect();
+        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        updateJoystick(touch);
+    }, {passive: false});
+
+    joyZone.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        if (!joyActive) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joyTouchId) {
+                updateJoystick(e.changedTouches[i]); break;
+            }
+        }
+    }, {passive: false});
+
+    const resetJoy = (e) => {
+        if (!joyActive) return;
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === joyTouchId) {
+                joyActive = false; joyX = 0; joyY = 0; joyTouchId = null;
+                joyKnob.style.transform = `translate(-50%, -50%)`; break;
+            }
+        }
+    };
+    joyZone.addEventListener('touchend', resetJoy); joyZone.addEventListener('touchcancel', resetJoy);
+
+    function updateJoystick(touch) {
+        let dx = touch.clientX - joyCenter.x; let dy = touch.clientY - joyCenter.y;
+        let distance = Math.min(55, Math.sqrt(dx*dx + dy*dy)); let angle = Math.atan2(dy, dx);
+        let moveX = distance * Math.cos(angle); let moveY = distance * Math.sin(angle);
+        joyKnob.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        joyX = moveX / 55; joyY = moveY / 55; 
+    }
+
+    // 2. VUỐT CAMERA (LOOK ZONE)
+    const lookZone = document.getElementById('touch-look-zone');
+    let lookTouchId = null; let lastTouchX = 0, lastTouchY = 0;
+
+    lookZone.addEventListener('touchstart', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (lookTouchId === null) {
+                lookTouchId = e.changedTouches[i].identifier;
+                lastTouchX = e.changedTouches[i].clientX;
+                lastTouchY = e.changedTouches[i].clientY;
+                break;
+            }
+        }
+    }, {passive: false});
+
+    lookZone.addEventListener('touchmove', (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === lookTouchId) {
+                e.preventDefault(); // Tránh scroll màn hình
+                let dx = e.changedTouches[i].clientX - lastTouchX;
+                let dy = e.changedTouches[i].clientY - lastTouchY;
+                lastTouchX = e.changedTouches[i].clientX; lastTouchY = e.changedTouches[i].clientY;
+                camYaw -= dx * 0.005; camPitch -= dy * 0.004;
+                camPitch = Math.max(-PI_2, Math.min(PI_2, camPitch));
+                camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
+                break;
+            }
+        }
+    }, {passive: false});
+
+    const resetLook = (e) => {
+        for (let i = 0; i < e.changedTouches.length; i++) {
+            if (e.changedTouches[i].identifier === lookTouchId) {
+                lookTouchId = null; break;
+            }
+        }
+    };
+    lookZone.addEventListener('touchend', resetLook); lookZone.addEventListener('touchcancel', resetLook);
+
+    // BÀN PHÍM/CHUỘT PC
     window.addEventListener('keydown', (e) => {
         if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = true;
         if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.backward = true;
         if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.left = true;
         if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.right = true;
-        if (e.code === 'Space') triggerJump(); // Gắn phím Spacebar để nhảy
+        if (e.code === 'Space') triggerJump(); 
     });
     window.addEventListener('keyup', (e) => {
         if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = false;
@@ -535,7 +541,6 @@
     });
 
     let isDragging = false;
-    const lookZone = document.getElementById('touch-look-zone');
     lookZone.addEventListener('mousedown', () => isDragging = true);
     window.addEventListener('mouseup', () => isDragging = false);
     window.addEventListener('mousemove', (e) => {
@@ -546,54 +551,7 @@
         }
     });
 
-    const joyZone = document.getElementById('joystick-zone');
-    const joyKnob = document.getElementById('joystick-knob');
-    let joyActive = false;
-    let joyCenter = { x: 0, y: 0 };
-
-    joyZone.addEventListener('touchstart', (e) => {
-        e.preventDefault(); joyActive = true;
-        let rect = joyZone.getBoundingClientRect();
-        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-        updateJoystick(e.touches[0]);
-    }, {passive: false});
-
-    joyZone.addEventListener('touchmove', (e) => {
-        e.preventDefault(); if (joyActive) updateJoystick(e.touches[0]);
-    }, {passive: false});
-
-    const resetJoy = () => { joyActive = false; joyX = 0; joyY = 0; joyKnob.style.transform = `translate(-50%, -50%)`; };
-    joyZone.addEventListener('touchend', resetJoy);
-    joyZone.addEventListener('touchcancel', resetJoy);
-
-    function updateJoystick(touch) {
-        let dx = touch.clientX - joyCenter.x;
-        let dy = touch.clientY - joyCenter.y;
-        let distance = Math.min(55, Math.sqrt(dx*dx + dy*dy)); 
-        let angle = Math.atan2(dy, dx);
-        
-        let moveX = distance * Math.cos(angle);
-        let moveY = distance * Math.sin(angle);
-        joyKnob.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
-        
-        joyX = moveX / 55; joyY = moveY / 55; 
-    }
-
-    let lastTouchX = 0, lastTouchY = 0;
-    lookZone.addEventListener('touchstart', (e) => {
-        lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
-    });
-    lookZone.addEventListener('touchmove', (e) => {
-        e.preventDefault();
-        let dx = e.touches[0].clientX - lastTouchX;
-        let dy = e.touches[0].clientY - lastTouchY;
-        lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
-        
-        camYaw -= dx * 0.005; camPitch -= dy * 0.004;
-        camPitch = Math.max(-PI_2, Math.min(PI_2, camPitch));
-        camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
-    }, {passive: false});
-
+    // ================= LOOP =================
     function gameLoop() {
         requestAnimationFrame(gameLoop);
 
@@ -602,13 +560,9 @@
             if(cloud.position.x < -100) cloud.position.x = 100;
         });
 
-        // Xử lý di chuyển
         let moveForward = 0, moveRight = 0;
-        if (keys.forward) moveForward = 1;
-        if (keys.backward) moveForward = -1;
-        if (keys.left) moveRight = -1;
-        if (keys.right) moveRight = 1;
-
+        if (keys.forward) moveForward = 1; if (keys.backward) moveForward = -1;
+        if (keys.left) moveRight = -1; if (keys.right) moveRight = 1;
         if (joyActive) { moveForward = -joyY; moveRight = joyX; }
 
         if (moveForward !== 0 || moveRight !== 0) {
@@ -617,15 +571,10 @@
             camera.position.addScaledVector(dir, moveSpeed);
         }
 
-        // Xử lý Vật lý Trọng lực & Nhảy
         if (!isGrounded) {
-            velocityY += gravity3D;
-            camera.position.y += velocityY;
-            
+            velocityY += gravity3D; camera.position.y += velocityY;
             if (camera.position.y <= basePlayerY) {
-                camera.position.y = basePlayerY;
-                velocityY = 0;
-                isGrounded = true;
+                camera.position.y = basePlayerY; velocityY = 0; isGrounded = true;
             }
         }
 
@@ -633,8 +582,7 @@
         renderer.render(scene, camera);
     }
 
-    loadLevel();
-    gameLoop();
+    loadLevel(); gameLoop();
 </script>
 </body>
 </html>
