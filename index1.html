@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mario English 3D - Cửa Nhà Thông Thường</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
+            background-color: #000; font-family: Arial, sans-serif; user-select: none;
+            touch-action: none;
+        }
+        
+        #ui-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 10;
+            display: flex; flex-direction: column; align-items: center; padding-top: 10px;
+        }
+        .panel {
+            background: rgba(236, 240, 241, 0.95); padding: 15px; border-radius: 10px;
+            width: 90%; max-width: 650px; pointer-events: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid #bdc3c7;
+        }
+        .header-info {
+            display: flex; justify-content: space-between; align-items: center;
+            font-weight: bold; color: #e74c3c; font-size: 15px; margin-bottom: 8px; gap: 5px;
+        }
+        .level-controls { display: flex; align-items: center; gap: 5px; color: #2c3e50; }
+        #level-input { width: 40px; text-align: center; border: 1px solid #95a5a6; border-radius: 5px; padding: 3px; font-weight: bold;}
+        #btn-jump-level { background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 4px 10px; font-weight: bold; }
+        #health-display { background: #ff7675; color: white; padding: 4px 10px; border-radius: 15px; }
+
+        #instruction { font-style: italic; font-size: 13px; color: #2980b9; margin-bottom: 6px; font-weight: bold;}
+        #context { 
+            background: #fff; padding: 10px; border: 1px solid #ccc; border-radius: 5px; 
+            font-size: 14px; max-height: 100px; overflow-y: auto; margin-bottom: 8px; 
+            display: none; white-space: pre-wrap; line-height: 1.4; color: #34495e;
+        }
+        #question { font-weight: bold; font-size: 15px; color: #2c3e50; margin-bottom: 10px; }
+        
+        /* Đã nâng cấp lưới đáp án chống dính chữ */
+        #options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 14px; }
+        .opt-box {
+            background: #ffffff; border: 1px solid #bdc3c7; padding: 8px 10px; 
+            border-radius: 6px; color: #2c3e50; word-break: break-word; font-weight: bold;
+        }
+
+        #btn-help {
+            position: absolute; top: 10px; right: 10px; background: #f39c12; color: white;
+            border: none; padding: 10px 15px; border-radius: 8px; font-weight: bold;
+            pointer-events: auto; cursor: pointer; box-shadow: 0 4px #e67e22; z-index: 20;
+        }
+        #btn-help:active { transform: translateY(4px); box-shadow: none; }
+        #btn-help:disabled { background: #95a5a6; box-shadow: none; opacity: 0.7; }
+
+        #notification {
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.85); padding: 15px 30px; border-radius: 8px;
+            font-size: 18px; font-weight: bold; text-align: center; color: white;
+            opacity: 0; pointer-events: none; z-index: 100; transition: opacity 0.3s ease;
+        }
+
+        #end-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, 0.98); z-index: 200; pointer-events: auto;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center; padding: 20px; box-sizing: border-box; color: white;
+        }
+        #end-msg { font-size: 26px; font-weight: bold; margin-bottom: 25px; line-height: 1.5; }
+        #btn-restart {
+            background: #f1c40f; border: none; padding: 15px 35px; border-radius: 10px; 
+            font-size: 18px; font-weight: bold; cursor: pointer; color: #2c3e50;
+        }
+
+        /* Control Mobile */
+        #joystick-zone {
+            position: absolute; bottom: 30px; left: 30px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.15); border-radius: 50%; border: 2px solid rgba(255,255,255,0.4);
+            z-index: 20; pointer-events: auto;
+        }
+        #joystick-knob {
+            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.7); border-radius: 50%;
+            transform: translate(-50%, -50%); pointer-events: none;
+        }
+        #crosshair {
+            position: absolute; top: 50%; left: 50%; width: 12px; height: 12px;
+            border: 2px solid white; border-radius: 50%; transform: translate(-50%, -50%);
+            z-index: 5; pointer-events: none; opacity: 0.8;
+        }
+        #touch-look-zone {
+            position: absolute; top: 0; right: 0; width: 60%; height: 100%;
+            z-index: 5; pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui-overlay">
+    <div class="panel">
+        <div class="header-info">
+            <div class="level-controls">
+                <span id="health-display">❤️ 10</span>
+                <span style="margin-left: 8px;">Lvl: <span id="level-display">1</span>/50</span>
+                <input style="margin-left: 5px;" type="number" id="level-input" min="1" max="50" value="1">
+                <button id="btn-jump-level">🚀</button>
+            </div>
+            <span id="player-name">Bé Tuyến 3D</span>
+        </div>
+        <div id="instruction"></div>
+        <div id="context"></div>
+        <div id="question"></div>
+        <div id="options-grid">
+            <div class="opt-box" id="opt-A"></div>
+            <div class="opt-box" id="opt-B"></div>
+            <div class="opt-box" id="opt-C"></div>
+            <div class="opt-box" id="opt-D"></div>
+        </div>
+    </div>
+</div>
+
+<button id="btn-help">🆘 50:50</button>
+<div id="notification"></div>
+<div id="crosshair"></div>
+
+<div id="joystick-zone"><div id="joystick-knob"></div></div>
+<div id="touch-look-zone"></div>
+
+<div id="end-screen">
+    <div id="end-msg"></div>
+    <button id="btn-restart">Làm lại không gian lận</button>
+</div>
+
+<script>
+    // ================= DỮ LIỆU ĐỀ THI 50 CÂU (BẢN CHUẨN) =================
+    const questionBank = [
+        { id: 1, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "I wish I ______ more about the traditional Gong culture of our Gia Lai province.", options: { A: "know", B: "knew", C: "have known", D: "will know" }, correct_answer: "B" },
+        { id: 2, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "The artisan ______ made this beautiful woven basket is from a local Bahnar village.", options: { A: "which", B: "whom", C: "who", D: "whose" }, correct_answer: "C" },
+        { id: 3, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "The ______ you practice speaking English, the more fluent you become.", options: { A: "more", B: "much", C: "many", D: "most" }, correct_answer: "A" },
+        { id: 4, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "______ she was very tired after the trip to Bien Ho Lake, she managed to finish her homework.", options: { A: "Despite", B: "Because", C: "Although", D: "Since" }, correct_answer: "C" },
+        { id: 5, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "We should encourage younger generations to ______ the traditional values of our community.", options: { A: "pass down", B: "look around", C: "cheer up", D: "take off" }, correct_answer: "A" },
+        { id: 6, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "My friend Sue always avoids ______ too much time playing online games.", options: { A: "spend", B: "to spend", C: "spending", D: "spends" }, correct_answer: "C" },
+        { id: 7, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "The rapid changes in society have made the ______ in many families wider.", options: { A: "family values", B: "generation gap", C: "family relation", D: "experiences" }, correct_answer: "B" },
+        { id: 8, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "They have lived in Pleiku City ______ more than 15 years.", options: { A: "since", B: "in", C: "for", D: "from" }, correct_answer: "C" },
+        { id: 9, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "You attended the spring festival in Mang Yang district last year, ______?", options: { A: "didn't you", B: "did you", C: "weren't you", D: "were you" }, correct_answer: "A" },
+        { id: 10, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "If the local government ______ more jobs, fewer young people would move to big cities.", options: { A: "creates", B: "created", C: "has created", D: "will create" }, correct_answer: "B" },
+        { id: 11, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "Local people suggest ______ eco-tourism in Kon Ka Kinh National Park.", options: { A: "develop", B: "to develop", C: "developing", D: "developed" }, correct_answer: "C" },
+        { id: 12, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "The communal house (Nhà Rông) ______ completely last year.", options: { A: "rebuilt", B: "was rebuilt", C: "has rebuilt", D: "is rebuilt" }, correct_answer: "B" },
+        { id: 13, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "John: \"Thank you very much for showing us around the city.\" - Mai: \"______\"", options: { A: "That's wonderful.", B: "Sorry, I can't.", C: "You're welcome.", D: "I agree with you." }, correct_answer: "C" },
+        { id: 14, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "Anna: \"How about visiting the Chu Dang Ya volcano this weekend?\" - Tom: \"______\"", options: { A: "That sounds like a great idea!", B: "No, thanks.", C: "Never mind.", D: "You are too kind." }, correct_answer: "A" },
+        { id: 15, part: "PART 1: MULTIPLE CHOICE - LEXICO-GRAMMAR & COMMUNICATION", context: null, question: "Many teenagers suffer from ______ pressure because they want to fit in with their friends.", options: { A: "peer", B: "study", C: "parent", D: "society" }, correct_answer: "A" },
+        { id: 16, part: "PART 2: ERROR IDENTIFICATION", context: null, question: "The clown looked (A) so funny that (B) we couldn't help (C) to burst out (D) laughing.", options: { A: "so funny", B: "we", C: "to burst", D: "laughing" }, correct_answer: "C" },
+        { id: 17, part: "PART 2: ERROR IDENTIFICATION", context: null, question: "She asked (A) us if we (B) will take those measures (C) to improve the (D) situation.", options: { A: "us", B: "will take", C: "to improve", D: "situation" }, correct_answer: "B" },
+        { id: 18, part: "PART 2: ERROR IDENTIFICATION", context: null, question: "(A) Despite of the heavy rain, the farmers (B) continued harvesting (C) coffee beans in (D) the field.", options: { A: "Despite", B: "continued", C: "coffee beans", D: "the field" }, correct_answer: "A" },
+        { id: 19, part: "PART 2: ERROR IDENTIFICATION", context: null, question: "The student (A) which the teacher (B) praised completed the test (C) faster than (D) anyone else.", options: { A: "which", B: "praised", C: "faster", D: "anyone else" }, correct_answer: "A" },
+        { id: 20, part: "PART 2: ERROR IDENTIFICATION", context: null, question: "I (A) suggested that we (B) should going to the museum (C) to learn about local (D) history.", options: { A: "suggested", B: "should going", C: "to learn", D: "history" }, correct_answer: "B" },
+        { id: 21, part: "PART 3: WORD FORMATION", context: null, question: "To study ______, you need to focus and avoid distractions like smartphones. (EFFECT)", options: { A: "effect", B: "effective", C: "effectively", D: "effectiveness" }, correct_answer: "C" },
+        { id: 22, part: "PART 3: WORD FORMATION", context: null, question: "She advised that we should be careful because the bus service is quite ______ in this remote area. (RELY)", options: { A: "reliable", B: "relying", C: "reliability", D: "unreliable" }, correct_answer: "D" },
+        { id: 23, part: "PART 3: WORD FORMATION", context: null, question: "It's amazing that the boy can ______ all the historical dates in such a short time. (MEMORY)", options: { A: "memory", B: "memorize", C: "memorable", D: "memorial" }, correct_answer: "B" },
+        { id: 24, part: "PART 3: WORD FORMATION", context: null, question: "The project to protect the ______ of this national park will create more jobs for local residents. (DIVERSE)", options: { A: "diverse", B: "diversify", C: "diversity", D: "diversely" }, correct_answer: "C" },
+        { id: 25, part: "PART 3: WORD FORMATION", context: null, question: "The new irrigation system has completely ______ the agriculture of the region. (TRANSFORM)", options: { A: "transform", B: "transformed", C: "transformation", D: "transformative" }, correct_answer: "B" },
+        { id: 26, part: "PART 4: ARRANGEMENT OF EXCHANGES/TEXTS", context: "a. Anna: That sounds amazing! I've always wanted to try it but I'm a little scared of deep water.\nb. Anna: Maybe I'll give it a try someday – thanks for the encouragement!\nc. John: I was nervous too at first, but once you're underwater, it's like a whole new world.\nd. Anna: Hey John, have you ever tried scuba diving before?\ne. John: Yes, I went scuba diving in Thailand last summer – it was unforgettable!", question: "Indicate the best arrangement of utterances to make a meaningful exchange.", options: { A: "d-e-a-c-b", B: "d-c-b-e-a", C: "a-d-c-b-e", D: "d-e-c-a-b" }, correct_answer: "A" },
+        { id: 27, part: "PART 4: ARRANGEMENT OF EXCHANGES/TEXTS", context: "a. Mai: True, and traditional markets are being replaced by supermarkets and online shopping.\nb. Tuan: But I think it's great that some cultural values like family meals still remain strong.\nc. Tuan: Have you noticed how much the Vietnamese lifestyle has changed over the years?\nd. Mai: Yes, in the past, people lived more simply and mainly worked in agriculture.\ne. Tuan: Now, many young people live in cities and work in offices or tech companies.", question: "Indicate the best arrangement of utterances to make a meaningful exchange.", options: { A: "c-d-b-a-e", B: "c-d-e-a-b", C: "a-b-c-d-e", D: "c-e-d-a-b" }, correct_answer: "B" },
+        { id: 28, part: "PART 4: ARRANGEMENT OF EXCHANGES/TEXTS", context: "a. The Vietnamese lifestyle has changed significantly over time.\nb. Today, many people live in cities and have modern jobs and lifestyles.\nc. Life was simple, with strong family and community ties.\nd. In the past, most people lived in rural areas and worked in agriculture.\ne. Despite the changes, traditional values like respect for elders still remain important.", question: "Indicate the best arrangement of sentences to make a meaningful text.", options: { A: "a-d-e-c-b", B: "a-d-c-b-e", C: "a-c-d-b-e", D: "d-a-c-b-e" }, correct_answer: "B" },
+        { id: 29, part: "PART 4: ARRANGEMENT OF EXCHANGES/TEXTS", context: "a. Besides learning from teachers and textbooks, we use the Internet.\nb. Learning today is very different from my grandfather's time.\nc. Google helps us find the answers to almost any questions we have.\nd. The Internet also allows us to pursue our own interests.\ne. It provides us with various online sources such as documents, clips, and programmes.", question: "Indicate the best arrangement of sentences to make a meaningful text.", options: { A: "b-a-e-c-d", B: "b-a-c-e-d", C: "a-b-c-d-e", D: "b-e-a-c-d" }, correct_answer: "A" },
+        { id: 30, part: "PART 4: ARRANGEMENT OF EXCHANGES/TEXTS", context: "a. Nam: Have you ever visited the Great Solid Rock (Đá Nổi) in Chu Pah?\nb. Nam: It's an amazing natural wonder. You should definitely go there!\nc. Hoa: No, I haven't. Is it worth visiting?\nd. Hoa: I will put it on my travel list for this summer.", question: "Indicate the best arrangement of utterances to make a meaningful exchange.", options: { A: "a-c-b-d", B: "a-b-c-d", C: "c-a-b-d", D: "a-c-d-b" }, correct_answer: "A" },
+        { id: 31, part: "PART 5: GUIDED CLOZE TEST", context: "DISCOVER VIETNAM – A MUST-VISIT DESTINATION!\nVietnam is well-known (31) ______ its natural wonders, including rainforests, beaches, waterfalls, caves, and mountains.\nCon Dao Islands\nThese islands are worth (32) ______ for their beautiful beaches and exciting activities like snorkeling, scuba diving, swimming, and turtle-watching.\nSon Doong Cave\nAn exciting destination for people who want to discover its spectacular landscape. Trekking through the world's largest limestone cave is an unforgettable experience. (33) ______, you must visit the cave in a guided tour with experts for safety.\nHa Long Bay\nFamous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", question: "Vietnam is well-known (31) ______ its natural wonders...", options: { A: "with", B: "of", C: "for", D: "in" }, correct_answer: "C" },
+        { id: 32, part: "PART 5: GUIDED CLOZE TEST", context: "DISCOVER VIETNAM – A MUST-VISIT DESTINATION!\nVietnam is well-known (31) ______ its natural wonders, including rainforests, beaches, waterfalls, caves, and mountains.\nCon Dao Islands\nThese islands are worth (32) ______ for their beautiful beaches and exciting activities like snorkeling, scuba diving, swimming, and turtle-watching.\nSon Doong Cave\nAn exciting destination for people who want to discover its spectacular landscape. Trekking through the world's largest limestone cave is an unforgettable experience. (33) ______, you must visit the cave in a guided tour with experts for safety.\nHa Long Bay\nFamous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", question: "These islands are worth (32) ______ for their beautiful beaches...", options: { A: "to visiting", B: "visit", C: "to visit", D: "visiting" }, correct_answer: "D" },
+        { id: 33, part: "PART 5: GUIDED CLOZE TEST", context: "DISCOVER VIETNAM – A MUST-VISIT DESTINATION!\nVietnam is well-known (31) ______ its natural wonders, including rainforests, beaches, waterfalls, caves, and mountains.\nCon Dao Islands\nThese islands are worth (32) ______ for their beautiful beaches and exciting activities like snorkeling, scuba diving, swimming, and turtle-watching.\nSon Doong Cave\nAn exciting destination for people who want to discover its spectacular landscape. Trekking through the world's largest limestone cave is an unforgettable experience. (33) ______, you must visit the cave in a guided tour with experts for safety.\nHa Long Bay\nFamous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", question: "(33) ______, you must visit the cave in a guided tour with experts for safety.", options: { A: "However", B: "Therefore", C: "In addition", D: "Although" }, correct_answer: "A" },
+        { id: 34, part: "PART 5: GUIDED CLOZE TEST", context: "DISCOVER VIETNAM – A MUST-VISIT DESTINATION!\nVietnam is well-known (31) ______ its natural wonders, including rainforests, beaches, waterfalls, caves, and mountains.\nCon Dao Islands\nThese islands are worth (32) ______ for their beautiful beaches and exciting activities like snorkeling, scuba diving, swimming, and turtle-watching.\nSon Doong Cave\nAn exciting destination for people who want to discover its spectacular landscape. Trekking through the world's largest limestone cave is an unforgettable experience. (33) ______, you must visit the cave in a guided tour with experts for safety.\nHa Long Bay\nFamous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", question: "Famous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", options: { A: "historic", B: "modern", C: "scenic", D: "expensive" }, correct_answer: "C" },
+        { id: 35, part: "PART 5: GUIDED CLOZE TEST", context: "DISCOVER VIETNAM – A MUST-VISIT DESTINATION!\nVietnam is well-known (31) ______ its natural wonders, including rainforests, beaches, waterfalls, caves, and mountains.\nCon Dao Islands\nThese islands are worth (32) ______ for their beautiful beaches and exciting activities like snorkeling, scuba diving, swimming, and turtle-watching.\nSon Doong Cave\nAn exciting destination for people who want to discover its spectacular landscape. Trekking through the world's largest limestone cave is an unforgettable experience. (33) ______, you must visit the cave in a guided tour with experts for safety.\nHa Long Bay\nFamous for its (34) ______ islands, Ha Long Bay is a UNESCO World Heritage site.", question: "Come and Experience the (35) ______ of Viet Nam!", options: { A: "Disasters", B: "Wonders", C: "Problems", D: "Wastes" }, correct_answer: "B" },
+        { id: 36, part: "PART 6: READING COMPREHENSION", context: "The attraction of job opportunities and better life is a major reason why people go to cities. Currently, half the world's population lives in cities, and by 2050 this will be two-thirds. Despite good opportunities the cities offer, they also bring two of the most serious issues: poverty and environmental damage.\n\nCities continue to face the problem of poverty. There have been efforts by the government to address the problem, but many people still live in poverty-stricken areas.", question: "What is the main purpose of the text?", options: { A: "to demonstrate the seriousness of poverty in cities", B: "to bring up the environmental issues in cities", C: "to explain why people prefer to live in the countryside", D: "to discuss poverty and environmental damage in cities" }, correct_answer: "D" },
+        { id: 37, part: "PART 6: READING COMPREHENSION", context: "The attraction of job opportunities and better life is a major reason why people go to cities. Currently, half the world's population lives in cities, and by 2050 this will be two-thirds. Despite good opportunities the cities offer, they also bring two of the most serious issues: poverty and environmental damage.\n\nCities continue to face the problem of poverty. There have been efforts by the government to address the problem, but many people still live in poverty-stricken areas.", question: "Which word has the CLOSEST meaning to the word \"poverty-stricken\" in paragraph 2?", options: { A: "rich", B: "poor", C: "well-off", D: "prosperous" }, correct_answer: "B" },
+        { id: 38, part: "PART 6: READING COMPREHENSION", context: "The attraction of job opportunities and better life is a major reason why people go to cities. Currently, half the world's population lives in cities, and by 2050 this will be two-thirds. Despite good opportunities the cities offer, they also bring two of the most serious issues: poverty and environmental damage.\n\nCities continue to face the problem of poverty. There have been efforts by the government to address the problem, but many people still live in poverty-stricken areas.", question: "Which does NOT the text mention as a solution to poverty?", options: { A: "offering job training", B: "building more educational facilities", C: "providing free medical care", D: "improving access to affordable housing" }, correct_answer: "C" },
+        { id: 39, part: "PART 6: READING COMPREHENSION", context: "The attraction of job opportunities and better life is a major reason why people go to cities. Currently, half the world's population lives in cities, and by 2050 this will be two-thirds. Despite good opportunities the cities offer, they also bring two of the most serious issues: poverty and environmental damage.\n\nCities continue to face the problem of poverty. There have been efforts by the government to address the problem, but many people still live in poverty-stricken areas.", question: "What does the word \"This\" in paragraph 3 refer to?", options: { A: "the increase in resource consumption", B: "the growing demand for resources", C: "environmental degradation", D: "the increase in resource consumption and waste" }, correct_answer: "D" },
+        { id: 40, part: "PART 6: READING COMPREHENSION", context: "The attraction of job opportunities and better life is a major reason why people go to cities. Currently, half the world's population lives in cities, and by 2050 this will be two-thirds. Despite good opportunities the cities offer, they also bring two of the most serious issues: poverty and environmental damage.\n\nCities continue to face the problem of poverty. There have been efforts by the government to address the problem, but many people still live in poverty-stricken areas.", question: "The word \"address\" in paragraph 2 is closest in meaning to:", options: { A: "deal with", B: "ignore", C: "locate", D: "create" }, correct_answer: "A" },
+        { id: 41, part: "PART 6: READING COMPREHENSION", context: "Sociologists have been carrying out research into the social pressure on teenagers. Many adolescents are unhappy at school because they find it difficult to make friends. They may also worry about their appearance and there is a great deal of pressure on them to dress, talk and behave the same as others. This phenomenon is called peer pressure, and it is very common in today's society.\n\nThere are a number of programs for teenagers on TV. They provide them with practical skills such as reasoning skills, social skills and cognitive skills.", question: "What is the main topic of the passage?", options: { A: "Social pressure on teenagers", B: "Programs for teenagers on TV", C: "How to dress and behave at school", D: "The benefits of making friends" }, correct_answer: "A" },
+        { id: 42, part: "PART 6: READING COMPREHENSION", context: "Sociologists have been carrying out research into the social pressure on teenagers. Many adolescents are unhappy at school because they find it difficult to make friends. They may also worry about their appearance and there is a great deal of pressure on them to dress, talk and behave the same as others. This phenomenon is called peer pressure, and it is very common in today's society.\n\nThere are a number of programs for teenagers on TV. They provide them with practical skills such as reasoning skills, social skills and cognitive skills.", question: "According to the passage, why are many adolescents unhappy at school?", options: { A: "Because they have too much homework.", B: "Because they find it difficult to make friends.", C: "Because they do not like their teachers.", D: "Because they don't have enough money." }, correct_answer: "B" },
+        { id: 43, part: "PART 6: READING COMPREHENSION", context: "Sociologists have been carrying out research into the social pressure on teenagers. Many adolescents are unhappy at school because they find it difficult to make friends. They may also worry about their appearance and there is a great deal of pressure on them to dress, talk and behave the same as others. This phenomenon is called peer pressure, and it is very common in today's society.\n\nThere are a number of programs for teenagers on TV. They provide them with practical skills such as reasoning skills, social skills and cognitive skills.", question: "How does the passage describe \"peer pressure\"?", options: { A: "The pressure from parents to get good grades.", B: "The pressure to dress, talk and behave the same as others.", C: "The pressure to watch educational TV programs.", D: "The pressure to work part-time." }, correct_answer: "B" },
+        { id: 44, part: "PART 6: READING COMPREHENSION", context: "Sociologists have been carrying out research into the social pressure on teenagers. Many adolescents are unhappy at school because they find it difficult to make friends. They may also worry about their appearance and there is a great deal of pressure on them to dress, talk and behave the same as others. This phenomenon is called peer pressure, and it is very common in today's society.\n\nThere are a number of programs for teenagers on TV. They provide them with practical skills such as reasoning skills, social skills and cognitive skills.", question: "Why do some teenagers do negative things according to paragraph 2?", options: { A: "Because they want to be famous.", B: "Because they lack cognitive skills.", C: "Just to make others accept them.", D: "Because they rebel against their parents." }, correct_answer: "C" },
+        { id: 45, part: "PART 6: READING COMPREHENSION", context: "Sociologists have been carrying out research into the social pressure on teenagers. Many adolescents are unhappy at school because they find it difficult to make friends. They may also worry about their appearance and there is a great deal of pressure on them to dress, talk and behave the same as others. This phenomenon is called peer pressure, and it is very common in today's society.\n\nThere are a number of programs for teenagers on TV. They provide them with practical skills such as reasoning skills, social skills and cognitive skills.", question: "What is the author's advice for teenagers when they have a problem?", options: { A: "They should watch more TV programs.", B: "They should change their appearance.", C: "They should drive carefully.", D: "They should find friends to share their emotions and thoughts." }, correct_answer: "D" },
+        { id: 46, part: "PART 7: SENTENCE TRANSFORMATION", context: null, question: "The traffic was too chaotic. The traffic police had a hard time controlling the vehicle flow.", options: { A: "It was such chaotic traffic that the traffic police had a hard time controlling the vehicle flow.", B: "The traffic was too chaotic that the traffic police had a hard time controlling the vehicle flow.", C: "It was so chaotic traffic that the traffic police had a hard time controlling the vehicle flow.", D: "Such chaotic was the traffic that the police didn't control the flow." }, correct_answer: "A" },
+        { id: 47, part: "PART 7: SENTENCE TRANSFORMATION", context: null, question: "You should wear your coat, or you may catch a cold.", options: { A: "Unless you don't wear your coat, you may catch a cold.", B: "If you don't wear your coat, you may catch a cold.", C: "If you wear your coat, you may catch a cold.", D: "If you didn't wear your coat, you might catch a cold." }, correct_answer: "B" },
+        { id: 48, part: "PART 7: SENTENCE TRANSFORMATION", context: null, question: "The buses are so overcrowded during the rush hour.", options: { A: "My mum wishes the buses wouldn't be overcrowded.", B: "My mum wishes the buses aren't so overcrowded during the rush hour.", C: "My mum wishes the buses weren't so overcrowded during the rush hour.", D: "My mum wishes the buses hasn't been so overcrowded during the rush hour." }, correct_answer: "C" },
+        { id: 49, part: "PART 7: SENTENCE TRANSFORMATION", context: null, question: "The student completed the quiz the fastest. The teacher praised her.", options: { A: "The student which the teacher praised completed the quiz the fastest.", B: "The student whom the teacher praised completed the quiz the fastest.", C: "The student whose the teacher praised completed the quiz the fastest.", D: "The student, who completed the quiz the fastest, praised the teacher." }, correct_answer: "B" },
+        { id: 50, part: "PART 7: SENTENCE TRANSFORMATION", context: null, question: "\"Why don't we visit the Kon Klor suspension bridge?\" said Lan.", options: { A: "Lan advised us to visit the Kon Klor suspension bridge.", B: "Lan suggested to visit the Kon Klor suspension bridge.", C: "Lan asked why didn't we visit the Kon Klor suspension bridge.", D: "Lan suggested visiting the Kon Klor suspension bridge." }, correct_answer: "D" }
+    ];
+
+    // ================= KHỞI TẠO 3D ENGINE =================
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x87CEEB); 
+    scene.fog = new THREE.Fog(0x87CEEB, 25, 120);
+
+    const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    document.body.appendChild(renderer.domElement);
+
+    window.addEventListener('resize', () => {
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+    });
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    scene.add(ambientLight);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight.position.set(50, 100, 30);
+    scene.add(dirLight);
+
+    // Môi trường: Mặt đất
+    const floorGeo = new THREE.PlaneGeometry(100, 400);
+    const floorMat = new THREE.MeshLambertMaterial({ color: 0x2ecc71 });
+    const floor = new THREE.Mesh(floorGeo, floorMat);
+    floor.rotation.x = -Math.PI / 2;
+    scene.add(floor);
+
+    // Tường hầm (Trái & Phải)
+    const wallGeo = new THREE.BoxGeometry(2, 25, 400);
+    const wallMat = new THREE.MeshLambertMaterial({ color: 0xa34b1f });
+    const leftWall = new THREE.Mesh(wallGeo, wallMat);
+    leftWall.position.set(-21, 12.5, 0);
+    scene.add(leftWall);
+    const rightWall = new THREE.Mesh(wallGeo, wallMat);
+    rightWall.position.set(21, 12.5, 0);
+    scene.add(rightWall);
+
+    // Tường cuối bít kín hở
+    const endWallGeo = new THREE.BoxGeometry(40, 25, 2);
+    const endWallMat = new THREE.MeshLambertMaterial({ color: 0xc0392b }); 
+    const endWall = new THREE.Mesh(endWallGeo, endWallMat);
+    endWall.position.set(0, 12.5, -61); 
+    scene.add(endWall);
+
+    // Mây
+    const clouds = [];
+    const cloudGeo = new THREE.BoxGeometry(12, 5, 12);
+    const cloudMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.85 });
+    for(let i=0; i<20; i++){
+        const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+        cloud.position.set((Math.random() - 0.5) * 180, 35 + Math.random() * 10, (Math.random() - 0.5) * 200);
+        scene.add(cloud);
+        clouds.push(cloud);
+    }
+
+    // ================= CỬA NHÀ =================
+    const doorGroups = []; 
+    const doorIds = ['A', 'B', 'C', 'D'];
+    const doorPositions = [-15, -5, 5, 15];
+
+    const frameGeo = new THREE.BoxGeometry(9, 13, 0.5);
+    const frameMat = new THREE.MeshLambertMaterial({ color: 0x34495e });
+    const doorGeo = new THREE.BoxGeometry(8, 12, 1);
+    const knobGeo = new THREE.SphereGeometry(0.4, 16, 16);
+    const knobMat = new THREE.MeshStandardMaterial({ color: 0xcd7f32, metalness: 0.9, roughness: 0.1 });
+
+    function createNormalDoorTexture(text, state) {
+        const canvas = document.createElement('canvas');
+        canvas.width = 256; canvas.height = 256;
+        const ctx = canvas.getContext('2d');
+
+        ctx.fillStyle = '#8e44ad';
+        ctx.fillRect(0, 0, 256, 256);
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+        ctx.lineWidth = 2;
+        for(let i=0; i<256; i+=10) {
+            ctx.beginPath();
+            ctx.moveTo(0, i); ctx.lineTo(256, i + (Math.random()-0.5)*20);
+            ctx.stroke();
+        }
+
+        ctx.strokeStyle = 'rgba(0,0,0,0.4)';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, 216, 100); 
+        ctx.strokeRect(20, 136, 216, 100); 
+
+        ctx.fillStyle = 'white';
+        ctx.font = 'bold 160px Arial';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.lineWidth = 12; ctx.strokeStyle = 'black';
+        
+        if (state === 'active') {
+            ctx.strokeText(text, 128, 128);
+            ctx.fillText(text, 128, 128);
+        } else if (state === 'wrong') {
+            ctx.fillStyle = 'rgba(231, 76, 60, 0.6)'; 
+            ctx.fillRect(0, 0, 256, 256);
+            ctx.strokeStyle = 'rgba(255,255,255,0.7)';
+            ctx.lineWidth = 20;
+            ctx.beginPath(); ctx.moveTo(30, 30); ctx.lineTo(226, 226);
+            ctx.moveTo(226, 30); ctx.lineTo(30, 226); ctx.stroke();
+            ctx.fillStyle = 'rgba(255,255,255,0.3)';
+            ctx.fillText(text, 128, 128);
+        }
+
+        const texture = new THREE.CanvasTexture(canvas);
+        return new THREE.MeshLambertMaterial({ map: texture });
+    }
+
+    for(let i=0; i<4; i++){
+        const group = new THREE.Group();
+        group.position.set(doorPositions[i], 6, -60);
+
+        const frame = new THREE.Mesh(frameGeo, frameMat);
+        frame.position.z = -0.6;
+        group.add(frame);
+
+        const doorMat = createNormalDoorTexture(doorIds[i], 'active');
+        const doorBody = new THREE.Mesh(doorGeo, doorMat);
+        group.add(doorBody);
+
+        const knob = new THREE.Mesh(knobGeo, knobMat);
+        knob.position.set(3, -1, 0.6); 
+        group.add(knob);
+
+        group.userData = { id: doorIds[i], active: true, doorBody: doorBody, knob: knob };
+        scene.add(group);
+        doorGroups.push(group);
+    }
+
+    // ================= LOGIC GAME =================
+    let health = 10;
+    let hasCheated = false;
+    let mistakesThisLevel = 0;
+    let currentLevel = 1;
+    const MAX_LEVEL = 50; 
+    let currentQData = null;
+    let helpUsed = false;
+
+    let playerY = 5.5; 
+    let moveSpeed = 0.55;
+    
+    const keys = { forward: false, backward: false, left: false, right: false };
+    let joyX = 0, joyY = 0; 
+    let camYaw = 0, camPitch = 0;
+    const PI_2 = Math.PI / 2;
+
+    let notifyTimeout = null;
+    function showNotification(msg, type) {
+        const noti = document.getElementById('notification');
+        noti.innerText = msg;
+        noti.style.border = type === 'error' ? "3px solid #e74c3c" : "3px solid #2ecc71";
+        noti.style.color = type === 'error' ? "#ff7675" : "#55efc4";
+        noti.style.opacity = 1;
+        if (notifyTimeout) clearTimeout(notifyTimeout);
+        notifyTimeout = setTimeout(() => { noti.style.opacity = 0; }, 2200); 
+    }
+
+    function updateHealthUI() {
+        document.getElementById('health-display').innerText = `❤️ ${health}`;
+    }
+
+    function fullResetGame() {
+        health = 10; currentLevel = 1; hasCheated = false;
+        updateHealthUI(); loadLevel();
+    }
+
+    function loadLevel() {
+        mistakesThisLevel = 0; helpUsed = false;
+        document.getElementById('btn-help').disabled = false;
+        document.getElementById('level-display').innerText = currentLevel;
+        updateHealthUI();
+
+        camera.position.set(0, playerY, 35);
+        camYaw = 0; camPitch = 0;
+        camera.rotation.set(0, 0, 0);
+
+        for(let i=0; i<4; i++){
+            const dg = doorGroups[i];
+            dg.userData.active = true;
+            dg.userData.doorBody.material = createNormalDoorTexture(doorIds[i], 'active');
+            dg.userData.knob.visible = true; 
+        }
+
+        currentQData = questionBank[currentLevel - 1];
+        document.getElementById('instruction').innerText = currentQData.part; 
+        document.getElementById('question').innerText = currentQData.question;
+        
+        const contextDiv = document.getElementById('context');
+        if(currentQData.context) {
+            contextDiv.style.display = "block";contextDiv.innerText = currentQData.context;contextDiv.scrollTop = 0; 
+        } else { contextDiv.style.display = "none"; }
+
+        // Đổ đáp án sạch sẽ (Thay đổi thuộc tính CSS để ô text nhìn rõ ràng)
+        ['A','B','C','D'].forEach(id => {
+            const optDiv = document.getElementById('opt-'+id);
+            optDiv.style.textDecoration = "none";
+            optDiv.style.color = "#2c3e50";
+            optDiv.style.background = "#ffffff";
+            optDiv.innerText = `${id}. ${currentQData.options[id]}`;
+        });
+    }
+
+    function checkDoorCollision() {
+        if (camera.position.z < -57.5) {
+            for(let i=0; i<4; i++){
+                const dg = doorGroups[i];
+                if (!dg.userData.active) continue;
+                
+                if (Math.abs(camera.position.x - doorPositions[i]) < 4.2) {
+                    if (dg.userData.id === currentQData.correct_answer) {
+                        if (currentLevel === MAX_LEVEL) {
+                            endGame();
+                        } else {
+                            if (mistakesThisLevel > 0) showNotification("Cố gắng làm tốt hơn nha bé oii", "error");
+                            else showNotification("Hmmm, bé này cũng dỏi đó chớ, làm câu nữa đi", "success");
+                            currentLevel++;
+                            loadLevel();
+                        }
+                    } else {
+                        health--; mistakesThisLevel++;
+                        updateHealthUI();
+                        showNotification("Làm vầy rồi thi tuyển sinh sao đậu trời (Trừ 1 Máu)", "error");
+                        
+                        dg.userData.active = false;
+                        dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong');
+                        dg.userData.knob.visible = false; 
+
+                        // Bôi xám đáp án sai
+                        const wrongOpt = document.getElementById('opt-' + dg.userData.id);
+                        wrongOpt.style.textDecoration = "line-through";
+                        wrongOpt.style.color = "#95a5a6";
+                        wrongOpt.style.background = "#ecf0f1";
+                        
+                        camera.position.z = -45;
+
+                        if (health <= 0) {
+                            showNotification("Hết máu! Bắt đầu lại nào...", "error");
+                            setTimeout(fullResetGame, 1500);
+                        }
+                    }
+                    return; 
+                }
+            }
+            if(camera.position.z < -59.5) camera.position.z = -59.5;
+        }
+        
+        if(camera.position.z > 50) camera.position.z = 50;
+        if(camera.position.x < -18.5) camera.position.x = -18.5;
+        if(camera.position.x > 18.5) camera.position.x = 18.5;
+    }
+
+    function endGame() {
+        const endScreen = document.getElementById('end-screen');
+        const endMsg = document.getElementById('end-msg');
+        const btnRestart = document.getElementById('btn-restart');
+        endScreen.style.display = "flex";
+        
+        if (hasCheated) { 
+            endMsg.innerText = "GIAN LẬN RỒI BÉ NÀY HƯ QUÁ!\nPHẢI DẠY LẠI THÔI."; 
+            endMsg.style.color = "#e74c3c";
+            btnRestart.innerText = "Làm lại không gian lận";
+        } else { 
+            endMsg.innerText = "Bé Tuyến giỏi quá nè 🎉"; 
+            endMsg.style.color = "#2ecc71"; 
+            btnRestart.innerText = "Chơi lại từ đầu";
+        }
+        btnRestart.onclick = () => { endScreen.style.display = "none"; fullResetGame(); }
+    }
+
+    // Tính năng 50/50
+    document.getElementById('btn-help').addEventListener('click', () => {
+        if (helpUsed) return;
+        helpUsed = true;
+        document.getElementById('btn-help').disabled = true;
+
+        let wrongDoors = doorGroups.filter(dg => dg.userData.id !== currentQData.correct_answer && dg.userData.active);
+        wrongDoors.sort(() => Math.random() - 0.5);
+        
+        for(let i=0; i<Math.min(2, wrongDoors.length); i++){
+            const dg = wrongDoors[i];
+            dg.userData.active = false;
+            dg.userData.doorBody.material = createNormalDoorTexture(dg.userData.id, 'wrong');
+            dg.userData.knob.visible = false; 
+
+            const wrongOpt = document.getElementById('opt-' + dg.userData.id);
+            wrongOpt.style.textDecoration = "line-through";
+            wrongOpt.style.color = "#95a5a6";
+            wrongOpt.style.background = "#ecf0f1";
+        }
+    });
+
+    document.getElementById('btn-jump-level').addEventListener('click', () => {
+        let inputVal = parseInt(document.getElementById('level-input').value);
+        if (inputVal >= 1 && inputVal <= MAX_LEVEL) {
+            hasCheated = true; currentLevel = inputVal;
+            showNotification("Đã dùng tính năng Dịch Chuyển!", "error");
+            loadLevel();
+        }
+    });
+
+    // ================= CONTROLS =================
+    window.addEventListener('keydown', (e) => {
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = true;
+        if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.backward = true;
+        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.left = true;
+        if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.right = true;
+    });
+    window.addEventListener('keyup', (e) => {
+        if (e.key === 'w' || e.key === 'W' || e.key === 'ArrowUp') keys.forward = false;
+        if (e.key === 's' || e.key === 'S' || e.key === 'ArrowDown') keys.backward = false;
+        if (e.key === 'a' || e.key === 'A' || e.key === 'ArrowLeft') keys.left = false;
+        if (e.key === 'd' || e.key === 'D' || e.key === 'ArrowRight') keys.right = false;
+    });
+
+    let isDragging = false;
+    const lookZone = document.getElementById('touch-look-zone');
+    lookZone.addEventListener('mousedown', () => isDragging = true);
+    window.addEventListener('mouseup', () => isDragging = false);
+    window.addEventListener('mousemove', (e) => {
+        if (isDragging) {
+            camYaw -= e.movementX * 0.005; camPitch -= e.movementY * 0.004;
+            camPitch = Math.max(-PI_2, Math.min(PI_2, camPitch));
+            camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
+        }
+    });
+
+    const joyZone = document.getElementById('joystick-zone');
+    const joyKnob = document.getElementById('joystick-knob');
+    let joyActive = false;
+    let joyCenter = { x: 0, y: 0 };
+
+    joyZone.addEventListener('touchstart', (e) => {
+        e.preventDefault(); joyActive = true;
+        let rect = joyZone.getBoundingClientRect();
+        joyCenter = { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        updateJoystick(e.touches[0]);
+    }, {passive: false});
+
+    joyZone.addEventListener('touchmove', (e) => {
+        e.preventDefault(); if (joyActive) updateJoystick(e.touches[0]);
+    }, {passive: false});
+
+    const resetJoy = () => { joyActive = false; joyX = 0; joyY = 0; joyKnob.style.transform = `translate(-50%, -50%)`; };
+    joyZone.addEventListener('touchend', resetJoy);
+    joyZone.addEventListener('touchcancel', resetJoy);
+
+    function updateJoystick(touch) {
+        let dx = touch.clientX - joyCenter.x;
+        let dy = touch.clientY - joyCenter.y;
+        let distance = Math.min(55, Math.sqrt(dx*dx + dy*dy)); 
+        let angle = Math.atan2(dy, dx);
+        
+        let moveX = distance * Math.cos(angle);
+        let moveY = distance * Math.sin(angle);
+        joyKnob.style.transform = `translate(calc(-50% + ${moveX}px), calc(-50% + ${moveY}px))`;
+        
+        joyX = moveX / 55; joyY = moveY / 55; 
+    }
+
+    let lastTouchX = 0, lastTouchY = 0;
+    lookZone.addEventListener('touchstart', (e) => {
+        lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+    });
+    lookZone.addEventListener('touchmove', (e) => {
+        e.preventDefault();
+        let dx = e.touches[0].clientX - lastTouchX;
+        let dy = e.touches[0].clientY - lastTouchY;
+        lastTouchX = e.touches[0].clientX; lastTouchY = e.touches[0].clientY;
+        
+        camYaw -= dx * 0.005; camPitch -= dy * 0.004;
+        camPitch = Math.max(-PI_2, Math.min(PI_2, camPitch));
+        camera.rotation.set(camPitch, camYaw, 0, 'YXZ');
+    }, {passive: false});
+
+    function gameLoop() {
+        requestAnimationFrame(gameLoop);
+
+        clouds.forEach(cloud => {
+            cloud.position.x -= 0.08;
+            if(cloud.position.x < -100) cloud.position.x = 100;
+        });
+
+        let moveForward = 0, moveRight = 0;
+        if (keys.forward) moveForward = 1;
+        if (keys.backward) moveForward = -1;
+        if (keys.left) moveRight = -1;
+        if (keys.right) moveRight = 1;
+
+        if (joyActive) { moveForward = -joyY; moveRight = joyX; }
+
+        if (moveForward !== 0 || moveRight !== 0) {
+            let dir = new THREE.Vector3(moveRight, 0, -moveForward).normalize();
+            dir.applyAxisAngle(new THREE.Vector3(0, 1, 0), camYaw);
+            camera.position.addScaledVector(dir, moveSpeed);
+        }
+
+        checkDoorCollision();
+        renderer.render(scene, camera);
+    }
+
+    loadLevel();
+    gameLoop();
+</script>
+</body>
+</html>
