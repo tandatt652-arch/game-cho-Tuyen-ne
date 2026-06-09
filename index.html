@@ -2,38 +2,131 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Mario English 3D - Tối Ưu Mobile</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chúc ngủ ngon ❤️</title>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
+        /* Cài đặt khung nền vũ trụ */
         body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden;
-            background-color: #000; font-family: Arial, sans-serif; user-select: none;
-            touch-action: none; -webkit-user-select: none;
-        }
-        
-        /* LỚP NỀN VUỐT XOAY CAMERA (Nằm dưới UI) */
-        #touch-look-zone {
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: 1; pointer-events: auto;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, #020111 0%, #20124d 100%);
+            overflow: hidden; /* Ẩn thanh cuộn */
+            font-family: 'Dancing Script', cursive;
+            color: white;
         }
 
-        /* GIAO DIỆN CÂU HỎI (Nằm trên cùng) */
-        #ui-overlay {
-            position: absolute; top: 0; left: 0; width: 100%; pointer-events: none; z-index: 10;
-            display: flex; flex-direction: column; align-items: center; padding-top: 10px;
+        /* Lời chúc */
+        .message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: min(8vw, 4.5rem); /* Tự động thu nhỏ trên điện thoại */
+            text-align: center;
+            text-shadow: 0 0 10px #ffb3c6, 0 0 20px #ffb3c6, 0 0 30px #ff0055;
+            z-index: 10;
+            width: 100%;
+            animation: pulse 2s infinite alternate;
         }
-        .panel {
-            background: rgba(236, 240, 241, 0.85); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px);
-            padding: 10px; border-radius: 8px; width: 92%; max-width: 650px; pointer-events: auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4); border: 2px solid rgba(189, 195, 199, 0.8);
-            max-height: 40vh; overflow-y: auto; /* Giới hạn độ cao để không che 3D */
-            display: flex; flex-direction: column;
+
+        /* Hiệu ứng nhịp đập nhẹ cho dòng chữ */
+        @keyframes pulse {
+            0% { transform: translate(-50%, -50%) scale(1); }
+            100% { transform: translate(-50%, -50%) scale(1.05); }
         }
-        .header-info {
-            display: flex; justify-content: space-between; align-items: center;
-            font-weight: bold; color: #e74c3c; font-size: 13px; margin-bottom: 5px; gap: 5px;
+
+        /* Mặt trăng lưỡi liềm */
+        .moon {
+            position: absolute;
+            top: 50px;
+            right: 80px;
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            /* Dùng bóng đổ để tạo hình lưỡi liềm */
+            box-shadow: -15px 15px 0 0 #ffffe0;
+            z-index: 5;
+            animation: moonGlow 4s infinite alternate;
         }
+
+        /* Hiệu ứng phát sáng cho mặt trăng */
+        @keyframes moonGlow {
+            0% { filter: drop-shadow(0 0 5px #ffffe0); }
+            100% { filter: drop-shadow(0 0 15px #ffffe0); }
+        }
+
+        /* Các vì sao */
+        .star {
+            position: absolute;
+            background-color: white;
+            border-radius: 50%;
+            z-index: 1;
+            /* Cài đặt hiệu ứng trôi và lấp lánh */
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0); opacity: 0; }
+            20% { opacity: 1; }
+            80% { opacity: 1; }
+            100% { transform: translateY(-150px); opacity: 0; }
+        }
+
+        /* Reponsive cho mặt trăng trên điện thoại */
+        @media (max-width: 600px) {
+            .moon {
+                top: 30px;
+                right: 50px;
+                width: 60px;
+                height: 60px;
+                box-shadow: -10px 10px 0 0 #ffffe0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="moon"></div>
+
+    <div class="message">Ebe Tuyến ngủ ngoan nha ❤️</div>
+
+    <div id="stars-container"></div>
+
+    <script>
+        // Lấy thẻ div chứa sao
+        const starsContainer = document.getElementById('stars-container');
+        const numStars = 150; // Số lượng sao hiển thị
+
+        // Tạo ra các ngôi sao một cách ngẫu nhiên
+        for (let i = 0; i < numStars; i++) {
+            let star = document.createElement('div');
+            star.className = 'star';
+            
+            // Kích thước sao ngẫu nhiên từ 1px đến 3px
+            let size = Math.random() * 2 + 1;
+            star.style.width = size + 'px';
+            star.style.height = size + 'px';
+            
+            // Vị trí sao ngẫu nhiên trên toàn màn hình
+            star.style.left = Math.random() * 100 + 'vw';
+            star.style.top = Math.random() * 100 + 'vh';
+            
+            // Thời gian bay và độ trễ ngẫu nhiên để các sao không bay cùng lúc
+            let duration = Math.random() * 15 + 10; // Bay từ 10s đến 25s
+            let delay = Math.random() * 10;
+            star.style.animationDuration = duration + 's';
+            star.style.animationDelay = delay + 's';
+            
+            // Thêm sao vào vùng không gian
+            starsContainer.appendChild(star);
+        }
+    </script>
+
+</body>
+</html>
         .level-controls { display: flex; align-items: center; gap: 4px; color: #2c3e50; }
         #level-input { width: 30px; text-align: center; border: 1px solid #95a5a6; border-radius: 5px; padding: 2px; font-weight: bold; font-size: 12px;}
         #btn-jump-level { background: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; padding: 2px 6px; font-weight: bold; font-size: 12px;}
