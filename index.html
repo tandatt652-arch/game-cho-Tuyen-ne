@@ -49,7 +49,7 @@
 </head>
 <body>
 
-    <div id="instruction">Dùng phím Mũi Tên (PC) hoặc Con Lăn (Điện thoại) để đi tìm thông điệp nhé!</div>
+    <div id="instruction">PC: Nhấn giữ Chuột để xoay góc nhìn, phím Mũi Tên/W-A-S-D để đi | Điện thoại: Dùng tay vuốt và dùng con lăn nhé!</div>
     <div id="door-prompt">Chạm vào đây để mở cửa bước ra ban công... 🚪</div>
     
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
@@ -93,7 +93,7 @@
             return new THREE.MeshStandardMaterial({ color: color, roughness: roughness });
         }
 
-        // --- 1. XÂY DỰNG CĂN PHÒNG ĐÓNG KÍN (ĐÃ FIX KÍN VIỀN) ---
+        // --- 1. XÂY DỰNG CĂN PHÒNG ĐÓNG KÍN ---
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
@@ -164,7 +164,7 @@
 
         // Tạo sàn vòng quanh bao ngoài từ khoảng cách 6 đến 11
         const bFloor = new THREE.Mesh(new THREE.RingGeometry(7.5, 12.5, 4, 1), bFloorMat);
-        bFloor.rotation.x = -Math.PI / 2; bFloor.rotation.z = Math.PI / 4; // Căn lề vuông góc với phòng
+        bFloor.rotation.x = -Math.PI / 2; bFloor.rotation.z = Math.PI / 4;
         bFloor.position.y = 0.01;
         balconyGroup.add(bFloor);
 
@@ -180,26 +180,23 @@
         createRailing(-11.5, 0, 23, 0.3, 1.2, Math.PI/2); // Trái
 
         // --- 4. TRANG TRÍ TRONG PHÒNG (GIƯỜNG & HOA TRÊN TƯỜNG) ---
-        // Chiếc giường nhỏ xinh góc phòng
         const bedGroup = new THREE.Group();
         bedGroup.position.set(-4.2, 0, 3.5);
         const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x5c4033));
         const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xffffff, 0.9));
         bedMattress.position.y = 0.4;
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffb6c1)); // Gối hồng
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffb6c1));
         pillow.position.set(0, 0.65, 1.3);
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xffc0cb)); // Chăn hồng ấm
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xffc0cb));
         blanket.position.set(0, 0.42, -0.6);
         bedGroup.add(bedBase, bedMattress, pillow, blanket);
         roomGroup.add(bedGroup);
 
-        // Trang trí Hoa Đào 5 cánh 3D đính lên tường
+        // Hoa Đào 5 cánh 3D
         function hienThiHoa(x, y, z, scale, rotY=0) {
             const hoa = new THREE.Group();
             const petalMat = new THREE.MeshStandardMaterial({ color: 0xffa6c9, roughness: 0.6 });
             const centerMat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
-            
-            // 5 Cánh hoa hình cầu dẹt
             for(let i=0; i<5; i++) {
                 const petal = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), petalMat);
                 petal.scale.set(1, 0.4, 1.5);
@@ -208,15 +205,12 @@
                 petal.rotation.z = angle;
                 hoa.add(petal);
             }
-            // Nhụy hoa vàng giữa
             const nhuy = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), centerMat);
             nhuy.position.z = 0.05;
             hoa.add(nhuy);
-            
             hoa.position.set(x, y, z); hoa.rotation.y = rotY; hoa.scale.set(scale, scale, scale);
             roomGroup.add(hoa);
         }
-        // Treo hoa lên các diện tường trong phòng
         hienThiHoa(-5.9, 2.8, 3.5, 1.5, Math.PI/2);
         hienThiHoa(-5.9, 3.2, 1.5, 1.2, Math.PI/2);
         hienThiHoa(5.9, 3.0, 2.0, 1.4, -Math.PI/2);
@@ -224,15 +218,13 @@
         hienThiHoa(3.5, 3.2, -5.9, 1.2);
 
         // --- 5. BẦU TRỜI SAO HÌNH CẦU BAO PHỦ ---
-        const starSphereGeo = new THREE.SphereGeometry(150, 32, 32);
         const starCount = 800;
         const starPositions = new Float32Array(starCount * 3);
         for(let i=0; i<starCount*3; i+=3) {
-            // Phân bổ ngẫu nhiên trên bề mặt hình cầu bán kính lớn ngoài rìa
             const u = Math.random(); const v = Math.random();
             const theta = u * 2.0 * Math.PI; const phi = Math.acos(2.0 * v - 1.0);
             starPositions[i] = 140 * Math.sin(phi) * Math.cos(theta);
-            starPositions[i+1] = Math.abs(140 * Math.sin(phi) * Math.sin(theta)) + 2; // Giữ sao ở trên cao
+            starPositions[i+1] = Math.abs(140 * Math.sin(phi) * Math.sin(theta)) + 2;
             starPositions[i+2] = 140 * Math.cos(phi);
         }
         const starGeo = new THREE.BufferGeometry();
@@ -240,24 +232,23 @@
         const starParticles = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4, transparent: true }));
         scene.add(starParticles);
 
-        // Tạo Mặt Trăng Lưỡi Liềm tinh tế nghệ thuật
+        // Mặt Trăng Lưỡi Liềm
         const moonGroup = new THREE.Group();
         const moonMat = new THREE.MeshBasicMaterial({ color: 0xfffff0 });
         const mainMoon = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 32), moonMat);
         moonGroup.add(mainMoon);
-        // Quả cầu đen che lấp tạo hình lưỡi liềm khuyết cực lãng mạn
         const shadowMoon = new THREE.Mesh(new THREE.SphereGeometry(5.8, 32, 32), new THREE.MeshBasicMaterial({ color: 0x020208 }));
         shadowMoon.position.set(2.0, 1.5, 1);
         moonGroup.add(shadowMoon);
         moonGroup.position.set(40, 55, -90);
         scene.add(moonGroup);
 
-        // Kỹ thuật khởi tạo SAO CHỔI (Meteor) ngẫu nhiên bay dọc trời đêm
+        // SAO CHỔI (Meteor)
         const meteorMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
         const meteorTailGeo = new THREE.ConeGeometry(0.15, 4, 8);
-        meteorTailGeo.rotateX(-Math.PI/2); // Hướng đuôi sao chổi theo trục di chuyển
+        meteorTailGeo.rotateX(-Math.PI/2);
         const meteor = new THREE.Mesh(meteorTailGeo, meteorMat);
-        meteor.position.set(100, 100, 100); // Giấu tạm thời ngoài rìa không gian vũ trụ
+        meteor.position.set(100, 100, 100);
         scene.add(meteor);
 
         let meteorActive = false;
@@ -265,15 +256,13 @@
         function spawnMeteor() {
             if(meteorActive) return;
             meteorActive = true;
-            // Chọn điểm xuất phát ngẫu nhiên trên cao
             meteor.position.set((Math.random()-0.5)*80, Math.random()*30 + 30, -Math.random()*40 - 40);
             meteorVelocity.set(-1.2 - Math.random(), -0.6 - Math.random()*0.4, Math.random()*0.5);
-            // Hiện sao chổi lấp lánh trong 1.5s rồi tắt ngầm
             setTimeout(() => { meteorActive = false; meteor.position.set(100,100,100); }, 1500);
         }
-        setInterval(spawnMeteor, 4000); // Cứ mỗi 4 giây kích hoạt tìm kiếm kiểm tra tạo sao chổi 1 lần
+        setInterval(spawnMeteor, 4000);
 
-        // --- 6. HỆ THỐNG TEXT THÔNG ĐIỆP 4 HƯỚNG THEO CHIỀU KIM ĐỒNG HỒ ---
+        // --- 6. HỆ THỐNG TEXT THÔNG ĐIỆP 4 HƯỚNG ---
         const messages = [
             "Ebe Tuyến ngủ ngoan nha ❤️",
             "Trang hoàng cho em cả bầu trời sao ✨",
@@ -293,7 +282,6 @@
                 ctx.shadowColor = '#ff3385'; ctx.shadowBlur = 25;
                 ctx.fillText(text, 512, 110);
                 
-                // VẼ MŨI TÊN CHỈ DẪN NGƯỜI CHƠI ĐI THEO CHIỀU KIM ĐỒNG HỒ (RẼ PHẢI)
                 ctx.font = '70px Arial'; ctx.fillStyle = '#ff3385';
                 ctx.fillText('➔', 512, 210);
                 tex.needsUpdate = true;
@@ -306,13 +294,12 @@
             textPlanes.push(plane);
         }
 
-        // Đặt chữ tại 4 mặt tương ứng của ban công bao quanh ngôi nhà theo vòng tròn
-        createSignText(messages[0], 0, 0, -22, 0);           // Hướng 1: Trước mặt ban công
-        createSignText(messages[1], 1, 22, 0, -Math.PI/2);   // Hướng 2: Bên Phải ban công
-        createSignText(messages[2], 2, 0, 22, Math.PI);      // Hướng 3: Phía Sau lưng phòng
-        createSignText(messages[3], 3, -22, 0, Math.PI/2);    // Hướng 4: Bên Trái ban công
+        createSignText(messages[0], 0, 0, -22, 0);           
+        createSignText(messages[1], 1, 22, 0, -Math.PI/2);   
+        createSignText(messages[2], 2, 0, 22, Math.PI);      
+        createSignText(messages[3], 3, -22, 0, Math.PI/2);    
 
-        // --- HỆ THỐNG ĐIỀU KHIỂN ĐỘC LẬP TÙY BIẾN ---
+        // --- HỆ THỐNG ĐIỀU KHIỂN ĐỘC LẬP TÙY BIẾN (CHUỘT + KEYBOARD + TOUCH) ---
         let moveF = false, moveB = false, moveL = false, moveR = false;
         let isDoorOpen = false, doorRot = 0;
         let yaw = 0, pitch = 0;
@@ -320,6 +307,7 @@
 
         if ('ontouchstart' in window) document.getElementById('joystick-zone').style.display = 'block';
 
+        // BÀN PHÍM (Hỗ trợ cả nút Mũi Tên và WASD cho tiện di chuyển)
         window.addEventListener('keydown', (e) => {
             switch (e.code) {
                 case 'ArrowUp': case 'KeyW': moveF = true; break;
@@ -337,7 +325,33 @@
             }
         });
 
-        // CÔ LẬP THAO TÁC CẢM ỨNG DI ĐỘNG (Xử lý đa điểm không chồng chéo)
+        // 🌟 TÍCH HỢP ĐIỀU KHIỂN CHUỘT (MÁY TÍNH) 🌟
+        let isMouseDown = false;
+        let prevMousePos = { x: 0, y: 0 };
+
+        window.addEventListener('mousedown', (e) => {
+            // Không kích hoạt xoay góc nhìn nếu người dùng click vào nút mở cửa
+            if (e.target.id === 'door-prompt') return;
+            isMouseDown = true;
+            prevMousePos = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            const deltaX = e.clientX - prevMousePos.x;
+            const deltaY = e.clientY - prevMousePos.y;
+
+            yaw -= deltaX * 0.003; // Tốc độ xoay trục ngang
+            pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - deltaY * 0.003)); // Tốc độ xoay trục dọc (giới hạn góc nhìn)
+
+            prevMousePos = { x: e.clientX, y: e.clientY };
+        });
+
+        window.addEventListener('mouseup', () => { isMouseDown = false; });
+        window.addEventListener('mouseleave', () => { isMouseDown = false; });
+
+
+        // CÔ LẬP THAO TÁC CẢM ỨNG DI ĐỘNG (Xử lý đa điểm không lỗi)
         let joyId = null, lookId = null;
         let touchStart = { x: 0, y: 0 }, joyStart = { x: 0, y: 0 }, vMove = { x: 0, y: 0 };
 
@@ -411,33 +425,30 @@
                 playerGroup.position.addScaledVector(dir, moveSpeed);
             }
 
-            // HỆ THỐNG GIỚI HẠN VA CHẠM TƯỜNG (BẢO VỆ CHẶN ĐI XUYÊN KHÔNG GIAN)
-            // Nếu chưa mở cửa, bị nhốt hoàn toàn trong không gian từ -5.2 đến 5.2
+            // HỆ THỐNG GIỚI HẠN VA CHẠM TƯỜNG
             if (!isDoorOpen) {
                 if (playerGroup.position.z < -5.2) {
                     playerGroup.position.z = -5.2;
-                    if(Math.abs(playerGroup.position.x) < 1.5) promptBtn.style.display = 'block'; // Đứng gần cửa thì hiện nút bấm
+                    if(Math.abs(playerGroup.position.x) < 1.5) promptBtn.style.display = 'block';
                 }
                 if (playerGroup.position.z > 5.2) playerGroup.position.z = 5.2;
                 if (playerGroup.position.x < -5.2) playerGroup.position.x = -5.2;
                 if (playerGroup.position.x > 5.2) playerGroup.position.x = 5.2;
             } else {
-                // Khi cửa mở, cho phép đi qua khe cửa (-1.5 < x < 1.5) tại z = -6 để ra ngoài ban công rộng lớn
                 if (playerGroup.position.z > -5.5 && playerGroup.position.z < 5.5) {
                     if (playerGroup.position.x < -5.2) playerGroup.position.x = -5.2;
                     if (playerGroup.position.x > 5.2) playerGroup.position.x = 5.2;
                     if (playerGroup.position.z > 5.2) playerGroup.position.z = 5.2;
                 }
-                // Giới hạn chống đâm qua vách tường phòng từ mặt bên ngoài ban công
                 if (playerGroup.position.z < -5.5 && playerGroup.position.z > -6.2 && Math.abs(playerGroup.position.x) > 1.5) {
                     playerGroup.position.z = -5.5;
                 }
             }
 
-            // Giới hạn biên ngoài cùng của Lan can ban công tròn (Bán kính ngoài 11.2, trong phòng tránh rơi tự do)
+            // Giới hạn biên ngoài cùng của Lan can ban công tròn
             const distFromCenter = Math.sqrt(playerGroup.position.x * playerGroup.position.x + playerGroup.position.z * playerGroup.position.z);
             if (distFromCenter > 11.0) {
-                playerGroup.position.setLength(11.0); // Giữ chân người chơi không vượt quá viền lan can ban công bên ngoài
+                playerGroup.position.setLength(11.0);
             }
 
             // Hiệu ứng xoay mở cánh cửa lề tự động mượt mà
@@ -446,7 +457,7 @@
                 doorPivot.rotation.y = doorRot;
             }
 
-            // Xử lý chuyển động cho Sao Chổi nếu được kích hoạt bật lên
+            // Xử lý chuyển động cho Sao Chổi
             if(meteorActive) {
                 meteor.position.add(meteorVelocity);
             }
