@@ -95,7 +95,7 @@
         scene.add(roomGroup);
 
         const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a2436, roughness: 0.7, side: THREE.DoubleSide }); 
-        const floorMat = createMat(0x2b1d11, 0.5); // Sàn gỗ
+        const floorMat = createMat(0x2b1d11, 0.5); 
 
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMat);
         floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
@@ -141,12 +141,11 @@
         backWallRight.position.set(4.75, 2.45, 6); backWallRight.rotation.y = Math.PI;
         roomGroup.add(backWallRight);
 
-        // --- ĐOẠN ĐÃ SỬA: Biến khung ô cửa sổ màu nâu thành trong suốt ---
         const windowFrameMat = new THREE.MeshStandardMaterial({ 
             color: 0x3d2516, 
             roughness: 0.4,
-            transparent: true,  // Kích hoạt tính năng xuyên thấu
-            opacity: 0.0        // Đặt độ mờ bằng 0 để tàng hình hoàn toàn
+            transparent: true,  
+            opacity: 0.0  
         });
         const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(7.2, 2.6, 0.15), windowFrameMat);
         windowFrame.position.set(0, 2.45, 5.95);
@@ -305,34 +304,65 @@
         setInterval(spawnMeteor, 4000);
 
 
-        // --- 5. CHỮ THÔNG ĐIỆP ---
+        // --- 5. CHỮ THÔNG ĐIỆP (HỖ TRỢ TỰ ĐỘNG XUỐNG DÒNG KHÔNG BỊ KHUẤT) ---
         const messages = [
-            "Em yên tâm nha, đọc xong anh cũng nghĩ kĩ ròi",
-            "Sau đoạn đó anh hong thất vọng mà là anh hiểu em hơn rất nhìu",
+            "Cảm ơn em vì đã chịu nói ra nhưng điều em giữ trong lòng như vậy, anh rất làn trân trọng luôn á",
+            "Thiệt ra điều anh thấy sau đoạn đó hong phải là thất vọng, mà là anh hiểu em hơn rất nhiều.",
             "Bé Tuyến ngủ ngoann nhee ❤️",
-            "Về câu hỏi của em, anh chưa bao giờ thực sự muốn bỏ cuộc đâu ngốc ạ"
+            "Còn về chuyện có tiếp tục hay không thì anh chưa bao giờ thực sự muốn bỏ cuộc đâu ngốc ạ"
         ];
         const textPlanes = [];
 
+        // Hàm hỗ trợ tự động ngắt dòng thông minh khi câu quá dài trên Canvas
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            const words = text.split(' ');
+            let line = '';
+            let lines = [];
+
+            for (let n = 0; n < words.length; n++) {
+                let testLine = line + words[n] + ' ';
+                let metrics = ctx.measureText(testLine);
+                let testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    lines.push(line);
+                    line = words[n] + ' ';
+                } else {
+                    line = testLine;
+                }
+            }
+            lines.push(line);
+
+            // Vẽ từng dòng lên tâm canvas
+            let currentY = y - ((lines.length - 1) * lineHeight) / 2;
+            for (let i = 0; i < lines.length; i++) {
+                ctx.fillText(lines[i].trim(), x, currentY);
+                currentY += lineHeight;
+            }
+            return currentY; // Trả về tọa độ Y tiếp theo để vẽ các thành phần dưới nó (như mũi tên)
+        }
+
         function createSignText(text, index, posX, posZ, rotY) {
             const canvas = document.createElement('canvas');
-            canvas.width = 2048; canvas.height = 512;
+            canvas.width = 2048; canvas.height = 1024; 
             const ctx = canvas.getContext('2d');
-            
             const tex = new THREE.CanvasTexture(canvas);
 
             document.fonts.load('10pt "Dancing Script"').then(() => {
-                ctx.font = 'bold 60px "Dancing Script", cursive';
+                ctx.font = 'bold 90px "Dancing Script", cursive'; 
                 ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-                ctx.shadowColor = '#ff3385'; ctx.shadowBlur = 30;
-                ctx.fillText(text, 1024, 200);
+                ctx.shadowColor = '#ff3385'; ctx.shadowBlur = 35;
                 
-                ctx.font = '80px Arial'; ctx.fillStyle = '#ff3385';
-                ctx.fillText('➔', 1024, 340);
+                // Giới hạn chiều rộng chữ là 1700px để không chạm viền canvas, khoảng cách dòng 110px
+                let nextY = wrapText(ctx, text, 1024, 400, 1700, 110); 
+                
+                // Vẽ mũi tên ở vị trí phía dưới dòng chữ sau khi đã xuống dòng xong
+                ctx.font = '100px Arial'; ctx.fillStyle = '#ff3385';
+                ctx.fillText('➔', 1024, Math.max(nextY + 40, 620));
                 tex.needsUpdate = true;
             });
 
-            const plane = new THREE.Mesh(new THREE.PlaneGeometry(18, 4.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+            // Tăng tỷ lệ ô chứa 3D để không gian bao quát chữ rộng rãi hơn
+            const plane = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
             plane.position.set(posX, 5.8, posZ); plane.rotation.y = rotY;
             scene.add(plane);
             textPlanes.push(plane);
@@ -494,6 +524,9 @@
             }
 
             if(meteorActive) {
+                textPlanes.forEach((plane) => {
+                    plane.material.map.needsUpdate = true;
+                });
                 meteor.position.add(meteorVelocity);
             }
 
