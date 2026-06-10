@@ -9,36 +9,36 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; user-select: none; -webkit-user-select: none;
-            background-color: #02020a; font-family: Arial, sans-serif;
+            background-color: #7ec0ee; font-family: Arial, sans-serif;
         }
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         
         #instruction {
             position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
             color: rgba(255, 255, 255, 0.9); z-index: 10; text-align: center; pointer-events: none;
-            font-size: 14px; background: rgba(5, 5, 15, 0.7); padding: 10px 20px; border-radius: 20px;
-            box-shadow: 0 0 10px rgba(255,105,180,0.3);
+            font-size: 14px; background: rgba(30, 40, 60, 0.6); padding: 10px 20px; border-radius: 20px;
+            box-shadow: 0 0 10px rgba(135, 206, 235, 0.5);
             width: 85%; max-width: 600px;
         }
 
         /* JOYSTICK */
         #joystick-zone {
             position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5);
             border-radius: 50%; z-index: 10; display: none; touch-action: none;
         }
         #joystick-knob {
             position: absolute; top: 35px; left: 35px; width: 50px; height: 50px;
-            background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 15px white; border-radius: 50%;
+            background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 50%;
         }
 
         /* Nút mở cửa */
         #door-prompt {
             position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
-            color: #fff; background: linear-gradient(45deg, #ff4081, #9c27b0);
+            color: #fff; background: linear-gradient(45deg, #4caf50, #2196f3);
             padding: 14px 28px; border-radius: 30px; font-size: 18px; font-weight: bold;
             display: none; cursor: pointer; z-index: 10;
-            box-shadow: 0 0 20px rgba(255, 64, 129, 0.6);
+            box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
             animation: pulse 1.5s infinite alternate;
         }
         @keyframes pulse {
@@ -50,6 +50,7 @@
 </head>
 <body>
 
+    <div id="instruction">PC: Giữ Chuột để xoay góc nhìn, W-A-S-D để đi | Điện thoại: Vuốt màn hình & Dùng con lăn trái</div>
     <div id="door-prompt">Mở cửa ra đi nèe🚪</div>
     
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
@@ -59,7 +60,9 @@
         // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x02020a);
+        // Thay nền trời thành màu xanh trong xanh của ban ngày
+        scene.background = new THREE.Color(0x7ec0ee);
+        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.005);
 
         const playerGroup = new THREE.Group();
         playerGroup.position.set(-3, 1.8, 3); 
@@ -74,14 +77,16 @@
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.35);
+        // Nâng cường độ ánh sáng môi trường ban ngày
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        const moonLight = new THREE.DirectionalLight(0xa5c2ff, 0.8);
-        moonLight.position.set(30, 50, 150);
-        scene.add(moonLight);
+        // Ánh sáng mặt trời tạo bóng đổ ấm áp
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+        sunLight.position.set(120, 150, 100);
+        scene.add(sunLight);
 
-        const roomLight = new THREE.PointLight(0xff77aa, 1.8, 18);
+        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 15);
         roomLight.position.set(0, 3.2, 1);
         scene.add(roomLight);
 
@@ -93,8 +98,9 @@
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x1a2436, roughness: 0.7, side: THREE.DoubleSide }); 
-        const floorMat = createMat(0x2b1d11, 0.5); 
+        // Làm sáng màu tường phòng phù hợp ban ngày hơn
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0x3a4f6e, roughness: 0.7, side: THREE.DoubleSide }); 
+        const floorMat = createMat(0x422d1b, 0.5); 
 
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMat);
         floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
@@ -141,7 +147,7 @@
         roomGroup.add(backWallRight);
 
         const windowFrameMat = new THREE.MeshStandardMaterial({ 
-            color: 0x3d2516, 
+            color: 0x5c3a21, 
             roughness: 0.4,
             transparent: true,  
             opacity: 0.0  
@@ -151,11 +157,11 @@
         roomGroup.add(windowFrame);
 
         const glassMat = new THREE.MeshStandardMaterial({ 
-            color: 0x88ccff, 
+            color: 0xe0f7fa, 
             transparent: true, 
-            opacity: 0.15, 
+            opacity: 0.2, 
             roughness: 0.1, 
-            metalness: 0.9,
+            metalness: 0.1,
             depthWrite: false 
         });
         const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(7.0, 2.4), glassMat);
@@ -169,8 +175,8 @@
         const doorCanvas = document.createElement('canvas');
         doorCanvas.width = 256; doorCanvas.height = 512;
         const dCtx = doorCanvas.getContext('2d');
-        dCtx.fillStyle = '#4a2e1b'; dCtx.fillRect(0,0,256,512);
-        dCtx.strokeStyle = '#2d1b10'; dCtx.lineWidth = 14;
+        dCtx.fillStyle = '#5c3a21'; dCtx.fillRect(0,0,256,512);
+        dCtx.strokeStyle = '#3e251c'; dCtx.lineWidth = 14;
         dCtx.strokeRect(20, 20, 216, 472);
         dCtx.strokeRect(20, 20, 216, 220);
         dCtx.fillStyle = '#ffcc00'; dCtx.beginPath(); dCtx.arc(40, 256, 12, 0, Math.PI*2); dCtx.fill();
@@ -188,12 +194,12 @@
         // --- 3. TRANG TRÍ TRONG PHÒNG (GIƯỜNG & HOA) ---
         const bedGroup = new THREE.Group();
         bedGroup.position.set(-4.2, 0, 3.0);
-        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x5c4033));
+        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x6e4726));
         const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xffffff, 0.9));
         bedMattress.position.y = 0.4;
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffb6c1));
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffc0cb));
         pillow.position.set(0, 0.65, 1.3);
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xffc0cb));
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xe3f2fd));
         blanket.position.set(0, 0.42, -0.6);
         bedGroup.add(bedBase, bedMattress, pillow, blanket);
         roomGroup.add(bedGroup);
@@ -247,72 +253,75 @@
         }
 
 
-        // --- 4. HỆ THỐNG BẦU TRỜI SAO ---
-        const starCount = 1800; 
-        const starGeo = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
+        // --- 4. HỆ THỐNG MÂY KHỐI (MINECRAFT STYLE CLOUDS) & MẶT TRỜI VUÔNG ---
+        const cloudsGroup = new THREE.Group();
+        scene.add(cloudsGroup);
 
-        for(let i=0; i<starCount*3; i+=3) {
-            const radius = 250 + Math.random() * 150;
-            const u = Math.random();
-            const v = Math.random();
-            const theta = u * 2.0 * Math.PI;
-            const phi = Math.acos(2.0 * v - 1.0); 
+        const cloudMat = new THREE.MeshLambertMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.85,
+            side: THREE.DoubleSide
+        });
+
+        // Hàm tạo một cụm mây từ các hộp vuông Minecraft dính nhau
+        function createMinecraftCloud(startX, startY, startZ) {
+            const cluster = new THREE.Group();
+            const blocksCount = 3 + Math.floor(Math.random() * 5); 
             
-            starPositions[i] = radius * Math.sin(phi) * Math.cos(theta);
-            starPositions[i+1] = radius * Math.sin(phi) * Math.sin(theta); 
-            starPositions[i+2] = radius * Math.cos(phi);
+            for(let i=0; i<blocksCount; i++) {
+                const w = 15 + Math.floor(Math.random() * 20);
+                const h = 4 + Math.floor(Math.random() * 4);
+                const d = 15 + Math.floor(Math.random() * 20);
+                
+                const cloudBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
+                // Xếp lệch các khối để tạo phom đám mây tự nhiên dạng voxel
+                cloudBlock.position.set(
+                    (i * 12) - (blocksCount * 4),
+                    (Math.random() - 0.5) * 2,
+                    (Math.random() - 0.5) * 10
+                );
+                cluster.add(cloudBlock);
+            }
+            cluster.position.set(startX, startY, startZ);
+            cloudsGroup.add(cluster);
         }
-        
-        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starParticles = new THREE.Points(starGeo, new THREE.PointsMaterial({ 
-            color: 0xffffff, 
-            size: 0.8, 
-            sizeAttenuation: true, 
-            transparent: true, 
-            opacity: 0.95
-        }));
-        scene.add(starParticles);
 
-        const moonGroup = new THREE.Group();
-        const mainMoon = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 32), new THREE.MeshBasicMaterial({ color: 0xfffff5 }));
-        moonGroup.add(mainMoon);
-        const shadowMoon = new THREE.Mesh(new THREE.SphereGeometry(9.8, 32, 32), new THREE.MeshBasicMaterial({ color: 0x02020a }));
-        shadowMoon.position.set(3.5, 2.5, 2);
-        moonGroup.add(shadowMoon);
-        
-        moonGroup.position.set(25, 20, 200);
-        scene.add(moonGroup);
-
-        const meteorMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-        const meteorTailGeo = new THREE.ConeGeometry(0.2, 6, 8);
-        meteorTailGeo.rotateX(-Math.PI/2);
-        const meteor = new THREE.Mesh(meteorTailGeo, meteorMat);
-        meteor.position.set(200, 200, 200);
-        scene.add(meteor);
-
-        let meteorActive = false;
-        let meteorVelocity = new THREE.Vector3(0,0,0);
-        function spawnMeteor() {
-            if(meteorActive) return;
-            meteorActive = true;
-            meteor.position.set((Math.random()-0.5)*80, Math.random()*30 + 15, Math.random()*50 + 120);
-            meteorVelocity.set(-2.0 - Math.random()*2, -0.8 - Math.random()*0.5, -Math.random());
-            setTimeout(() => { meteorActive = false; meteor.position.set(200,200,200); }, 1500);
+        // Tạo ngẫu nhiên nhiều cụm mây Minecraft rải rác trên cao
+        for(let i=0; i<18; i++) {
+            let cx = (Math.random() - 0.5) * 500;
+            let cy = 80 + Math.random() * 40;
+            let cz = (Math.random() - 0.5) * 500;
+            createMinecraftCloud(cx, cy, cz);
         }
-        setInterval(spawnMeteor, 4000);
+
+        // Tạo MẶT TRỜI HÌNH KHỐI VUÔNG phong cách Minecraft
+        const sunGroup = new THREE.Group();
+        const sunMesh = new THREE.Mesh(
+            new THREE.BoxGeometry(18, 18, 18), 
+            new THREE.MeshBasicMaterial({ color: THREE.Color.NAMES.lemonchiffon })
+        );
+        sunGroup.add(sunMesh);
+        
+        // Thêm lớp hào quang vuông bên ngoài cho mặt trời rực rỡ
+        const sunGlow = new THREE.Mesh(
+            new THREE.BoxGeometry(24, 24, 24), 
+            new THREE.MeshBasicMaterial({ color: 0xfff5cc, transparent: true, opacity: 0.35 })
+        );
+        sunGroup.add(sunGlow);
+        sunGroup.position.set(120, 150, 200);
+        scene.add(sunGroup);
 
 
         // --- 5. CHỮ THÔNG ĐIỆP (HỖ TRỢ TỰ ĐỘNG XUỐNG DÒNG KHÔNG BỊ KHUẤT) ---
         const messages = [
             "Cảm ơn em vì đã chịu nói ra nhưng điều em giữ trong lòng như vậy, anh rất là trân trọng luôn á",
             "Thiệt ra điều anh thấy sau đoạn đó hong phải là thất vọng, mà là anh hiểu em hơn rất nhiều.",
-            "Bé Tuyến ngủ ngoann nhee ❤️",
+            "Chúc Bé Tuyến buổi sáng vui vẻ nhaa💗",
             "Còn về chuyện có tiếp tục hay không thì anh chưa bao giờ thực sự muốn bỏ cuộc đâu ngốc ạ"
         ];
         const textPlanes = [];
 
-    
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
             const words = text.split(' ');
             let line = '';
@@ -331,13 +340,12 @@
             }
             lines.push(line);
 
-            // Vẽ từng dòng lên tâm canvas
             let currentY = y - ((lines.length - 1) * lineHeight) / 2;
             for (let i = 0; i < lines.length; i++) {
                 ctx.fillText(lines[i].trim(), x, currentY);
                 currentY += lineHeight;
             }
-            return currentY; // Trả về tọa độ Y tiếp theo để vẽ các thành phần dưới nó (như mũi tên)
+            return currentY; 
         }
 
         function createSignText(text, index, posX, posZ, rotY) {
@@ -347,20 +355,22 @@
             const tex = new THREE.CanvasTexture(canvas);
 
             document.fonts.load('10pt "Dancing Script"').then(() => {
-                ctx.font = 'bold 90px "Dancing Script", cursive'; 
-                ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-                ctx.shadowColor = '#ff3385'; ctx.shadowBlur = 35;
+                ctx.font = 'bold 95px "Dancing Script", cursive'; 
                 
-                // Giới hạn chiều rộng chữ là 1700px để không chạm viền canvas, khoảng cách dòng 110px
-                let nextY = wrapText(ctx, text, 1024, 400, 1700, 110); 
+                // Thay đổi màu chữ thành Xanh nước biển đậm (Navy) phối hiệu ứng phát sáng Ngọc (Cyan)
+                ctx.fillStyle = '#0f2b5c'; 
+                ctx.textAlign = 'center';
+                ctx.shadowColor = '#00ffff'; 
+                ctx.shadowBlur = 30;
                 
-                // Vẽ mũi tên ở vị trí phía dưới dòng chữ sau khi đã xuống dòng xong
-                ctx.font = '100px Arial'; ctx.fillStyle = '#ff3385';
+                let nextY = wrapText(ctx, text, 1024, 400, 1700, 120); 
+                
+                ctx.font = '100px Arial'; 
+                ctx.fillStyle = '#00bcd4'; // Mũi tên màu xanh ngọc đồng bộ
                 ctx.fillText('➔', 1024, Math.max(nextY + 40, 620));
                 tex.needsUpdate = true;
             });
 
-            // Tăng tỷ lệ ô chứa 3D để không gian bao quát chữ rộng rãi hơn
             const plane = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
             plane.position.set(posX, 5.8, posZ); plane.rotation.y = rotY;
             scene.add(plane);
@@ -465,7 +475,7 @@
         window.addEventListener('touchend', endTouch); window.addEventListener('touchcancel', endTouch);
 
         const promptBtn = document.getElementById('door-prompt');
-        function openDoor() { isDoorOpen = true; promptBtn.style.display = 'none'; roomLight.intensity = 0.8; }
+        function openDoor() { isDoorOpen = true; promptBtn.style.display = 'none'; roomLight.intensity = 0.5; }
         promptBtn.addEventListener('click', openDoor); promptBtn.addEventListener('touchstart', openDoor);
 
 
@@ -522,16 +532,19 @@
                 doorPivot.rotation.y = doorRot;
             }
 
-            if(meteorActive) {
-                textPlanes.forEach((plane) => {
-                    plane.material.map.needsUpdate = true;
-                });
-                meteor.position.add(meteorVelocity);
-            }
+            // ANIMATION MÂY TRÔI: Cho mây di chuyển từ từ dọc trục X giống Minecraft
+            const elapsedTime = clock.getElapsedTime();
+            cloudsGroup.children.forEach((cloudCluster) => {
+                cloudCluster.position.x += 0.03; // Tốc độ trôi lững lờ của mây
+                // Nếu mây bay quá xa, cho quay lại từ phía bên kia bản đồ
+                if(cloudCluster.position.x > 300) {
+                    cloudCluster.position.x = -300;
+                }
+            });
 
-            const time = clock.getElapsedTime();
+            // Hiệu ứng chữ nổi bồng bềnh
             textPlanes.forEach((plane, index) => {
-                plane.position.y = 5.5 + Math.sin(time * 1.2 + index) * 0.15;
+                plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15;
             });
 
             renderer.render(scene, camera);
