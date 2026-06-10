@@ -3,92 +3,43 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Không Gian Bí Mật Cho Ebe Tuyến ❤️</title>
+    <title>Vũ Trụ Bí Mật Của Ebe Tuyến ❤️</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
     <style>
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            user-select: none;
-            -webkit-user-select: none;
-            background-color: #000;
-            font-family: Arial, sans-serif;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            overflow: hidden; user-select: none; -webkit-user-select: none;
+            background-color: #01010b; font-family: Arial, sans-serif;
         }
-
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            top: 0;
-            left: 0;
-            z-index: 1;
-        }
-
-        /* Hướng dẫn ban đầu */
+        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+        
         #instruction {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.8);
-            z-index: 10;
-            text-align: center;
-            pointer-events: none;
-            font-size: 14px;
-            background: rgba(0,0,0,0.5);
-            padding: 10px 20px;
-            border-radius: 20px;
+            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
+            color: rgba(255, 255, 255, 0.9); z-index: 10; text-align: center; pointer-events: none;
+            font-size: 14px; background: rgba(5, 5, 15, 0.7); padding: 10px 20px; border-radius: 20px;
+            box-shadow: 0 0 10px rgba(255,105,180,0.3);
         }
 
-        /* NÚT CON LĂN DI CHUYỂN (JOYSTICK) */
+        /* JOYSTICK */
         #joystick-zone {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
-            width: 120px;
-            height: 120px;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            z-index: 10;
-            display: none; /* Chỉ hiện trên thiết bị cảm ứng */
-            touch-action: none;
+            position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px;
+            background: rgba(255, 255, 255, 0.08); border: 2px solid rgba(255, 255, 255, 0.25);
+            border-radius: 50%; z-index: 10; display: none; touch-action: none;
         }
-
         #joystick-knob {
-            position: absolute;
-            top: 35px;
-            left: 35px;
-            width: 50px;
-            height: 50px;
-            background: rgba(255, 255, 255, 0.7);
-            box-shadow: 0 0 10px white;
-            border-radius: 50%;
-            transition: transform 0.05s linear;
+            position: absolute; top: 35px; left: 35px; width: 50px; height: 50px;
+            background: rgba(255, 255, 255, 0.75); box-shadow: 0 0 15px white; border-radius: 50%;
         }
 
-        /* Gợi ý mở cửa */
+        /* Nút mở cửa */
         #door-prompt {
-            position: absolute;
-            bottom: 30%;
-            left: 50%;
-            transform: translateX(-50%);
-            color: #fff;
-            background: rgba(233, 30, 99, 0.7);
-            padding: 12px 24px;
-            border-radius: 30px;
-            font-size: 18px;
-            font-weight: bold;
-            display: none;
-            cursor: pointer;
-            z-index: 10;
-            box-shadow: 0 0 15px rgba(233, 30, 99, 0.5);
+            position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
+            color: #fff; background: linear-gradient(45deg, #ff4081, #9c27b0);
+            padding: 14px 28px; border-radius: 30px; font-size: 18px; font-weight: bold;
+            display: none; cursor: pointer; z-index: 10;
+            box-shadow: 0 0 20px rgba(255, 64, 129, 0.6);
             animation: pulse 1.5s infinite alternate;
         }
-
         @keyframes pulse {
             0% { transform: translateX(-50%) scale(1); }
             100% { transform: translateX(-50%) scale(1.08); }
@@ -98,24 +49,21 @@
 </head>
 <body>
 
-    <div id="instruction">Dùng phím Mũi Tên để đi / Vuốt màn hình để quay nhìn xung quanh</div>
-    <div id="door-prompt">Chạm vào đây để mở cửa mở ra điều bất ngờ... 🚪</div>
+    <div id="instruction">Dùng phím Mũi Tên (PC) hoặc Con Lăn (Điện thoại) để đi tìm thông điệp nhé!</div>
+    <div id="door-prompt">Chạm vào đây để mở cửa bước ra ban công... 🚪</div>
     
-    <div id="joystick-zone">
-        <div id="joystick-knob"></div>
-    </div>
-
+    <div id="joystick-zone"><div id="joystick-knob"></div></div>
     <div id="canvas-container"></div>
 
     <script>
-        // --- CẤU HÌNH BAN ĐẦU ---
+        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.fog = new THREE.FogExp2(0x050510, 0.015); // Tạo sương mù đêm huyền ảo
+        scene.fog = new THREE.FogExp2(0x020208, 0.012);
 
-        // Camera đặt trong một Group (để quản lý việc di chuyển độc lập với xoay góc nhìn)
+        // Vị trí xuất hiện: Cạnh chiếc giường (x: -3, z: 4)
         const playerGroup = new THREE.Group();
-        playerGroup.position.set(0, 2, 8); // Đứng ở giữa phòng
+        playerGroup.position.set(-3, 1.8, 4); 
         scene.add(playerGroup);
 
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -127,351 +75,396 @@
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
-        // Ánh sáng
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+        // Ánh sáng vũ trụ ban đêm
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
         scene.add(ambientLight);
 
-        const moonLight = new THREE.DirectionalLight(0x90b0ff, 0.8);
-        moonLight.position.set(50, 100, -100);
-        moonLight.castShadow = true;
+        const moonLight = new THREE.DirectionalLight(0xa5c2ff, 0.8);
+        moonLight.position.set(40, 60, -50);
         scene.add(moonLight);
 
-        // Đèn ngủ trong phòng (tạo cảm giác ấm áp ban đầu)
-        const roomLight = new THREE.PointLight(0xffaa44, 1, 15);
-        roomLight.position.set(0, 4, 5);
+        // Ánh đèn ngủ màu hồng cam lãng mạn trong phòng
+        const roomLight = new THREE.PointLight(0xff77aa, 1.2, 12);
+        roomLight.position.set(0, 3.5, 2);
         scene.add(roomLight);
 
-        // --- XÂY DỰNG MÔI TRƯỜNG 3D ---
-        
-        // 1. Tạo căn phòng đóng kín
+        // Hàm tạo chất liệu tiêu chuẩn nhanh
+        function createMat(color, roughness = 0.7) {
+            return new THREE.MeshStandardMaterial({ color: color, roughness: roughness });
+        }
+
+        // --- 1. XÂY DỰNG CĂN PHÒNG ĐÓNG KÍN (ĐÃ FIX KÍN VIỀN) ---
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        // Chất liệu tường và sàn tự chế bằng Canvas tạo vân gỗ/sơn tường
-        function createWallMaterial(color) {
-            return new THREE.MeshStandardMaterial({ color: color, roughness: 0.8 });
-        }
+        const wallMat = createMat(0x1a2436); 
+        const floorMat = createMat(0x2b1d11, 0.5); // Sàn gỗ
 
-        const wallMat = createWallMaterial(0x2e3d52); // Tường xanh thẫm lãng mạn
-        const floorMat = createWallMaterial(0x3a2214); // Sàn gỗ tối màu
-
-        // Sàn nhà
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), floorMat);
-        floor.rotation.x = -Math.PI / 2;
-        floor.receiveShadow = true;
+        // Sàn & Trần (Rộng 12x12)
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMat);
+        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
         roomGroup.add(floor);
 
-        // Trần nhà
-        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(16, 16), wallMat);
-        ceiling.rotation.x = Math.PI / 2;
-        ceiling.position.y = 5;
+        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), wallMat);
+        ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 5;
         roomGroup.add(ceiling);
 
-        // Các bức tường xung quanh
-        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(16, 5), wallMat);
-        backWall.position.set(0, 2.5, 8);
-        backWall.rotation.y = Math.PI;
+        // Các bức tường kín hoàn toàn
+        const backWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 5), wallMat);
+        backWall.position.set(0, 2.5, 6); backWall.rotation.y = Math.PI;
         roomGroup.add(backWall);
 
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(16, 5), wallMat);
-        leftWall.position.set(-8, 2.5, 0);
-        leftWall.rotation.y = Math.PI / 2;
+        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 5), wallMat);
+        leftWall.position.set(-6, 2.5, 0); leftWall.rotation.y = Math.PI / 2;
         roomGroup.add(leftWall);
 
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(16, 5), wallMat);
-        rightWall.position.set(8, 2.5, 0);
-        rightWall.rotation.y = -Math.PI / 2;
+        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 5), wallMat);
+        rightWall.position.set(6, 2.5, 0); rightWall.rotation.y = -Math.PI / 2;
         roomGroup.add(rightWall);
 
-        // Tường trước (Tường có cửa ra ban công)
-        const wallLeftPart = new THREE.Mesh(new THREE.PlaneGeometry(6, 5), wallMat);
-        wallLeftPart.position.set(-5, 2.5, -8);
-        roomGroup.add(wallLeftPart);
+        // Mặt tường trước (Có cửa: chia làm 2 mảng tường lớn ôm sát khít khung cửa)
+        const frontWallLeft = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
+        frontWallLeft.position.set(-3.75, 2.5, -6);
+        roomGroup.add(frontWallLeft);
 
-        const wallRightPart = new THREE.Mesh(new THREE.PlaneGeometry(6, 5), wallMat);
-        wallRightPart.position.set(5, 2.5, -8);
-        roomGroup.add(wallRightPart);
+        const frontWallRight = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
+        frontWallRight.position.set(3.75, 2.5, -6);
+        roomGroup.add(frontWallRight);
 
-        const wallTopPart = new THREE.Mesh(new THREE.PlaneGeometry(4, 1.5), wallMat);
-        wallTopPart.position.set(0, 4.25, -8);
-        roomGroup.add(wallTopPart);
+        const frontWallTop = new THREE.Mesh(new THREE.PlaneGeometry(3.1, 1.4), wallMat);
+        frontWallTop.position.set(0, 4.3, -6);
+        roomGroup.add(frontWallTop);
 
-        // 2. Cánh cửa "nhìn thật một xíu"
-        // Tạo vân gỗ cho cửa bằng Canvas
+        // --- 2. CÁNH CỬA KIỂU DÁNG CHÂN THỰC KHÍT VIỀN ---
+        const doorWidth = 3.0, doorHeight = 3.6;
         const doorCanvas = document.createElement('canvas');
         doorCanvas.width = 256; doorCanvas.height = 512;
         const dCtx = doorCanvas.getContext('2d');
-        dCtx.fillStyle = '#5c3a21'; dCtx.fillRect(0,0,256,512);
-        dCtx.strokeStyle = '#3d2514'; dCtx.lineWidth = 10;
-        dCtx.strokeRect(15, 15, 226, 482);
-        dCtx.strokeRect(15, 15, 226, 230);
-        // Tay nắm cửa vàng kim
-        dCtx.fillStyle = '#ffd700'; dCtx.beginPath(); dCtx.arc(40, 256, 12, 0, Math.PI*2); dCtx.fill();
+        dCtx.fillStyle = '#4a2e1b'; dCtx.fillRect(0,0,256,512);
+        dCtx.strokeStyle = '#2d1b10'; dCtx.lineWidth = 14;
+        dCtx.strokeRect(20, 20, 216, 472);
+        dCtx.strokeRect(20, 20, 216, 220);
+        dCtx.fillStyle = '#ffcc00'; dCtx.beginPath(); dCtx.arc(40, 256, 12, 0, Math.PI*2); dCtx.fill(); // Tay nắm
 
         const doorTex = new THREE.CanvasTexture(doorCanvas);
-        const doorMat = new THREE.MeshStandardMaterial({ map: doorTex, roughness: 0.5 });
-        const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(3.8, 3.5, 0.15), doorMat);
-        doorMesh.position.set(1.9, 1.75, 0); // Dịch chuyển tâm để quay quanh bản lề
-        doorMesh.castShadow = true;
+        const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, doorHeight, 0.15), new THREE.MeshStandardMaterial({ map: doorTex }));
+        doorMesh.position.set(doorWidth/2, doorHeight/2, 0); // Đặt tâm ở mép cạnh để làm bản lề quay
 
-        // Trục bản lề cửa đặt tại mép phải của khung cửa (nhìn từ trong phòng)
         const doorPivot = new THREE.Group();
-        doorPivot.position.set(-1.9, 0, -8);
+        doorPivot.position.set(-doorWidth/2, 0, -6); // Đặt đúng khớp khe tường
         doorPivot.add(doorMesh);
         scene.add(doorPivot);
 
-        // 3. Ban công bên ngoài
-        const balconyFloor = new THREE.Mesh(new THREE.PlaneGeometry(10, 6), createWallMaterial(0x222222));
-        balconyFloor.rotation.x = -Math.PI / 2;
-        balconyFloor.position.set(0, 0, -11);
-        scene.add(balconyFloor);
+        // --- 3. BAN CÔNG BAO QUANH 360 ĐỘ CĂN PHÒNG ---
+        const balconyGroup = new THREE.Group();
+        scene.add(balconyGroup);
 
-        // Lan can ban công đơn giản
-        const railingMat = new THREE.MeshStandardMaterial({ color: 0x111111, metalness: 0.8 });
-        const railing = new THREE.Mesh(new THREE.BoxGeometry(10, 1.2, 0.1), railingMat);
-        railing.position.set(0, 0.6, -14);
-        scene.add(railing);
+        const bFloorMat = createMat(0x15151c);
+        const railingMat = createMat(0x0a0a0f, 0.2);
 
-        // 4. Bầu trời đêm với các vì sao di chuyển
-        const starCount = 500;
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
-        const starSpeeds = [];
+        // Tạo sàn vòng quanh bao ngoài từ khoảng cách 6 đến 11
+        const bFloor = new THREE.Mesh(new THREE.RingGeometry(7.5, 12.5, 4, 1), bFloorMat);
+        bFloor.rotation.x = -Math.PI / 2; bFloor.rotation.z = Math.PI / 4; // Căn lề vuông góc với phòng
+        bFloor.position.y = 0.01;
+        balconyGroup.add(bFloor);
 
-        for(let i=0; i<starCount * 3; i+=3) {
-            // Tạo sao ngẫu nhiên ở khoảng không phía trước ban công
-            starPositions[i] = (Math.random() - 0.5) * 200;
-            starPositions[i+1] = Math.random() * 80 + 5;
-            starPositions[i+2] = -Math.random() * 100 - 15;
-            starSpeeds.push(Math.random() * 0.02 + 0.005);
+        // Hệ thống lan can 4 cạnh bên ngoài (Giới hạn di chuyển bảo vệ)
+        function createRailing(x, z, w, d, h, rotY=0) {
+            const r = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), railingMat);
+            r.position.set(x, h/2, z); r.rotation.y = rotY;
+            balconyGroup.add(r);
         }
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMat = new THREE.PointsMaterial({ color: 0xffffff, size: 0.3, transparent: true });
-        const starParticles = new THREE.Points(starGeometry, starMat);
+        createRailing(0, -11.5, 23, 0.3, 1.2); // Trước
+        createRailing(11.5, 0, 23, 0.3, 1.2, Math.PI/2); // Phải
+        createRailing(0, 11.5, 23, 0.3, 1.2); // Sau
+        createRailing(-11.5, 0, 23, 0.3, 1.2, Math.PI/2); // Trái
+
+        // --- 4. TRANG TRÍ TRONG PHÒNG (GIƯỜNG & HOA TRÊN TƯỜNG) ---
+        // Chiếc giường nhỏ xinh góc phòng
+        const bedGroup = new THREE.Group();
+        bedGroup.position.set(-4.2, 0, 3.5);
+        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x5c4033));
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xffffff, 0.9));
+        bedMattress.position.y = 0.4;
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffb6c1)); // Gối hồng
+        pillow.position.set(0, 0.65, 1.3);
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xffc0cb)); // Chăn hồng ấm
+        blanket.position.set(0, 0.42, -0.6);
+        bedGroup.add(bedBase, bedMattress, pillow, blanket);
+        roomGroup.add(bedGroup);
+
+        // Trang trí Hoa Đào 5 cánh 3D đính lên tường
+        function hienThiHoa(x, y, z, scale, rotY=0) {
+            const hoa = new THREE.Group();
+            const petalMat = new THREE.MeshStandardMaterial({ color: 0xffa6c9, roughness: 0.6 });
+            const centerMat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
+            
+            // 5 Cánh hoa hình cầu dẹt
+            for(let i=0; i<5; i++) {
+                const petal = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 16), petalMat);
+                petal.scale.set(1, 0.4, 1.5);
+                const angle = (i * Math.PI * 2) / 5;
+                petal.position.set(Math.cos(angle)*0.22, Math.sin(angle)*0.22, 0);
+                petal.rotation.z = angle;
+                hoa.add(petal);
+            }
+            // Nhụy hoa vàng giữa
+            const nhuy = new THREE.Mesh(new THREE.SphereGeometry(0.1, 16, 16), centerMat);
+            nhuy.position.z = 0.05;
+            hoa.add(nhuy);
+            
+            hoa.position.set(x, y, z); hoa.rotation.y = rotY; hoa.scale.set(scale, scale, scale);
+            roomGroup.add(hoa);
+        }
+        // Treo hoa lên các diện tường trong phòng
+        hienThiHoa(-5.9, 2.8, 3.5, 1.5, Math.PI/2);
+        hienThiHoa(-5.9, 3.2, 1.5, 1.2, Math.PI/2);
+        hienThiHoa(5.9, 3.0, 2.0, 1.4, -Math.PI/2);
+        hienThiHoa(0, 3.5, 5.9, 1.6, Math.PI);
+        hienThiHoa(3.5, 3.2, -5.9, 1.2);
+
+        // --- 5. BẦU TRỜI SAO HÌNH CẦU BAO PHỦ ---
+        const starSphereGeo = new THREE.SphereGeometry(150, 32, 32);
+        const starCount = 800;
+        const starPositions = new Float32Array(starCount * 3);
+        for(let i=0; i<starCount*3; i+=3) {
+            // Phân bổ ngẫu nhiên trên bề mặt hình cầu bán kính lớn ngoài rìa
+            const u = Math.random(); const v = Math.random();
+            const theta = u * 2.0 * Math.PI; const phi = Math.acos(2.0 * v - 1.0);
+            starPositions[i] = 140 * Math.sin(phi) * Math.cos(theta);
+            starPositions[i+1] = Math.abs(140 * Math.sin(phi) * Math.sin(theta)) + 2; // Giữ sao ở trên cao
+            starPositions[i+2] = 140 * Math.cos(phi);
+        }
+        const starGeo = new THREE.BufferGeometry();
+        starGeo.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starParticles = new THREE.Points(starGeo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.4, transparent: true }));
         scene.add(starParticles);
 
-        // 5. Mặt trăng lưỡi liềm phát sáng lãng mạn
+        // Tạo Mặt Trăng Lưỡi Liềm tinh tế nghệ thuật
         const moonGroup = new THREE.Group();
-        // Ghép 2 hình cầu cắt nhau để tạo lưỡi liềm nghệ thuật trong 3D
-        const moonMat = new THREE.MeshBasicMaterial({ color: 0xffffe0 });
-        const mainMoon = new THREE.Mesh(new THREE.SphereGeometry(4, 32, 32), moonMat);
+        const moonMat = new THREE.MeshBasicMaterial({ color: 0xfffff0 });
+        const mainMoon = new THREE.Mesh(new THREE.SphereGeometry(6, 32, 32), moonMat);
         moonGroup.add(mainMoon);
-        moonGroup.position.set(25, 25, -60);
+        // Quả cầu đen che lấp tạo hình lưỡi liềm khuyết cực lãng mạn
+        const shadowMoon = new THREE.Mesh(new THREE.SphereGeometry(5.8, 32, 32), new THREE.MeshBasicMaterial({ color: 0x020208 }));
+        shadowMoon.position.set(2.0, 1.5, 1);
+        moonGroup.add(shadowMoon);
+        moonGroup.position.set(40, 55, -90);
         scene.add(moonGroup);
 
-        // 6. DÒNG CHỮ LƠ LỬNG TRÊN BẦU TRỜI (Vẽ bằng Canvas để giữ Font lãng mạn)
-        const textCanvas = document.createElement('canvas');
-        textCanvas.width = 1024; textCanvas.height = 256;
-        const tCtx = textCanvas.getContext('2d');
-        
-        // Đợi font chữ tải xong rồi vẽ
-        document.fonts.load('10pt "Dancing Script"').then(() => {
-            tCtx.font = 'bold 75px "Dancing Script", cursive';
-            tCtx.fillStyle = '#ffffff';
-            tCtx.textAlign = 'center';
-            tCtx.shadowColor = '#ff69b4';
-            tCtx.shadowBlur = 20;
-            tCtx.fillText('Ebe Tuyến ngủ ngoan nha ❤️', 512, 140);
-            textTex.needsUpdate = true;
-        });
+        // Kỹ thuật khởi tạo SAO CHỔI (Meteor) ngẫu nhiên bay dọc trời đêm
+        const meteorMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const meteorTailGeo = new THREE.ConeGeometry(0.15, 4, 8);
+        meteorTailGeo.rotateX(-Math.PI/2); // Hướng đuôi sao chổi theo trục di chuyển
+        const meteor = new THREE.Mesh(meteorTailGeo, meteorMat);
+        meteor.position.set(100, 100, 100); // Giấu tạm thời ngoài rìa không gian vũ trụ
+        scene.add(meteor);
 
-        const textTex = new THREE.CanvasTexture(textCanvas);
-        const textMat = new THREE.MeshBasicMaterial({ map: textTex, transparent: true, side: THREE.DoubleSide });
-        const textPlane = new THREE.Mesh(new THREE.PlaneGeometry(24, 6), textMat);
-        textPlane.position.set(0, 6, -30); // Treo lơ lửng ngoài trời
-        scene.add(textPlane);
+        let meteorActive = false;
+        let meteorVelocity = new THREE.Vector3(0,0,0);
+        function spawnMeteor() {
+            if(meteorActive) return;
+            meteorActive = true;
+            // Chọn điểm xuất phát ngẫu nhiên trên cao
+            meteor.position.set((Math.random()-0.5)*80, Math.random()*30 + 30, -Math.random()*40 - 40);
+            meteorVelocity.set(-1.2 - Math.random(), -0.6 - Math.random()*0.4, Math.random()*0.5);
+            // Hiện sao chổi lấp lánh trong 1.5s rồi tắt ngầm
+            setTimeout(() => { meteorActive = false; meteor.position.set(100,100,100); }, 1500);
+        }
+        setInterval(spawnMeteor, 4000); // Cứ mỗi 4 giây kích hoạt tìm kiếm kiểm tra tạo sao chổi 1 lần
 
+        // --- 6. HỆ THỐNG TEXT THÔNG ĐIỆP 4 HƯỚNG THEO CHIỀU KIM ĐỒNG HỒ ---
+        const messages = [
+            "Ebe Tuyến ngủ ngoan nha ❤️",
+            "Trang hoàng cho em cả bầu trời sao ✨",
+            "Mong em luôn bình yên và hạnh phúc 🌙",
+            "Chúc em có những giấc mơ thật đẹp 👑"
+        ];
+        const textPlanes = [];
 
-        // --- HỆ THỐNG ĐIỀU KHIỂN & CÔ LẬP THAO TÁC ---
-        
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false;
-        let isDoorOpen = false, doorRotation = 0;
-        
-        // Tốc độ di chuyển và nhìn
-        const speed = 0.08;
-        let yaw = 0, pitch = 0; // Góc quay camera
+        function createSignText(text, index, posX, posZ, rotY) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 1024; canvas.height = 256;
+            const ctx = canvas.getContext('2d');
+            
+            document.fonts.load('10pt "Dancing Script"').then(() => {
+                ctx.font = 'bold 65px "Dancing Script", cursive';
+                ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+                ctx.shadowColor = '#ff3385'; ctx.shadowBlur = 25;
+                ctx.fillText(text, 512, 110);
+                
+                // VẼ MŨI TÊN CHỈ DẪN NGƯỜI CHƠI ĐI THEO CHIỀU KIM ĐỒNG HỒ (RẼ PHẢI)
+                ctx.font = '70px Arial'; ctx.fillStyle = '#ff3385';
+                ctx.fillText('➔', 512, 210);
+                tex.needsUpdate = true;
+            });
 
-        // Kiểm tra xem có phải thiết bị di động không
-        if ('ontouchstart' in window) {
-            document.getElementById('joystick-zone').style.display = 'block';
+            const tex = new THREE.CanvasTexture(canvas);
+            const plane = new THREE.Mesh(new THREE.PlaneGeometry(16, 4), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+            plane.position.set(posX, 5.5, posZ); plane.rotation.y = rotY;
+            scene.add(plane);
+            textPlanes.push(plane);
         }
 
-        // BÀN PHÍM (MÁY TÍNH)
-        const onKeyDown = (e) => {
-            switch (e.code) {
-                case 'ArrowUp': case 'KeyW': moveForward = true; break;
-                case 'ArrowLeft': case 'KeyA': moveLeft = true; break;
-                case 'ArrowDown': case 'KeyS': moveBackward = true; break;
-                case 'ArrowRight': case 'KeyD': moveRight = true; break;
-            }
-        };
-        const onKeyUp = (e) => {
-            switch (e.code) {
-                case 'ArrowUp': case 'KeyW': moveForward = false; break;
-                case 'ArrowLeft': case 'KeyA': moveLeft = false; break;
-                case 'ArrowDown': case 'KeyS': moveBackward = false; break;
-                case 'ArrowRight': case 'KeyD': moveRight = false; break;
-            }
-        };
-        window.addEventListener('keydown', onKeyDown);
-        window.addEventListener('keyup', onKeyUp);
+        // Đặt chữ tại 4 mặt tương ứng của ban công bao quanh ngôi nhà theo vòng tròn
+        createSignText(messages[0], 0, 0, -22, 0);           // Hướng 1: Trước mặt ban công
+        createSignText(messages[1], 1, 22, 0, -Math.PI/2);   // Hướng 2: Bên Phải ban công
+        createSignText(messages[2], 2, 0, 22, Math.PI);      // Hướng 3: Phía Sau lưng phòng
+        createSignText(messages[3], 3, -22, 0, Math.PI/2);    // Hướng 4: Bên Trái ban công
 
-        // CÔ LẬP THAO TÁC CẢM ỨNG (DI ĐỘNG)
-        let joyTouchId = null;
-        let lookTouchId = null;
-        let touchStartPos = { x: 0, y: 0 };
-        let joyStartPos = { x: 0, y: 0 };
-        let moveVector = { x: 0, y: 0 };
+        // --- HỆ THỐNG ĐIỀU KHIỂN ĐỘC LẬP TÙY BIẾN ---
+        let moveF = false, moveB = false, moveL = false, moveR = false;
+        let isDoorOpen = false, doorRot = 0;
+        let yaw = 0, pitch = 0;
+        const moveSpeed = 0.08;
+
+        if ('ontouchstart' in window) document.getElementById('joystick-zone').style.display = 'block';
+
+        window.addEventListener('keydown', (e) => {
+            switch (e.code) {
+                case 'ArrowUp': case 'KeyW': moveF = true; break;
+                case 'ArrowLeft': case 'KeyA': moveL = true; break;
+                case 'ArrowDown': case 'KeyS': moveB = true; break;
+                case 'ArrowRight': case 'KeyD': moveR = true; break;
+            }
+        });
+        window.addEventListener('keyup', (e) => {
+            switch (e.code) {
+                case 'ArrowUp': case 'KeyW': moveF = false; break;
+                case 'ArrowLeft': case 'KeyA': moveL = false; break;
+                case 'ArrowDown': case 'KeyS': moveB = false; break;
+                case 'ArrowRight': case 'KeyD': moveR = false; break;
+            }
+        });
+
+        // CÔ LẬP THAO TÁC CẢM ỨNG DI ĐỘNG (Xử lý đa điểm không chồng chéo)
+        let joyId = null, lookId = null;
+        let touchStart = { x: 0, y: 0 }, joyStart = { x: 0, y: 0 }, vMove = { x: 0, y: 0 };
 
         window.addEventListener('touchstart', (e) => {
             for (let i = 0; i < e.changedTouches.length; i++) {
-                const touch = e.changedTouches[i];
-                // NỬA TRÁI MÀN HÌNH: Dành cho Con lăn di chuyển
-                if (touch.clientX < window.innerWidth / 2 && joyTouchId === null) {
-                    joyTouchId = touch.identifier;
+                const t = e.changedTouches[i];
+                if (t.clientX < window.innerWidth / 2 && joyId === null) {
+                    joyId = t.identifier;
                     const zone = document.getElementById('joystick-zone');
-                    // Đặt tâm con lăn ngay tại chỗ chạm để mượt mà hơn
-                    zone.style.left = (touch.clientX - 60) + 'px';
-                    zone.style.bottom = (window.innerHeight - touch.clientY - 60) + 'px';
-                    joyStartPos = { x: touch.clientX, y: touch.clientY };
-                } 
-                // NỬA PHẢI MÀN HÌNH: Dành cho Xoay góc nhìn
-                else if (touch.clientX >= window.innerWidth / 2 && lookTouchId === null) {
-                    lookTouchId = touch.identifier;
-                    touchStartPos = { x: touch.clientX, y: touch.clientY };
+                    zone.style.left = (t.clientX - 60) + 'px'; zone.style.bottom = (window.innerHeight - t.clientY - 60) + 'px';
+                    joyStart = { x: t.clientX, y: t.clientY };
+                } else if (t.clientX >= window.innerWidth / 2 && lookId === null) {
+                    lookId = t.identifier;
+                    touchStart = { x: t.clientX, y: t.clientY };
                 }
             }
-        }, { passive: false });
+        });
 
         window.addEventListener('touchmove', (e) => {
             for (let i = 0; i < e.changedTouches.length; i++) {
-                const touch = e.changedTouches[i];
-                
-                // Xử lý di chuyển con lăn độc lập
-                if (touch.identifier === joyTouchId) {
-                    let distX = touch.clientX - joyStartPos.x;
-                    let distY = touch.clientY - joyStartPos.y;
-                    let dist = Math.sqrt(distX*distX + distY*distY);
-                    
-                    if(dist > 40) { // Giới hạn vòng tròn con lăn
-                        distX = (distX / dist) * 40;
-                        distY = (distY / dist) * 40;
-                    }
-                    document.getElementById('joystick-knob').style.transform = `translate(${distX}px, ${distY}px)`;
-                    
-                    // Tính vector di chuyển toàn cục
-                    moveVector.x = distX / 40;
-                    moveVector.y = -distY / 40; // Đảo ngược trục Y trong 3D
+                const t = e.changedTouches[i];
+                if (t.identifier === joyId) {
+                    let dx = t.clientX - joyStart.x, dy = t.clientY - joyStart.y;
+                    let d = Math.sqrt(dx*dx + dy*dy);
+                    if(d > 40) { dx = (dx/d)*40; dy = (dy/d)*40; }
+                    document.getElementById('joystick-knob').style.transform = `translate(${dx}px, ${dy}px)`;
+                    vMove.x = dx / 40; vMove.y = -dy / 40;
                 }
-                
-                // Xử lý vuốt nhìn độc lập
-                if (touch.identifier === lookTouchId) {
-                    const deltaX = touch.clientX - touchStartPos.x;
-                    const deltaY = touch.clientY - touchStartPos.y;
-
-                    yaw -= deltaX * 0.005;
-                    pitch -= deltaY * 0.005;
-                    pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch)); // Giới hạn gật đầu tránh lỗi góc nhìn
-
-                    touchStartPos = { x: touch.clientX, y: touch.clientY };
+                if (t.identifier === lookId) {
+                    yaw -= (t.clientX - touchStart.x) * 0.005;
+                    pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - (t.clientY - touchStart.y) * 0.005));
+                    touchStart = { x: t.clientX, y: t.clientY };
                 }
             }
-        }, { passive: false });
+        });
 
-        const endTouchHandler = (e) => {
+        const endTouch = (e) => {
             for (let i = 0; i < e.changedTouches.length; i++) {
-                const touch = e.changedTouches[i];
-                if (touch.identifier === joyTouchId) {
-                    joyTouchId = null;
-                    moveVector = { x: 0, y: 0 };
+                const t = e.changedTouches[i];
+                if (t.identifier === joyId) {
+                    joyId = null; vMove = { x: 0, y: 0 };
                     document.getElementById('joystick-knob').style.transform = 'translate(0px, 0px)';
-                    // Trả con lăn về vị trí mặc định ban đầu
-                    const zone = document.getElementById('joystick-zone');
-                    zone.style.left = '40px'; zone.style.bottom = '40px';
+                    document.getElementById('joystick-zone').style.left = '40px'; document.getElementById('joystick-zone').style.bottom = '40px';
                 }
-                if (touch.identifier === lookTouchId) {
-                    lookTouchId = null;
-                }
+                if (t.identifier === lookId) lookId = null;
             }
         };
-        window.addEventListener('touchend', endTouchHandler);
-        window.addEventListener('touchcancel', endTouchHandler);
+        window.addEventListener('touchend', endTouch); window.addEventListener('touchcancel', endTouch);
 
-
-        // --- KÍCH HOẠT MỞ CỬA ---
+        // Sự kiện chạm tương tác mở cửa
         const promptBtn = document.getElementById('door-prompt');
-        
-        function openDoorAction() {
-            isDoorOpen = true;
-            promptBtn.style.display = 'none';
-            roomLight.intensity = 0.2; // Tắt bớt đèn phòng để bật tông đêm lãng mạn bên ngoài
-        }
-        promptBtn.addEventListener('click', openDoorAction);
-        promptBtn.addEventListener('touchstart', openDoorAction);
+        function openDoor() { isDoorOpen = true; promptBtn.style.display = 'none'; roomLight.intensity = 0.3; }
+        promptBtn.addEventListener('click', openDoor); promptBtn.addEventListener('touchstart', openDoor);
 
-
-        // --- VÒNG LẶP HÌNH ẢNH (ANIMATION LOOP) ---
+        // --- VÒNG LẶP HÌNH ẢNH HOẠT HỌA ---
         const clock = new THREE.Clock();
 
         function animate() {
             requestAnimationFrame(animate);
 
-            // 1. Cập nhật góc nhìn camera
             playerGroup.rotation.y = yaw;
             camera.rotation.x = pitch;
 
-            // 2. Tính toán hướng di chuyển (Dựa trên hướng nhìn của nhân vật)
-            const changeX = (moveLeft ? -1 : 0) + (moveRight ? 1 : 0) + moveVector.x;
-            const changeZ = (moveForward ? -1 : 0) + (moveBackward ? 1 : 0) - moveVector.y;
+            // Xử lý di chuyển
+            const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x;
+            const cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
 
-            if (changeX !== 0 || changeZ !== 0) {
-                const direction = new THREE.Vector3(changeX, 0, changeZ).normalize();
-                direction.applyQuaternion(playerGroup.quaternion); // Di chuyển theo hướng camera đang nhìn
-                playerGroup.position.addScaledVector(direction, speed);
+            if (cx !== 0 || cz !== 0) {
+                const dir = new THREE.Vector3(cx, 0, cz).normalize();
+                dir.applyQuaternion(playerGroup.quaternion);
+                playerGroup.position.addScaledVector(dir, moveSpeed);
             }
 
-            // Giới hạn va chạm cơ bản (Không cho đi xuyên tường khi chưa mở cửa)
-            if (!isDoorOpen && playerGroup.position.z < -7.2) {
-                playerGroup.position.z = -7.2; // Giữ chân lại trước cửa nhà
-                promptBtn.style.display = 'block'; // Hiện nút gợi ý mở cửa
-            } else if (isDoorOpen && playerGroup.position.z < -7.2 && (playerGroup.position.x > 1.8 || playerGroup.position.x < -1.8)) {
-                playerGroup.position.z = -7.2; // Chỉ cho đi qua đúng khe cửa hẹp
+            // HỆ THỐNG GIỚI HẠN VA CHẠM TƯỜNG (BẢO VỆ CHẶN ĐI XUYÊN KHÔNG GIAN)
+            // Nếu chưa mở cửa, bị nhốt hoàn toàn trong không gian từ -5.2 đến 5.2
+            if (!isDoorOpen) {
+                if (playerGroup.position.z < -5.2) {
+                    playerGroup.position.z = -5.2;
+                    if(Math.abs(playerGroup.position.x) < 1.5) promptBtn.style.display = 'block'; // Đứng gần cửa thì hiện nút bấm
+                }
+                if (playerGroup.position.z > 5.2) playerGroup.position.z = 5.2;
+                if (playerGroup.position.x < -5.2) playerGroup.position.x = -5.2;
+                if (playerGroup.position.x > 5.2) playerGroup.position.x = 5.2;
+            } else {
+                // Khi cửa mở, cho phép đi qua khe cửa (-1.5 < x < 1.5) tại z = -6 để ra ngoài ban công rộng lớn
+                if (playerGroup.position.z > -5.5 && playerGroup.position.z < 5.5) {
+                    if (playerGroup.position.x < -5.2) playerGroup.position.x = -5.2;
+                    if (playerGroup.position.x > 5.2) playerGroup.position.x = 5.2;
+                    if (playerGroup.position.z > 5.2) playerGroup.position.z = 5.2;
+                }
+                // Giới hạn chống đâm qua vách tường phòng từ mặt bên ngoài ban công
+                if (playerGroup.position.z < -5.5 && playerGroup.position.z > -6.2 && Math.abs(playerGroup.position.x) > 1.5) {
+                    playerGroup.position.z = -5.5;
+                }
             }
 
-            // Giới hạn không cho rơi khỏi ban công
-            if (playerGroup.position.z < -13.5) playerGroup.position.z = -13.5;
-            if (playerGroup.position.x > 7.5) playerGroup.position.x = 7.5;
-            if (playerGroup.position.x < -7.5) playerGroup.position.x = -7.5;
+            // Giới hạn biên ngoài cùng của Lan can ban công tròn (Bán kính ngoài 11.2, trong phòng tránh rơi tự do)
+            const distFromCenter = Math.sqrt(playerGroup.position.x * playerGroup.position.x + playerGroup.position.z * playerGroup.position.z);
+            if (distFromCenter > 11.0) {
+                playerGroup.position.setLength(11.0); // Giữ chân người chơi không vượt quá viền lan can ban công bên ngoài
+            }
 
-            // 3. Hiệu ứng mở cửa chầm chậm thật một xíu bằng nội suy (Lerp)
+            // Hiệu ứng xoay mở cánh cửa lề tự động mượt mà
             if (isDoorOpen) {
-                doorRotation = THREE.MathUtils.lerp(doorRotation, -Math.PI / 1.8, 0.03); // Mở góc ~100 độ
-                doorPivot.rotation.y = doorRotation;
+                doorRot = THREE.MathUtils.lerp(doorRot, -Math.PI / 1.7, 0.04);
+                doorPivot.rotation.y = doorRot;
             }
 
-            // 4. Cho các vì sao di chuyển chầm chậm sang một bên
-            const positions = starGeometry.attributes.position.array;
-            for(let i = 0; i < starCount * 3; i += 3) {
-                positions[i] += starSpeeds[i/3]; // Trôi chầm chậm theo trục X
-                if (positions[i] > 100) positions[i] = -100; // Quay lại rìa bên kia bầu trời
+            // Xử lý chuyển động cho Sao Chổi nếu được kích hoạt bật lên
+            if(meteorActive) {
+                meteor.position.add(meteorVelocity);
             }
-            starGeometry.attributes.position.needsUpdate = true;
 
-            // 5. Hiệu ứng chữ lửng lơ nhịp đập nhẹ nhàng
+            // Hiệu ứng bay bổng dập dềnh lơ lửng cho cả 4 dòng chữ thông điệp
             const time = clock.getElapsedTime();
-            textPlane.position.y = 6 + Math.sin(time * 1.5) * 0.15;
+            textPlanes.forEach((plane, index) => {
+                plane.position.y = 5.2 + Math.sin(time * 1.3 + index) * 0.15;
+            });
 
             renderer.render(scene, camera);
         }
 
-        // Tự động điều chỉnh kích thước khi xoay ngang/dọc màn hình điện thoại
         window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
+            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
             renderer.setSize(window.innerWidth, window.innerHeight);
         });
 
-        // Chạy ứng dụng
         animate();
     </script>
 </body>
