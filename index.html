@@ -60,7 +60,6 @@
         // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        // Thay nền trời thành màu xanh trong xanh của ban ngày
         scene.background = new THREE.Color(0x7ec0ee);
         scene.fog = new THREE.FogExp2(0x7ec0ee, 0.005);
 
@@ -77,11 +76,9 @@
         renderer.shadowMap.enabled = true;
         container.appendChild(renderer.domElement);
 
-        // Nâng cường độ ánh sáng môi trường ban ngày
         const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        // Ánh sáng mặt trời tạo bóng đổ ấm áp
         const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
         sunLight.position.set(120, 150, 100);
         scene.add(sunLight);
@@ -94,17 +91,35 @@
             return new THREE.MeshStandardMaterial({ color: color, roughness: roughness, side: THREE.FrontSide });
         }
 
-        // --- 1. XÂY DỰNG CĂN PHÒNG ĐÓNG KÍN ---
+// --- 1. XÂY DỰNG SÀN THẾ GIỚI CỰC LỚN & CĂN PHÒNG ---
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        // Làm sáng màu tường phòng phù hợp ban ngày hơn
         const wallMat = new THREE.MeshStandardMaterial({ color: 0x3a4f6e, roughness: 0.7, side: THREE.DoubleSide }); 
-        const floorMat = createMat(0x422d1b, 0.5); 
+        
+        // 1. VẬT LIỆU CHO SÀN TRONG SUỐT (Bên ngoài)
+        const invisibleFloorMat = new THREE.MeshStandardMaterial({ 
+            transparent: true, 
+            opacity: 0.0, 
+            depthWrite: false // Giúp tránh lỗi hiển thị khi xếp chồng vật liệu trong suốt
+        }); 
 
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), floorMat);
-        floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true;
-        roomGroup.add(floor);
+        // 2. VẬT LIỆU CHO SÀN GỖ (Trong phòng)
+        const roomFloorMat = createMat(0x422d1b, 0.5); 
+
+        // SÀN THẾ GIỚI: Nâng cấp lên 1000x1000 nhưng LÀM TRONG SUỐT
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), invisibleFloorMat);
+        floor.rotation.x = -Math.PI / 2; 
+        // Bỏ nhận bóng (receiveShadow) ở sàn ngoài để tối ưu hiệu suất vì nó đã vô hình
+        scene.add(floor); 
+
+        // SÀN CĂN PHÒNG: Kích thước 12x12 vừa khít bên trong
+        const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), roomFloorMat);
+        roomFloor.rotation.x = -Math.PI / 2; 
+        roomFloor.receiveShadow = true; // Chỉ để sàn trong nhà nhận bóng
+        roomGroup.add(roomFloor);
+
+        // ... (Phần trần nhà - ceiling và các bức tường giữ nguyên như cũ) ...
 
         const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), wallMat);
         ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 5;
@@ -195,11 +210,14 @@
         const bedGroup = new THREE.Group();
         bedGroup.position.set(-4.2, 0, 3.0);
         const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x6e4726));
-        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xffffff, 0.9));
+        
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xff69b4, 0.8));
         bedMattress.position.y = 0.4;
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xffc0cb));
+        
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xe91e63));
         pillow.position.set(0, 0.65, 1.3);
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xe3f2fd));
+        
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xff1493, 0.7));
         blanket.position.set(0, 0.42, -0.6);
         bedGroup.add(bedBase, bedMattress, pillow, blanket);
         roomGroup.add(bedGroup);
@@ -253,7 +271,7 @@
         }
 
 
-        // --- 4. HỆ THỐNG MÂY KHỐI (MINECRAFT STYLE CLOUDS) & MẶT TRỜI VUÔNG ---
+        // --- 4. HỆ THỐNG MÂY KHỐI & MẶT TRỜI VUÔNG RÕ NÉT ---
         const cloudsGroup = new THREE.Group();
         scene.add(cloudsGroup);
 
@@ -264,7 +282,6 @@
             side: THREE.DoubleSide
         });
 
-        // Hàm tạo một cụm mây từ các hộp vuông Minecraft dính nhau
         function createMinecraftCloud(startX, startY, startZ) {
             const cluster = new THREE.Group();
             const blocksCount = 3 + Math.floor(Math.random() * 5); 
@@ -275,7 +292,6 @@
                 const d = 15 + Math.floor(Math.random() * 20);
                 
                 const cloudBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
-                // Xếp lệch các khối để tạo phom đám mây tự nhiên dạng voxel
                 cloudBlock.position.set(
                     (i * 12) - (blocksCount * 4),
                     (Math.random() - 0.5) * 2,
@@ -287,7 +303,6 @@
             cloudsGroup.add(cluster);
         }
 
-        // Tạo ngẫu nhiên nhiều cụm mây Minecraft rải rác trên cao
         for(let i=0; i<18; i++) {
             let cx = (Math.random() - 0.5) * 500;
             let cy = 80 + Math.random() * 40;
@@ -295,29 +310,32 @@
             createMinecraftCloud(cx, cy, cz);
         }
 
-        // Tạo MẶT TRỜI HÌNH KHỐI VUÔNG phong cách Minecraft
         const sunGroup = new THREE.Group();
         const sunMesh = new THREE.Mesh(
             new THREE.BoxGeometry(18, 18, 18), 
-            new THREE.MeshBasicMaterial({ color: THREE.Color.NAMES.lemonchiffon })
+            new THREE.MeshStandardMaterial({ 
+                color: 0xfff3cc,
+                emissive: 0xffe066, 
+                emissiveIntensity: 0.6,
+                roughness: 0.2
+            })
         );
         sunGroup.add(sunMesh);
         
-        // Thêm lớp hào quang vuông bên ngoài cho mặt trời rực rỡ
         const sunGlow = new THREE.Mesh(
-            new THREE.BoxGeometry(24, 24, 24), 
-            new THREE.MeshBasicMaterial({ color: 0xfff5cc, transparent: true, opacity: 0.35 })
+            new THREE.BoxGeometry(22, 22, 22), 
+            new THREE.MeshBasicMaterial({ color: 0xfff5cc, transparent: true, opacity: 0.25 })
         );
         sunGroup.add(sunGlow);
         sunGroup.position.set(120, 150, 200);
         scene.add(sunGroup);
 
 
-        // --- 5. CHỮ THÔNG ĐIỆP (HỖ TRỢ TỰ ĐỘNG XUỐNG DÒNG KHÔNG BỊ KHUẤT) ---
+        // --- 5. CHỮ THÔNG ĐIỆP ---
         const messages = [
             "Cảm ơn em vì đã chịu nói ra nhưng điều em giữ trong lòng như vậy, anh rất là trân trọng luôn á",
             "Thiệt ra điều anh thấy sau đoạn đó hong phải là thất vọng, mà là anh hiểu em hơn rất nhiều.",
-            "Chúc Bé Tuyến buổi sáng vui vẻ nhaa💗",
+            "Anh chúc Bé Tuyến buổi sáng dui dẻ nhaa ❤️",
             "Còn về chuyện có tiếp tục hay không thì anh chưa bao giờ thực sự muốn bỏ cuộc đâu ngốc ạ"
         ];
         const textPlanes = [];
@@ -356,8 +374,6 @@
 
             document.fonts.load('10pt "Dancing Script"').then(() => {
                 ctx.font = 'bold 95px "Dancing Script", cursive'; 
-                
-                // Thay đổi màu chữ thành Xanh nước biển đậm (Navy) phối hiệu ứng phát sáng Ngọc (Cyan)
                 ctx.fillStyle = '#0f2b5c'; 
                 ctx.textAlign = 'center';
                 ctx.shadowColor = '#00ffff'; 
@@ -366,7 +382,7 @@
                 let nextY = wrapText(ctx, text, 1024, 400, 1700, 120); 
                 
                 ctx.font = '100px Arial'; 
-                ctx.fillStyle = '#00bcd4'; // Mũi tên màu xanh ngọc đồng bộ
+                ctx.fillStyle = '#00bcd4'; 
                 ctx.fillText('➔', 1024, Math.max(nextY + 40, 620));
                 tex.needsUpdate = true;
             });
@@ -383,7 +399,7 @@
         createSignText(messages[3], 3, -25, 0, Math.PI/2);   
 
 
-        // --- 6. ĐIỀU KHIỂN & VA CHẠM ---
+        // --- 6. ĐIỀU KHIỂN & HỆ THỐNG VA CHẠM THỐNG NHẤT TOÀN CỤC ---
         let moveF = false, moveB = false, moveL = false, moveR = false;
         let isDoorOpen = false, doorRot = 0;
         let yaw = Math.PI, pitch = 0;
@@ -491,40 +507,66 @@
             const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x;
             const cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
 
+            let nextX = playerGroup.position.x;
+            let nextZ = playerGroup.position.z;
+
+            // Tính toán vị trí dự kiến tiếp theo
             if (cx !== 0 || cz !== 0) {
                 const dir = new THREE.Vector3(cx, 0, cz).normalize();
                 dir.applyQuaternion(playerGroup.quaternion);
-                playerGroup.position.addScaledVector(dir, moveSpeed);
+                nextX += dir.x * moveSpeed;
+                nextZ += dir.z * moveSpeed;
             }
 
-            const rBound = 5.2; 
-            if (playerGroup.position.x < -rBound) playerGroup.position.x = -rBound;
-            if (playerGroup.position.x > rBound) playerGroup.position.x = rBound;
-            if (playerGroup.position.z > rBound) playerGroup.position.z = rBound; 
+            // ==========================================
+            // THUẬT TOÁN VA CHẠM TOÀN CỤC MỚI (AABB Tối Ưu)
+            // ==========================================
+            const worldBound = 495; // Rìa bản đồ cực lớn
+            
+            // 1. Giới hạn sàn thế giới
+            if (nextX < -worldBound) nextX = -worldBound;
+            if (nextX > worldBound) nextX = worldBound;
+            if (nextZ < -worldBound) nextZ = -worldBound;
+            if (nextZ > worldBound) nextZ = worldBound;
 
-            if (!isDoorOpen) {
-                if (playerGroup.position.z < -rBound) {
-                    playerGroup.position.z = -rBound;
-                    if (Math.abs(playerGroup.position.x) < 1.4) {
-                        promptBtn.style.display = 'block';
-                    }
-                } else {
-                    if (Math.abs(playerGroup.position.x) >= 1.4 || playerGroup.position.z > -4.5) {
-                        promptBtn.style.display = 'none';
+            // 2. Định nghĩa biên căn phòng (Chướng ngại vật)
+            const wallThick = 0.6; // Bán kính va chạm của tường
+            const rMinX = -6, rMaxX = 6;
+            const rMinZ = -6, rMaxZ = 6;
+            const doorGap = 1.35; // Khoảng cách khe cửa an toàn
+
+            // Kiểm tra va chạm trục X (Trượt dọc theo tường trái/phải)
+            // Nếu vị trí Z đang nằm trong dải tường, và X dính vào vách tường
+            if (playerGroup.position.z < rMaxZ && playerGroup.position.z > rMinZ) {
+                if (nextX < rMinX + wallThick && nextX > rMinX - wallThick) nextX = playerGroup.position.x; // Tường trái
+                if (nextX < rMaxX + wallThick && nextX > rMaxX - wallThick) nextX = playerGroup.position.x; // Tường phải
+            }
+
+            // Kiểm tra va chạm trục Z (Trượt dọc theo tường trước/sau)
+            // Nếu vị trí X đang nằm trong dải tường, và Z dính vào vách tường
+            if (playerGroup.position.x < rMaxX && playerGroup.position.x > rMinX) {
+                // Tường sau
+                if (nextZ < rMaxZ + wallThick && nextZ > rMaxZ - wallThick) nextZ = playerGroup.position.z;
+                
+                // Tường trước (Nơi có cửa)
+                if (nextZ < rMinZ + wallThick && nextZ > rMinZ - wallThick) {
+                    if (Math.abs(playerGroup.position.x) > doorGap) {
+                        nextZ = playerGroup.position.z; // Kẹt vào mảng tường bê tông vách trước
+                    } else if (!isDoorOpen) {
+                        nextZ = playerGroup.position.z; // Kẹt vào cửa đóng
                     }
                 }
+            }
+
+            // Gắn tọa độ cuối cùng
+            playerGroup.position.x = nextX;
+            playerGroup.position.z = nextZ;
+
+            // --- QUẢN LÝ GỢI Ý NÚT BẤM MỞ CỬA ---
+            if (!isDoorOpen && playerGroup.position.z <= -4.2 && playerGroup.position.z >= -6.0 && Math.abs(playerGroup.position.x) < 1.4) {
+                promptBtn.style.display = 'block';
             } else {
-                if (playerGroup.position.z < -rBound) {
-                    if (Math.abs(playerGroup.position.x) <= 1.3) {
-                        if (playerGroup.position.z < -50.0) { 
-                            playerGroup.position.z = -50.0; 
-                        }
-                    } else {
-                        if (playerGroup.position.z > -rBound) {
-                            playerGroup.position.z = -rBound;
-                        }
-                    }
-                }
+                promptBtn.style.display = 'none';
             }
 
             if (isDoorOpen) {
@@ -532,11 +574,10 @@
                 doorPivot.rotation.y = doorRot;
             }
 
-            // ANIMATION MÂY TRÔI: Cho mây di chuyển từ từ dọc trục X giống Minecraft
+            // ANIMATION MÂY TRÔI
             const elapsedTime = clock.getElapsedTime();
             cloudsGroup.children.forEach((cloudCluster) => {
-                cloudCluster.position.x += 0.03; // Tốc độ trôi lững lờ của mây
-                // Nếu mây bay quá xa, cho quay lại từ phía bên kia bản đồ
+                cloudCluster.position.x += 0.03;
                 if(cloudCluster.position.x > 300) {
                     cloudCluster.position.x = -300;
                 }
