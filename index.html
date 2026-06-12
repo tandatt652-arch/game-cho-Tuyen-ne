@@ -9,7 +9,7 @@
         body, html {
             margin: 0; padding: 0; width: 100%; height: 100%;
             overflow: hidden; user-select: none; -webkit-user-select: none;
-            background-color: #7ec0ee; font-family: Arial, sans-serif;
+            background-color: #000003; font-family: Arial, sans-serif;
         }
         #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
         
@@ -41,6 +41,18 @@
             box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
             animation: pulse 1.5s infinite alternate;
         }
+
+        /* Nút điều khiển rèm */
+        #curtain-btn {
+            position: absolute; bottom: 25px; right: 25px;
+            color: #fff; background: linear-gradient(45deg, #9c27b0, #3f51b5);
+            padding: 12px 24px; border-radius: 25px; font-size: 16px; font-weight: bold;
+            cursor: pointer; z-index: 10;
+            box-shadow: 0 0 15px rgba(156, 39, 176, 0.6);
+            transition: transform 0.2s;
+        }
+        #curtain-btn:active { transform: scale(0.95); }
+
         @keyframes pulse {
             0% { transform: translateX(-50%) scale(1); }
             100% { transform: translateX(-50%) scale(1.08); }
@@ -50,16 +62,17 @@
 </head>
 <body>
     <div id="door-prompt">Mở cửa ra đi nèe🚪</div>
+    <div id="curtain-btn">Chạm Mở/Đóng Rèm</div>
     
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
     <div id="canvas-container"></div>
 
     <script>
-        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ---
+        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ĐÊM ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ec0ee);
-        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.005);
+        scene.background = new THREE.Color(0x000003); 
+        scene.fog = new THREE.FogExp2(0x000003, 0.002);
 
         const playerGroup = new THREE.Group();
         playerGroup.position.set(-3, 1.8, 3); 
@@ -68,20 +81,31 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
         playerGroup.add(camera);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
         renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
         container.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
         scene.add(ambientLight);
 
-        const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
-        sunLight.position.set(120, 150, 100);
-        scene.add(sunLight);
+        // Ánh trăng
+        const moonLight = new THREE.DirectionalLight(0xaaccff, 1.8);
+        moonLight.position.set(-24.11, 25, 90); 
+        moonLight.castShadow = true;
+        moonLight.shadow.mapSize.width = 2048;
+        moonLight.shadow.mapSize.height = 2048;
+        moonLight.shadow.camera.left = -10;
+        moonLight.shadow.camera.right = 10;
+        moonLight.shadow.camera.top = 10;
+        moonLight.shadow.camera.bottom = -10;
+        moonLight.shadow.camera.near = 0.5;
+        moonLight.shadow.camera.far = 150;
+        scene.add(moonLight);
 
-        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 15);
+        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 12);
         roomLight.position.set(0, 3.2, 1);
         scene.add(roomLight);
 
@@ -89,107 +113,121 @@
             return new THREE.MeshStandardMaterial({ color: color, roughness: roughness, side: THREE.FrontSide });
         }
 
-// --- 1. XÂY DỰNG SÀN THẾ GIỚI CỰC LỚN & CĂN PHÒNG ---
+        // --- XÂY DỰNG SÀN THẾ GIỚI & CĂN PHÒNG ---
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0x3a4f6e, roughness: 0.7, side: THREE.DoubleSide }); 
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf8f9fa, roughness: 1.0, metalness: 0.0, side: THREE.DoubleSide }); 
+        const invisibleFloorMat = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.0, depthWrite: false }); 
         
-        // 1. VẬT LIỆU CHO SÀN TRONG SUỐT (Bên ngoài)
-        const invisibleFloorMat = new THREE.MeshStandardMaterial({ 
-            transparent: true, 
-            opacity: 0.0, 
-            depthWrite: false // Giúp tránh lỗi hiển thị khi xếp chồng vật liệu trong suốt
+        const roomFloorMat = new THREE.MeshStandardMaterial({ 
+            color: 0x23180e, 
+            roughness: 0.25, 
+            metalness: 0.15 
         }); 
 
-        // 2. VẬT LIỆU CHO SÀN GỖ (Trong phòng)
-        const roomFloorMat = createMat(0x422d1b, 0.5); 
-
-        // SÀN THẾ GIỚI: Nâng cấp lên 1000x1000 nhưng LÀM TRONG SUỐT
         const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), invisibleFloorMat);
         floor.rotation.x = -Math.PI / 2; 
-        // Bỏ nhận bóng (receiveShadow) ở sàn ngoài để tối ưu hiệu suất vì nó đã vô hình
         scene.add(floor); 
 
-        // SÀN CĂN PHÒNG: Kích thước 12x12 vừa khít bên trong
         const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), roomFloorMat);
         roomFloor.rotation.x = -Math.PI / 2; 
-        roomFloor.receiveShadow = true; // Chỉ để sàn trong nhà nhận bóng
+        roomFloor.receiveShadow = true; 
         roomGroup.add(roomFloor);
 
-        // ... (Phần trần nhà - ceiling và các bức tường giữ nguyên như cũ) ...
+        function createWallMesh(geo, mat) {
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            return mesh;
+        }
 
-        const ceiling = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), wallMat);
+        const ceiling = createWallMesh(new THREE.PlaneGeometry(12, 12), wallMat);
         ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 5;
         roomGroup.add(ceiling);
 
-        const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 5), wallMat);
+        const leftWall = createWallMesh(new THREE.PlaneGeometry(12, 5), wallMat);
         leftWall.position.set(-6, 2.5, 0); leftWall.rotation.y = Math.PI / 2;
         roomGroup.add(leftWall);
 
-        const rightWall = new THREE.Mesh(new THREE.PlaneGeometry(12, 5), wallMat);
+        const rightWall = createWallMesh(new THREE.PlaneGeometry(12, 5), wallMat);
         rightWall.position.set(6, 2.5, 0); rightWall.rotation.y = -Math.PI / 2;
         roomGroup.add(rightWall);
 
-        const frontWallLeft = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
+        const frontWallLeft = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
         frontWallLeft.position.set(-3.75, 2.5, -6);
         roomGroup.add(frontWallLeft);
 
-        const frontWallRight = new THREE.Mesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
+        const frontWallRight = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
         frontWallRight.position.set(3.75, 2.5, -6);
         roomGroup.add(frontWallRight);
 
-        const frontWallTop = new THREE.Mesh(new THREE.PlaneGeometry(3, 1.4), wallMat);
+        const frontWallTop = createWallMesh(new THREE.PlaneGeometry(3, 1.4), wallMat);
         frontWallTop.position.set(0, 4.3, -6);
         roomGroup.add(frontWallTop);
 
-        const backWallBottom = new THREE.Mesh(new THREE.PlaneGeometry(12, 1.2), wallMat);
-        backWallBottom.position.set(0, 0.6, 6); backWallBottom.rotation.y = Math.PI;
+        const backWallBottom = createWallMesh(new THREE.PlaneGeometry(12, 1.25), wallMat);
+        backWallBottom.position.set(0, 0.625, 6); backWallBottom.rotation.y = Math.PI;
         roomGroup.add(backWallBottom);
 
-        const backWallTop = new THREE.Mesh(new THREE.PlaneGeometry(12, 1.3), wallMat);
-        backWallTop.position.set(0, 4.35, 6); backWallTop.rotation.y = Math.PI;
+        const backWallTop = createWallMesh(new THREE.PlaneGeometry(12, 1.35), wallMat);
+        backWallTop.position.set(0, 4.325, 6); backWallTop.rotation.y = Math.PI;
         roomGroup.add(backWallTop);
 
-        const backWallLeft = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), wallMat);
+        const backWallLeft = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat);
         backWallLeft.position.set(-4.75, 2.45, 6); backWallLeft.rotation.y = Math.PI;
         roomGroup.add(backWallLeft);
 
-        const backWallRight = new THREE.Mesh(new THREE.PlaneGeometry(2.5, 2.5), wallMat);
+        const backWallRight = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat);
         backWallRight.position.set(4.75, 2.45, 6); backWallRight.rotation.y = Math.PI;
         roomGroup.add(backWallRight);
 
-        const windowFrameMat = new THREE.MeshStandardMaterial({ 
-            color: 0x5c3a21, 
-            roughness: 0.4,
-            transparent: true,  
-            opacity: 0.0  
-        });
-        const windowFrame = new THREE.Mesh(new THREE.BoxGeometry(7.2, 2.6, 0.15), windowFrameMat);
-        windowFrame.position.set(0, 2.45, 5.95);
-        roomGroup.add(windowFrame);
+        // --- KHUNG NHÔM CỬA SỔ ---
+        const aluMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.8, roughness: 0.2 });
+        
+        const frames = [
+            { w: 7.0, h: 0.1, d: 0.15, x: 0, y: 3.6, z: 5.95 }, 
+            { w: 7.0, h: 0.1, d: 0.15, x: 0, y: 1.3, z: 5.95 }, 
+            { w: 0.1, h: 2.4, d: 0.15, x: -3.45, y: 2.45, z: 5.95 }, 
+            { w: 0.1, h: 2.4, d: 0.15, x: 3.45, y: 2.45, z: 5.95 }, 
+            { w: 7.0, h: 0.08, d: 0.15, x: 0, y: 2.45, z: 5.95 }, 
+            { w: 0.08, h: 2.4, d: 0.15, x: 0, y: 2.45, z: 5.95 }  
+        ];
 
-        const glassMat = new THREE.MeshStandardMaterial({ 
-            color: 0xe0f7fa, 
-            transparent: true, 
-            opacity: 0.2, 
-            roughness: 0.1, 
-            metalness: 0.1,
-            depthWrite: false 
+        frames.forEach(f => {
+            const bar = new THREE.Mesh(new THREE.BoxGeometry(f.w, f.h, f.d), aluMat);
+            bar.position.set(f.x, f.y, f.z);
+            bar.castShadow = true;
+            roomGroup.add(bar);
         });
+
+        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, roughness: 0.0, metalness: 1.0, depthWrite: false });
         const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(7.0, 2.4), glassMat);
         windowGlass.position.set(0, 2.45, 5.92); 
         windowGlass.rotation.y = Math.PI;
         roomGroup.add(windowGlass);
 
+        // --- RÈM VẢI (CURTAINS) ---
+        const curtainMat = new THREE.MeshStandardMaterial({ color: 0xe8dcc7, roughness: 0.9, side: THREE.DoubleSide });
+        const curtainGeo = new THREE.PlaneGeometry(3.6, 2.6, 10, 1);
+        
+        const curtainLeft = new THREE.Mesh(curtainGeo, curtainMat);
+        curtainLeft.position.set(-1.75, 2.45, 5.85); 
+        curtainLeft.castShadow = true;
 
-        // --- 2. CÁNH CỬA PHÒNG ---
+        const curtainRight = new THREE.Mesh(curtainGeo, curtainMat);
+        curtainRight.position.set(1.75, 2.45, 5.85);
+        curtainRight.castShadow = true;
+
+        roomGroup.add(curtainLeft, curtainRight);
+
+        // --- CÁNH CỬA PHÒNG ---
         const doorWidth = 3.0, doorHeight = 3.6;
         const doorCanvas = document.createElement('canvas');
         doorCanvas.width = 256; doorCanvas.height = 512;
         const dCtx = doorCanvas.getContext('2d');
-        dCtx.fillStyle = '#5c3a21'; dCtx.fillRect(0,0,256,512);
-        dCtx.strokeStyle = '#3e251c'; dCtx.lineWidth = 14;
+        dCtx.fillStyle = '#2b190e'; dCtx.fillRect(0,0,256,512);
+        dCtx.strokeStyle = '#1a0f08'; dCtx.lineWidth = 14;
         dCtx.strokeRect(20, 20, 216, 472);
         dCtx.strokeRect(20, 20, 216, 220);
         dCtx.fillStyle = '#ffcc00'; dCtx.beginPath(); dCtx.arc(40, 256, 12, 0, Math.PI*2); dCtx.fill();
@@ -203,20 +241,17 @@
         doorPivot.add(doorMesh);
         scene.add(doorPivot);
 
-
-        // --- 3. TRANG TRÍ TRONG PHÒNG (GIƯỜNG & HOA) ---
+        // --- TRANG TRÍ TRONG PHÒNG ---
         const bedGroup = new THREE.Group();
         bedGroup.position.set(-4.2, 0, 3.0);
-        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x6e4726));
-        
-        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xff69b4, 0.8));
-        bedMattress.position.y = 0.4;
-        
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xe91e63));
-        pillow.position.set(0, 0.65, 1.3);
-        
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xff1493, 0.7));
-        blanket.position.set(0, 0.42, -0.6);
+        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x362010));
+        bedBase.castShadow = true; bedBase.receiveShadow = true;
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xbd3a6d, 0.8));
+        bedMattress.position.y = 0.4; bedMattress.castShadow = true; bedMattress.receiveShadow = true;
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0x940c3c));
+        pillow.position.set(0, 0.65, 1.3); pillow.castShadow = true;
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xa31046, 0.7));
+        blanket.position.set(0, 0.42, -0.6); blanket.castShadow = true;
         bedGroup.add(bedBase, bedMattress, pillow, blanket);
         roomGroup.add(bedGroup);
 
@@ -225,10 +260,8 @@
             hoaCanvas.width = 128; hoaCanvas.height = 128;
             const hCtx = hoaCanvas.getContext('2d');
             hCtx.clearRect(0, 0, 128, 128);
-            
             const hue = Math.random() * 360; 
-            hCtx.fillStyle = `hsl(${hue}, 95%, 70%)`;
-            
+            hCtx.fillStyle = `hsl(${hue}, 80%, 50%)`;
             for(let i = 0; i < 5; i++) {
                 const angle = (i * Math.PI * 2) / 5;
                 const cx = 64 + Math.cos(angle) * 22;
@@ -241,7 +274,6 @@
             const hoaTex = new THREE.CanvasTexture(hoaCanvas);
             const hoaMat = new THREE.MeshStandardMaterial({ map: hoaTex, transparent: true, side: THREE.DoubleSide, roughness: 0.5 });
             const hoaMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5 * scale, 0.5 * scale), hoaMat);
-            
             hoaMesh.position.set(x, y, z);
             hoaMesh.rotation.y = rotY;
             roomGroup.add(hoaMesh);
@@ -253,11 +285,9 @@
             let tỷLệKíchThước = 0.8 + Math.random() * 1.0;
             let chọnTường = Math.floor(Math.random() * 4);
 
-            if (chọnTường === 0) {
-                hienThiHoaDocDien(-5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, Math.PI / 2);
-            } else if (chọnTường === 1) { 
-                hienThiHoaDocDien(5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, -Math.PI / 2);
-            } else if (chọnTường === 2) { 
+            if (chọnTường === 0) hienThiHoaDocDien(-5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, Math.PI / 2);
+            else if (chọnTường === 1) hienThiHoaDocDien(5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, -Math.PI / 2);
+            else if (chọnTường === 2) { 
                 if (Math.abs(vịTríNgẫuNhiên) > 3.6 || chiềuCaoNgẫuNhiên < 1.2 || chiềuCaoNgẫuNhiên > 3.8) {
                     hienThiHoaDocDien(vịTríNgẫuNhiên, chiềuCaoNgẫuNhiên, 5.93, tỷLệKíchThước, Math.PI);
                 }
@@ -268,138 +298,190 @@
             }
         }
 
+        const starCtx = document.createElement("canvas").getContext("2d");
+        starCtx.canvas.width = starCtx.canvas.height = 32;
 
-        // --- 4. HỆ THỐNG MÂY KHỐI & MẶT TRỜI VUÔNG RÕ NÉT ---
-        const cloudsGroup = new THREE.Group();
-        scene.add(cloudsGroup);
+        starCtx.fillStyle = "#000";
+        starCtx.fillRect(0, 0, 32, 32);
 
-        const cloudMat = new THREE.MeshLambertMaterial({
-            color: 0xffffff,
+        let grd = starCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        grd.addColorStop(0.0, "#fff");
+        grd.addColorStop(1.0, "#000");
+        starCtx.fillStyle = grd;
+        starCtx.beginPath();
+        starCtx.rect(15, 0, 2, 32);
+        starCtx.fill();
+        starCtx.beginPath();
+        starCtx.rect(0, 15, 32, 2);
+        starCtx.fill();
+
+        grd = starCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
+        grd.addColorStop(0.1, "rgba(255, 255, 255, 1)");
+        grd.addColorStop(0.6, "rgba(0, 0, 0, 0)");
+        starCtx.fillStyle = grd;
+        starCtx.fillRect(0, 0, 32, 32);
+
+        const alphaMap = new THREE.CanvasTexture(starCtx.canvas);
+
+        // --- ĐỐI TƯỢNG DẢI NGÂN HÀ (NỔI TRÊN BẦU TRỜI) ---
+        const galaxyCount = 12000; 
+        const galaxyGeo = new THREE.BufferGeometry();
+        const galaxyPos = new Float32Array(galaxyCount * 3);
+        const galaxyColors = new Float32Array(galaxyCount * 3);
+
+        const color1 = new THREE.Color(0x8a2be2); 
+        const color2 = new THREE.Color(0x4b0082); 
+        const color3 = new THREE.Color(0x00bfff); 
+        const color4 = new THREE.Color(0xffffff); 
+
+        // Thu nhỏ bán kính lại một chút (từ 350-600 xuống 280-450) để tụ lại thành một vật thể nổi rõ ràng hơn
+        for (let i = 0; i < galaxyCount; i++) {
+            const theta = Math.random() * Math.PI * 2;
+            const spread = (Math.random() - 0.5) * (Math.random() - 0.5) * 1.5; 
+            const phi = Math.PI / 2 + spread * 1.5; 
+            const radius = 280 + Math.random() * 170;
+
+            galaxyPos[i * 3]     = radius * Math.sin(phi) * Math.cos(theta);
+            galaxyPos[i * 3 + 1] = radius * Math.cos(phi);
+            galaxyPos[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+
+            const mixedColor = color1.clone();
+            const randC = Math.random();
+            if (randC > 0.85) mixedColor.lerp(color4, Math.random());
+            else if (randC > 0.5) mixedColor.lerp(color3, Math.random());
+            else mixedColor.lerp(color2, Math.random());
+
+            galaxyColors[i * 3]     = mixedColor.r;
+            galaxyColors[i * 3 + 1] = mixedColor.g;
+            galaxyColors[i * 3 + 2] = mixedColor.b;
+        }
+
+        galaxyGeo.setAttribute('position', new THREE.BufferAttribute(galaxyPos, 3));
+        galaxyGeo.setAttribute('color', new THREE.BufferAttribute(galaxyColors, 3));
+
+        // Chỉnh sửa material: Giảm size hạt và giảm opacity một tí để nhìn mờ ảo, bồng bềnh hơn nền sao tĩnh
+        const galaxyMat = new THREE.PointsMaterial({
+            size: 10,             
+            map: alphaMap,        
             transparent: true,
-            opacity: 0.85,
-            side: THREE.DoubleSide
+            blending: THREE.AdditiveBlending, 
+            depthWrite: false,
+            vertexColors: true,
+            opacity: 0.65
         });
 
-        function createMinecraftCloud(startX, startY, startZ) {
-            const cluster = new THREE.Group();
-            const blocksCount = 3 + Math.floor(Math.random() * 5); 
-            
-            for(let i=0; i<blocksCount; i++) {
-                const w = 15 + Math.floor(Math.random() * 20);
-                const h = 4 + Math.floor(Math.random() * 4);
-                const d = 15 + Math.floor(Math.random() * 20);
-                
-                const cloudBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
-                cloudBlock.position.set(
-                    (i * 12) - (blocksCount * 4),
-                    (Math.random() - 0.5) * 2,
-                    (Math.random() - 0.5) * 10
-                );
-                cluster.add(cloudBlock);
-            }
-            cluster.position.set(startX, startY, startZ);
-            cloudsGroup.add(cluster);
+        const galaxyField = new THREE.Points(galaxyGeo, galaxyMat);
+        galaxyField.rotation.x = Math.PI / 4; 
+        galaxyField.rotation.z = Math.PI / 6; 
+        scene.add(galaxyField);
+
+        // --- NỀN SAO TĨNH (BẦU TRỜI PHÍA SAU) ---
+        const starCount = 6000; 
+        const starGeometry = new THREE.BufferGeometry();
+        const starPositions = new Float32Array(starCount * 3);
+        const starRadius = 550; 
+
+        for (let i = 0; i < starCount; i++) {
+            const u = Math.random();
+            const v = Math.random();
+            const theta = u * 2.0 * Math.PI;
+            const phi = Math.acos(2.0 * v - 1.0);
+
+            starPositions[i * 3] = starRadius * Math.sin(phi) * Math.cos(theta);
+            starPositions[i * 3 + 1] = starRadius * Math.sin(phi) * Math.sin(theta);
+            starPositions[i * 3 + 2] = starRadius * Math.cos(phi);
         }
 
-        for(let i=0; i<18; i++) {
-            let cx = (Math.random() - 0.5) * 500;
-            let cy = 80 + Math.random() * 40;
-            let cz = (Math.random() - 0.5) * 500;
-            createMinecraftCloud(cx, cy, cz);
-        }
+        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
+        const starMaterial = new THREE.PointsMaterial({
+            color: 0xffffff,
+            size: 1.3,
+            transparent: true,
+            opacity: 0.6,
+            sizeAttenuation: false
+        });
+        const regularStarField = new THREE.Points(starGeometry, starMaterial);
+        scene.add(regularStarField);
 
-        const sunGroup = new THREE.Group();
-        const sunMesh = new THREE.Mesh(
-            new THREE.BoxGeometry(18, 18, 18), 
-            new THREE.MeshStandardMaterial({ 
-                color: 0xfff3cc,
-                emissive: 0xffe066, 
-                emissiveIntensity: 0.6,
-                roughness: 0.2
-            })
-        );
-        sunGroup.add(sunMesh);
-        
-        const sunGlow = new THREE.Mesh(
-            new THREE.BoxGeometry(22, 22, 22), 
-            new THREE.MeshBasicMaterial({ color: 0xfff5cc, transparent: true, opacity: 0.25 })
-        );
-        sunGroup.add(sunGlow);
-        sunGroup.position.set(120, 150, 200);
-        scene.add(sunGroup);
+        // --- MẶT TRĂNG ---
+        const moonGroup = new THREE.Group();
+        const moonGeo = new THREE.CircleGeometry(32, 48); 
+        const moonMat = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            emissive: 0xffffff,       
+            emissiveIntensity: 4.8,   
+            side: THREE.DoubleSide,
+            roughness: 1.0
+        });
+        const moonMesh = new THREE.Mesh(moonGeo, moonMat);
+        moonGroup.add(moonMesh);
 
+        const flareGeo = new THREE.CircleGeometry(38, 48); 
+        const flareMat = new THREE.MeshBasicMaterial({
+            color: 0xffffff,
+            transparent: true,
+            opacity: 0.32,            
+            side: THREE.DoubleSide
+        });
+        const moonFlare = new THREE.Mesh(flareGeo, flareMat);
+        moonFlare.position.z = -0.1; 
+        moonGroup.add(moonFlare);
 
-        // --- 5. CHỮ THÔNG ĐIỆP ---
-        const messages = [
-            "Cảm ơn em vì đã chịu nói ra nhưng điều em giữ trong lòng như vậy, anh rất là trân trọng luôn á",
-            "Thiệt ra điều anh thấy sau đoạn đó hong phải là thất vọng, mà là anh hiểu em hơn rất nhiều.",
-            "Anh chúc Bé Tuyến buổi sáng dui dẻ nhaa ❤️  ---Mở cửa ra đi nè!---",
-            "Còn về chuyện có tiếp tục hay không thì anh chưa bao giờ thực sự muốn bỏ cuộc đâu, ngốc ạ!"
-        ];
-        const textPlanes = [];
+        moonGroup.position.set(-80.38, 100, 300);
+        moonGroup.lookAt(0, 0, 0); 
+        scene.add(moonGroup);
 
-        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-            const words = text.split(' ');
-            let line = '';
-            let lines = [];
+        const shootingStarCount = 20;
+        const shootingStars = [];
 
-            for (let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                let testWidth = metrics.width;
-                if (testWidth > maxWidth && n > 0) {
-                    lines.push(line);
-                    line = words[n] + ' ';
-                } else {
-                    line = testLine;
-                }
-            }
-            lines.push(line);
+        for (let i = 0; i < shootingStarCount; i++) {
+            const lineGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array([0, 0, 0, -8, 4, -8]); 
+            lineGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-            let currentY = y - ((lines.length - 1) * lineHeight) / 2;
-            for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i].trim(), x, currentY);
-                currentY += lineHeight;
-            }
-            return currentY; 
-        }
-
-        function createSignText(text, index, posX, posZ, rotY) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 2048; canvas.height = 1024; 
-            const ctx = canvas.getContext('2d');
-            const tex = new THREE.CanvasTexture(canvas);
-
-            document.fonts.load('10pt "Dancing Script"').then(() => {
-                ctx.font = 'bold 95px "Dancing Script", cursive'; 
-                ctx.fillStyle = '#0f2b5c'; 
-                ctx.textAlign = 'center';
-                ctx.shadowColor = '#00ffff'; 
-                ctx.shadowBlur = 30;
-                
-                let nextY = wrapText(ctx, text, 1024, 400, 1700, 120); 
-                
-                ctx.font = '100px Arial'; 
-                ctx.fillStyle = '#00bcd4'; 
-                ctx.fillText('➔', 1024, Math.max(nextY + 40, 620));
-                tex.needsUpdate = true;
+            const lineMaterial = new THREE.LineBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.0 
             });
 
-            const plane = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
-            plane.position.set(posX, 5.8, posZ); plane.rotation.y = rotY;
-            scene.add(plane);
-            textPlanes.push(plane);
+            const starLine = new THREE.Line(lineGeometry, lineMaterial);
+            scene.add(starLine);
+
+            shootingStars.push({
+                mesh: starLine,
+                speedX: 0, speedY: 0, speedZ: 0,
+                active: false,
+                progress: 0,
+                maxProgress: 0
+            });
         }
 
-        createSignText(messages[0], 0, 0, -25, 0);           
-        createSignText(messages[1], 1, 25, 0, -Math.PI/2);   
-        createSignText(messages[2], 2, 0, 25, Math.PI);      
-        createSignText(messages[3], 3, -25, 0, Math.PI/2);   
+        function resetShootingStar(star) {
+            const range = 450;
+            const startX = (Math.random() - 0.5) * range * 2;
+            const startY = 60 + Math.random() * 180; 
+            const startZ = (Math.random() - 0.5) * range * 2;
 
+            star.mesh.position.set(startX, startY, startZ);
+            
+            star.speedX = (4 + Math.random() * 6);
+            star.speedY = -(2 + Math.random() * 4);
+            star.speedZ = (4 + Math.random() * 6);
+            
+            star.progress = 0;
+            star.maxProgress = 40 + Math.floor(Math.random() * 50); 
+            star.active = true;
+            star.mesh.material.opacity = 0.8 + Math.random() * 0.2; 
+        }
 
-        // --- 6. ĐIỀU KHIỂN & HỆ THỐNG VA CHẠM THỐNG NHẤT TOÀN CỤC ---
+        // --- ĐIỀU KHIỂN & SỰ KIỆN GIAO DIỆN ---
         let moveF = false, moveB = false, moveL = false, moveR = false;
         let isDoorOpen = false, doorRot = 0;
+        
+        let isCurtainOpen = false;
+        let curtainTargetProg = 0, curtainProg = 0;
+
         let yaw = Math.PI, pitch = 0;
         const moveSpeed = 0.08;
 
@@ -426,7 +508,7 @@
         let prevMousePos = { x: 0, y: 0 };
 
         window.addEventListener('mousedown', (e) => {
-            if (e.target.id === 'door-prompt') return;
+            if (e.target.id === 'door-prompt' || e.target.id === 'curtain-btn') return;
             isMouseDown = true;
             prevMousePos = { x: e.clientX, y: e.clientY };
         });
@@ -443,6 +525,7 @@
         let touchStart = { x: 0, y: 0 }, joyStart = { x: 0, y: 0 }, vMove = { x: 0, y: 0 };
 
         window.addEventListener('touchstart', (e) => {
+            if (e.target.id === 'curtain-btn' || e.target.id === 'door-prompt') return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const t = e.changedTouches[i];
                 if (t.clientX < window.innerWidth / 2 && joyId === null) {
@@ -492,6 +575,10 @@
         function openDoor() { isDoorOpen = true; promptBtn.style.display = 'none'; roomLight.intensity = 0.5; }
         promptBtn.addEventListener('click', openDoor); promptBtn.addEventListener('touchstart', openDoor);
 
+        const curtainBtn = document.getElementById('curtain-btn');
+        function toggleCurtain() { isCurtainOpen = !isCurtainOpen; }
+        curtainBtn.addEventListener('click', toggleCurtain);
+        curtainBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleCurtain(); });
 
         // --- VÒNG LẶP ANIMATE ---
         const clock = new THREE.Clock();
@@ -508,7 +595,6 @@
             let nextX = playerGroup.position.x;
             let nextZ = playerGroup.position.z;
 
-            // Tính toán vị trí dự kiến tiếp theo
             if (cx !== 0 || cz !== 0) {
                 const dir = new THREE.Vector3(cx, 0, cz).normalize();
                 dir.applyQuaternion(playerGroup.quaternion);
@@ -516,74 +602,80 @@
                 nextZ += dir.z * moveSpeed;
             }
 
-            // ==========================================
-            // THUẬT TOÁN VA CHẠM TOÀN CỤC MỚI (AABB Tối Ưu)
-            // ==========================================
-            const worldBound = 495; // Rìa bản đồ cực lớn
-            
-            // 1. Giới hạn sàn thế giới
+            // VA CHẠM
+            const worldBound = 495;
             if (nextX < -worldBound) nextX = -worldBound;
             if (nextX > worldBound) nextX = worldBound;
             if (nextZ < -worldBound) nextZ = -worldBound;
             if (nextZ > worldBound) nextZ = worldBound;
 
-            // 2. Định nghĩa biên căn phòng (Chướng ngại vật)
-            const wallThick = 0.6; // Bán kính va chạm của tường
+            const wallThick = 0.6; 
             const rMinX = -6, rMaxX = 6;
             const rMinZ = -6, rMaxZ = 6;
-            const doorGap = 1.35; // Khoảng cách khe cửa an toàn
+            const doorGap = 1.35;
 
-            // Kiểm tra va chạm trục X (Trượt dọc theo tường trái/phải)
-            // Nếu vị trí Z đang nằm trong dải tường, và X dính vào vách tường
             if (playerGroup.position.z < rMaxZ && playerGroup.position.z > rMinZ) {
-                if (nextX < rMinX + wallThick && nextX > rMinX - wallThick) nextX = playerGroup.position.x; // Tường trái
-                if (nextX < rMaxX + wallThick && nextX > rMaxX - wallThick) nextX = playerGroup.position.x; // Tường phải
+                if (nextX < rMinX + wallThick && nextX > rMinX - wallThick) nextX = playerGroup.position.x;
+                if (nextX < rMaxX + wallThick && nextX > rMaxX - wallThick) nextX = playerGroup.position.x;
             }
-
-            // Kiểm tra va chạm trục Z (Trượt dọc theo tường trước/sau)
-            // Nếu vị trí X đang nằm trong dải tường, và Z dính vào vách tường
             if (playerGroup.position.x < rMaxX && playerGroup.position.x > rMinX) {
-                // Tường sau
                 if (nextZ < rMaxZ + wallThick && nextZ > rMaxZ - wallThick) nextZ = playerGroup.position.z;
-                
-                // Tường trước (Nơi có cửa)
                 if (nextZ < rMinZ + wallThick && nextZ > rMinZ - wallThick) {
-                    if (Math.abs(playerGroup.position.x) > doorGap) {
-                        nextZ = playerGroup.position.z; // Kẹt vào mảng tường bê tông vách trước
-                    } else if (!isDoorOpen) {
-                        nextZ = playerGroup.position.z; // Kẹt vào cửa đóng
+                    if (Math.abs(playerGroup.position.x) > doorGap || !isDoorOpen) {
+                        nextZ = playerGroup.position.z;
                     }
                 }
             }
 
-            // Gắn tọa độ cuối cùng
             playerGroup.position.x = nextX;
             playerGroup.position.z = nextZ;
 
-            // --- QUẢN LÝ GỢI Ý NÚT BẤM MỞ CỬA ---
             if (!isDoorOpen && playerGroup.position.z <= -4.2 && playerGroup.position.z >= -6.0 && Math.abs(playerGroup.position.x) < 1.4) {
                 promptBtn.style.display = 'block';
             } else {
                 promptBtn.style.display = 'none';
             }
 
+            curtainTargetProg = isCurtainOpen ? 1 : 0;
+            curtainProg = THREE.MathUtils.lerp(curtainProg, curtainTargetProg, 0.08);
+            
+            curtainLeft.scale.x = 1 - 0.7 * curtainProg;
+            curtainLeft.position.x = -1.75 - 1.25 * curtainProg;
+            
+            curtainRight.scale.x = 1 - 0.7 * curtainProg;
+            curtainRight.position.x = 1.75 + 1.25 * curtainProg;
+
             if (isDoorOpen) {
                 doorRot = THREE.MathUtils.lerp(doorRot, -Math.PI / 1.7, 0.04);
                 doorPivot.rotation.y = doorRot;
             }
 
-            // ANIMATION MÂY TRÔI
+            // --- HIỆU ỨNG CHUYỂN ĐỘNG NỔI CHO DẢI NGÂN HÀ ---
             const elapsedTime = clock.getElapsedTime();
-            cloudsGroup.children.forEach((cloudCluster) => {
-                cloudCluster.position.x += 0.03;
-                if(cloudCluster.position.x > 300) {
-                    cloudCluster.position.x = -300;
-                }
-            });
+            galaxyField.rotation.y -= 0.0005; // Xoay chậm rãi độc lập
+            galaxyField.position.y = Math.sin(elapsedTime * 0.4) * 8.0; // Tạo dao động lên xuống nhẹ nhàng giống như đang trôi nổi bồng bềnh
 
-            // Hiệu ứng chữ nổi bồng bềnh
-            textPlanes.forEach((plane, index) => {
-                plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15;
+            shootingStars.forEach((star) => {
+                if (!star.active) {
+                    if (Math.random() < 0.015) { 
+                        resetShootingStar(star);
+                    }
+                } else {
+                    star.mesh.position.x += star.speedX;
+                    star.mesh.position.y += star.speedY;
+                    star.mesh.position.z += star.speedZ;
+                    
+                    star.progress++;
+
+                    if (star.progress > star.maxProgress * 0.7) {
+                        star.mesh.material.opacity = THREE.MathUtils.lerp(star.mesh.material.opacity, 0.0, 0.1);
+                    }
+
+                    if (star.progress >= star.maxProgress) {
+                        star.active = false;
+                        star.mesh.material.opacity = 0;
+                    }
+                }
             });
 
             renderer.render(scene, camera);
