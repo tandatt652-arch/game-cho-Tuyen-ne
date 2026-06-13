@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Present ❤️</title>
+    <title>Bấm dô ii❤️</title>
     <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght=700&display=swap" rel="stylesheet">
     <style>
         body, html {
@@ -142,26 +142,19 @@
         const rightWall = createWallMesh(new THREE.PlaneGeometry(12, 5), wallMat);
         rightWall.position.set(6, 2.5, 0); rightWall.rotation.y = -Math.PI / 2; roomGroup.add(rightWall);
 
-        const frontWallLeft = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
-        frontWallLeft.position.set(-3.75, 2.5, -6); roomGroup.add(frontWallLeft);
+        const frontWallLeft = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat); frontWallLeft.position.set(-3.75, 2.5, -6); roomGroup.add(frontWallLeft);
 
-        const frontWallRight = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat);
-        frontWallRight.position.set(3.75, 2.5, -6); roomGroup.add(frontWallRight);
+        const frontWallRight = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat); frontWallRight.position.set(3.75, 2.5, -6); roomGroup.add(frontWallRight);
 
-        const frontWallTop = createWallMesh(new THREE.PlaneGeometry(3, 1.4), wallMat);
-        frontWallTop.position.set(0, 4.3, -6); roomGroup.add(frontWallTop);
+        const frontWallTop = createWallMesh(new THREE.PlaneGeometry(3, 1.4), wallMat); frontWallTop.position.set(0, 4.3, -6); roomGroup.add(frontWallTop);
 
-        const backWallBottom = createWallMesh(new THREE.PlaneGeometry(12, 1.25), wallMat);
-        backWallBottom.position.set(0, 0.625, 6); backWallBottom.rotation.y = Math.PI; roomGroup.add(backWallBottom);
+        const backWallBottom = createWallMesh(new THREE.PlaneGeometry(12, 1.25), wallMat); backWallBottom.position.set(0, 0.625, 6); backWallBottom.rotation.y = Math.PI; roomGroup.add(backWallBottom);
 
-        const backWallTop = createWallMesh(new THREE.PlaneGeometry(12, 1.35), wallMat);
-        backWallTop.position.set(0, 4.325, 6); backWallTop.rotation.y = Math.PI; roomGroup.add(backWallTop);
+        const backWallTop = createWallMesh(new THREE.PlaneGeometry(12, 1.35), wallMat); backWallTop.position.set(0, 4.325, 6); backWallTop.rotation.y = Math.PI; roomGroup.add(backWallTop);
 
-        const backWallLeft = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat);
-        backWallLeft.position.set(-4.75, 2.45, 6); backWallLeft.rotation.y = Math.PI; roomGroup.add(backWallLeft);
+        const backWallLeft = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat); backWallLeft.position.set(-4.75, 2.45, 6); backWallLeft.rotation.y = Math.PI; roomGroup.add(backWallLeft);
 
-        const backWallRight = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat);
-        backWallRight.position.set(4.75, 2.45, 6); backWallRight.rotation.y = Math.PI; roomGroup.add(backWallRight);
+        const backWallRight = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat); backWallRight.position.set(4.75, 2.45, 6); backWallRight.rotation.y = Math.PI; roomGroup.add(backWallRight);
 
         // --- KHUNG NHÔM CỬA SỔ ---
         const aluMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.8, roughness: 0.2 });
@@ -264,121 +257,76 @@
 
 
         // --- CHÒM SAO XỬ NỮ (VIRGO) CHUẨN THIÊN VĂN HỌC ---
-
         const virgoGroup = new THREE.Group();
 
-        
-
         // Tọa độ 2D mô phỏng chính xác cấu trúc hình ảnh thực tế từ bức ảnh mẫu
-
         const virgoPoints = [
-
-            new THREE.Vector3(-25, 60, 0),    // 0: Zavijava (β) - đỉnh trục trái
-
-            new THREE.Vector3(-5, 30, 0),     // 1: Zaniah (η)
-
-            new THREE.Vector3(20, 12, 0),     // 3: Minelauva (δ)
-
-            new THREE.Vector3(45, 20, 0),     // 4: Vindemiatrix (ε) - đỉnh trục phải
-
-            new THREE.Vector3(80, 40, 0),     // 5: Heze (ζ)
-
-            new THREE.Vector3(-20, -30, 0),   // 6: Spica (α) - Sao sáng nhất ở góc dưới bên trái
-
-            new THREE.Vector3(-40, -20, 0),   // 7: Syrma (ι)
-
-            new THREE.Vector3(-60, -15, 0),
-
-            new THREE.Vector3(-30, -50, 0)    // 8: κ Virginis - đuôi chòm sao
-
+            new THREE.Vector3(52, 48, 0),     // 0
+            new THREE.Vector3(52, 73, 0),      // 1
+            new THREE.Vector3(75, 80, 0),      // 2
+            new THREE.Vector3(83, 67, 0),      // 3
+            new THREE.Vector3(140, 115, 0),     // 4
+            new THREE.Vector3(35, 46, 0),    // 5
+            new THREE.Vector3(33, 52, 0),    // 6
+            new THREE.Vector3(20, 52, 0),    // 7
+            new THREE.Vector3(37, 75, 0),     // 8
+            new THREE.Vector3(20, 73, 0),     // 9
+            new THREE.Vector3(74, 100, 0),    // 10
+            new THREE.Vector3(100, 77, 0)  // 11     
         ];
-
-
 
         // Khởi tạo mảng màu sắc cơ bản
-
         const virgoPointColors = new Float32Array(virgoPoints.length * 3);
-
         virgoPoints.forEach((p, i) => {
-
             virgoPointColors[i*3] = 1; virgoPointColors[i*3+1] = 1; virgoPointColors[i*3+2] = 1; 
-
         });
-
-
 
         // Chỉ định các cặp nối dây chuẩn xác theo chòm sao Virgo thực tế
-
         const connections = [
-
-            [0, 1], // Zavijava -> Zaniah
-
-            [1, 2], // Zaniah -> Porrima (Trục chính trên)
-
-            [2, 3], // Porrima -> Minelauva
-
-            [3, 4], // Minelauva -> Vindemiatrix (Nhánh phải)
-
-            [2, 5], // Porrima -> Heze (Thân dưới)
-
-            [5, 6], // Heze -> Spica (Nối tới sao chủ đạo)
-
-            [6, 7], // Spica -> Syrma
-
-            [5, 8]  // Syrma -> κ Vir (Nhánh đuôi trái)
-
+            [0, 1], 
+            [1, 2], 
+            [2, 3], 
+            [3, 0], 
+            [11, 4], 
+            [5, 6], 
+            [6, 7], 
+            [0, 5],
+            [1, 8], 
+            [8, 9], 
+            [3, 11], 
+            [10, 2] // Syrma -> κ Vir (Nhánh đuôi trái)
         ];
 
-
-
-        const lineMat = new THREE.LineBasicMaterial({ color: 0xfff7e6, transparent: true, opacity: 0.5 });
-
+        // ĐIỀU CHỈNH 1: Làm dây nối rõ hơn (Tăng độ đục opacity lên 0.85 và đổi sang màu trắng tinh khiết)
+        const lineMat = new THREE.LineBasicMaterial({ 
+    color: 0xffffff, 
+    transparent: true, opacity: 0.35,
+    fog: false 
+});
         connections.forEach(pair => {
-
             const geo = new THREE.BufferGeometry().setFromPoints([virgoPoints[pair[0]], virgoPoints[pair[1]]]);
-
             virgoGroup.add(new THREE.Line(geo, lineMat));
-
         });
-
-
 
         const virgoGeo = new THREE.BufferGeometry().setFromPoints(virgoPoints);
-
         virgoGeo.setAttribute('color', new THREE.BufferAttribute(virgoPointColors, 3));
 
-
-
+        // ĐIỀU CHỈNH 2: Làm cho ngôi sao lớn hơn (Tăng size từ 18 lên 32 để cực kỳ dễ nhìn thấy)
         const virgoMat = new THREE.PointsMaterial({
-
-            size: 18, map: alphaMap, transparent: true, vertexColors: THREE.VertexColors, 
-
+            size: 55, map: alphaMap, transparent: true, vertexColors: THREE.VertexColors, 
             blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.95
-
         });
-
         const virgoPointsObj = new THREE.Points(virgoGeo, virgoMat);
-
         virgoGroup.add(virgoPointsObj);
 
-
-
         // Định vị chòm sao đối diện Mặt Trăng, ngửa mặt về trung tâm thế giới
-
         virgoGroup.position.set(120, 160, -400); 
-
         virgoGroup.scale.set(3.5, 3.5, 3.5); 
-
         virgoGroup.lookAt(0, 0, 0); 
-
         scene.add(virgoGroup);
+
         // --- CHỮ THÔNG ĐIỆP ---
-        const messages = [
-            "",
-            "",
-            "Hi",
-            ""
-        ];
+        const messages = [ "", "", "", "" ];
         const textPlanes = [];
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -410,10 +358,8 @@
 
             document.fonts.load('10pt "Dancing Script"').then(() => {
                 ctx.font = 'bold 95px "Dancing Script", cursive'; 
-                // Thay đổi màu chữ sang màu hồng nhẹ (#ffd1dc / #ffb6c1)
                 ctx.fillStyle = '#ffccd5'; 
                 ctx.textAlign = 'center';
-                // Đổi hiệu ứng đổ bóng phát sáng sang màu hồng neon mềm mại
                 ctx.shadowColor = '#ff6b8b'; 
                 ctx.shadowBlur = 40;
                 let nextY = wrapText(ctx, text, 1024, 400, 1700, 120); 
@@ -428,9 +374,6 @@
             scene.add(plane);
             textPlanes.push(plane);
         }
-
- 
-
 
         // --- MẶT TRĂNG ---
         const moonGroup = new THREE.Group();
@@ -535,7 +478,7 @@
 
         function animate() {
             requestAnimationFrame(animate);
-            const elapsedTime = clock.getElapsedTime(); // Khai báo duy nhất ở đầu hàm
+            const elapsedTime = clock.getElapsedTime(); 
 
             playerGroup.rotation.y = yaw; camera.rotation.x = pitch;
 
@@ -576,7 +519,7 @@
             if (isDoorOpen) { doorRot = THREE.MathUtils.lerp(doorRot, -Math.PI / 1.7, 0.04); doorPivot.rotation.y = doorRot; }
 
 
-            // CHUYỂN MÀU LẤP LÁNH ĐA SẮC CHO CHÒM SAO (QUÉT TOÀN BỘ 9 ĐỈNH MỚI)
+            // CHUYỂN MÀU LẤP LÁNH ĐA SẮC CHO CHÒM SAO
             const colorsAttr = virgoPointsObj.geometry.attributes.color;
             for (let i = 0; i < virgoPoints.length; i++) {
                 let brightness = 0.75 + Math.sin(elapsedTime * (2.2 + i * 0.25)) * 0.25;
@@ -596,7 +539,6 @@
                 }
             });
 
-            // HIỆU ỨNG CHỮ BỒNG BỀNH (Đã xóa dòng khai báo trùng lặp)
             textPlanes.forEach((plane, index) => {
                 plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15;
             });
