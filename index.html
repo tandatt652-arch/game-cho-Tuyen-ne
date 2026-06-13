@@ -326,7 +326,7 @@
         scene.add(virgoGroup);
 
         // --- CHỮ THÔNG ĐIỆP ---
-        const messages = [ "", "", "", "" ];
+        const messages = [ "Chán quá làm gì cho hết chán", "ngủ ik là hong chán", "khùng, làm dì dậy", "buồn ngủ" ];
         const textPlanes = [];
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -374,6 +374,10 @@
             scene.add(plane);
             textPlanes.push(plane);
         }
+ createSignText(messages[0], 0, 0, -25, 0);           
+        createSignText(messages[1], 1, 25, 0, -Math.PI/2);   
+        createSignText(messages[2], 2, 0, 25, Math.PI);      
+        createSignText(messages[3], 3, -25, 0, Math.PI/2);   
 
         // --- MẶT TRĂNG ---
         const moonGroup = new THREE.Group();
