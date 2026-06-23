@@ -32,7 +32,7 @@
             background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 50%;
         }
 
-        /* Nút mở cửa */
+        /* Các nút tương tác cũ */
         #door-prompt {
             position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
             color: #fff; background: linear-gradient(45deg, #4caf50, #2196f3);
@@ -42,7 +42,6 @@
             animation: pulse 1.5s infinite alternate;
         }
 
-        /* Nút điều khiển rèm */
         #curtain-btn {
             position: absolute; bottom: 25px; right: 25px;
             color: #fff; background: linear-gradient(45deg, #9c27b0, #3f51b5);
@@ -52,6 +51,35 @@
             transition: transform 0.2s;
         }
         #curtain-btn:active { transform: scale(0.95); }
+
+        /* HỆ THỐNG UI TƯƠNG TÁC MỚI (BÒ & CỎ) */
+        #action-prompt {
+            position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
+            color: #fff; background: linear-gradient(45deg, #ff9800, #e91e63);
+            padding: 14px 28px; border-radius: 30px; font-size: 18px; font-weight: bold;
+            display: none; cursor: pointer; z-index: 20;
+            box-shadow: 0 0 20px rgba(233, 30, 99, 0.6);
+        }
+
+        #dialogue-box {
+            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+            width: 90%; max-width: 500px; background: rgba(20, 20, 35, 0.92);
+            border: 3px solid #ff6b8b; border-radius: 20px; padding: 20px;
+            box-shadow: 0 0 25px rgba(255, 107, 139, 0.5);
+            display: none; flex-direction: column; z-index: 30; color: #fff;
+        }
+        #dialogue-text {
+            font-size: 16px; line-height: 1.5; margin-bottom: 20px; text-align: center; font-weight: 500;
+        }
+        .dialogue-options {
+            display: flex; flex-direction: column; gap: 10px; width: 100%;
+        }
+        .option-btn {
+            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: bold;
+            cursor: pointer; transition: all 0.2s; text-align: center;
+        }
+        .option-btn:hover { background: #ff6b8b; border-color: #ff6b8b; }
 
         @keyframes pulse {
             0% { transform: translateX(-50%) scale(1); }
@@ -64,15 +92,51 @@
     <div id="door-prompt">Mở cửa ra đi nèe🚪</div>
     <div id="curtain-btn">Chạm Mở/Đóng Rèm</div>
     
+    <div id="action-prompt">Tương tác</div>
+    <div id="dialogue-box">
+        <div id="dialogue-text">Lời thoại của bò hiển thị ở đây...</div>
+        <div class="dialogue-options" id="options-container"></div>
+    </div>
+
     <div id="joystick-zone"><div id="joystick-knob"></div></div>
     <div id="canvas-container"></div>
 
     <script>
-        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG ĐÊM ---
+        // --- CẤU HÌNH LIÊN KẾT THEO DÕI GOOGLE FORM CHÍNH XÁC CỦA BẠN ---
+        const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+        
+        const FORM_ENTRY_IDS = {
+            playerId: "entry.1666228409",      // test1 -> Lưu mã người chơi
+            cowScale: "entry.992038501",       // test2 -> Lưu kích thước bò
+            questionText: "entry.1275903316",   // test3 -> Lời thoại/Ngữ cảnh
+            playerChoice: "entry.444679017"    // test4 -> Lựa chọn của người dùng
+        };
+
+        // Tạo ID ngẫu nhiên cho mỗi lượt tải trang để phân biệt giữa các người chơi khác nhau
+        const randomPlayerId = "User-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+
+        // Hàm xử lý gửi dữ liệu chạy ngầm không gây lag game
+        function sendTrackingData(cowScale, questionText, playerChoice) {
+            const formData = new FormData();
+            formData.append(FORM_ENTRY_IDS.playerId, randomPlayerId);
+            formData.append(FORM_ENTRY_IDS.cowScale, cowScale);
+            formData.append(FORM_ENTRY_IDS.questionText, questionText);
+            formData.append(FORM_ENTRY_IDS.playerChoice, playerChoice);
+
+            fetch(GOOGLE_FORM_URL, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData
+            }).then(() => {
+                console.log("Đã lưu lựa chọn:", {cowScale, questionText, playerChoice});
+            }).catch(err => console.error("Lỗi đồng bộ hệ thống:", err));
+        }
+
+        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG NGÀY ---
         const container = document.getElementById('canvas-container');
         const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x000003); 
-        scene.fog = new THREE.FogExp2(0x000003, 0.002);
+        scene.background = new THREE.Color(0x7ec0ee);
+        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.005);
 
         const playerGroup = new THREE.Group();
         playerGroup.position.set(-3, 1.8, 3); 
@@ -81,27 +145,20 @@
         const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
         playerGroup.add(camera);
 
-        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
         renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        renderer.setPixelRatio(window.devicePixelRatio);
         renderer.shadowMap.enabled = true;
-        renderer.shadowMap.type = THREE.PCFSoftShadowMap; 
         container.appendChild(renderer.domElement);
 
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.15);
+        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
         scene.add(ambientLight);
 
-        // Ánh trăng
-        const moonLight = new THREE.DirectionalLight(0xaaccff, 1.8);
-        moonLight.position.set(-24.11, 25, 90); 
-        moonLight.castShadow = true;
-        moonLight.shadow.mapSize.width = 2048;
-        moonLight.shadow.mapSize.height = 2048;
-        moonLight.shadow.camera.near = 0.5;
-        moonLight.shadow.camera.far = 150;
-        scene.add(moonLight);
+        const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
+        sunLight.position.set(120, 150, 100);
+        scene.add(sunLight);
 
-        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 12);
+        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 15);
         roomLight.position.set(0, 3.2, 1);
         scene.add(roomLight);
 
@@ -109,21 +166,24 @@
             return new THREE.MeshStandardMaterial({ color: color, roughness: roughness, side: THREE.FrontSide });
         }
 
-        // --- XÂY DỰNG SÀN THẾ GIỚI & CĂN PHÒNG ---
+        // --- ĐỔI SÀN THẾ GIỚI THÀNH NỀN CỎ RỘNG VÔ TẬN ---
+        const grassMat = new THREE.MeshStandardMaterial({ color: 0x557a46, roughness: 0.9, metalness: 0.1 }); 
+        const floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), grassMat);
+        floor.rotation.x = -Math.PI / 2; 
+        floor.receiveShadow = true;
+        floor.position.y = 0; 
+        scene.add(floor); 
+
+        // --- CĂN PHÒNG ---
         const roomGroup = new THREE.Group();
         scene.add(roomGroup);
 
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf8f9fa, roughness: 1.0, metalness: 0.0, side: THREE.DoubleSide }); 
-        const invisibleFloorMat = new THREE.MeshStandardMaterial({ transparent: true, opacity: 0.0, depthWrite: false }); 
-        
-        const roomFloorMat = new THREE.MeshStandardMaterial({ color: 0x23180e, roughness: 0.25, metalness: 0.15 }); 
-
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(1000, 1000), invisibleFloorMat);
-        floor.rotation.x = -Math.PI / 2; 
-        scene.add(floor); 
+        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf29cbc, roughness: 1.0, metalness: 0.0, side: THREE.DoubleSide }); 
+        const roomFloorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25, metalness: 0.15 }); 
 
         const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), roomFloorMat);
         roomFloor.rotation.x = -Math.PI / 2; 
+        roomFloor.position.y = 0.005; // Đã sửa khoảng cách để triệt tiêu lỗi chồng lấp đổi màu nền
         roomFloor.receiveShadow = true; 
         roomGroup.add(roomFloor);
 
@@ -173,7 +233,7 @@
         windowGlass.position.set(0, 2.45, 5.92); windowGlass.rotation.y = Math.PI; roomGroup.add(windowGlass);
 
         // --- RÈM VẢI (CURTAINS) ---
-        const curtainMat = new THREE.MeshStandardMaterial({ color: 0xe8dcc7, roughness: 0.9, side: THREE.DoubleSide });
+        const curtainMat = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.9, side: THREE.DoubleSide });
         const curtainGeo = new THREE.PlaneGeometry(3.6, 2.6, 10, 1);
         
         const curtainLeft = new THREE.Mesh(curtainGeo, curtainMat); curtainLeft.position.set(-1.75, 2.45, 5.85); curtainLeft.castShadow = true;
@@ -198,135 +258,63 @@
 
         // --- TRANG TRÍ TRONG PHÒNG ---
         const bedGroup = new THREE.Group(); bedGroup.position.set(-4.2, 0, 3.0);
-        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0x362010)); bedBase.castShadow = true; bedBase.receiveShadow = true;
-        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xbd3a6d, 0.8)); bedMattress.position.y = 0.4; bedMattress.castShadow = true;
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0x940c3c)); pillow.position.set(0, 0.65, 1.3); pillow.castShadow = true;
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xa31046, 0.7)); blanket.position.set(0, 0.42, -0.6); blanket.castShadow = true;
+        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0xf2b8d1)); bedBase.castShadow = true; bedBase.receiveShadow = true;
+        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xf29cbc, 0.8)); bedMattress.position.y = 0.4; bedMattress.castShadow = true;
+        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xbd3a6d)); pillow.position.set(0, 0.65, 1.3); pillow.castShadow = true;
+        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xbd3a6d, 0.7)); blanket.position.set(0, 0.42, -0.6); blanket.castShadow = true;
         bedGroup.add(bedBase, bedMattress, pillow, blanket); roomGroup.add(bedGroup);
 
-        function hienThiHoaDocDien(x, y, z, scale, rotY=0) {
-            const hoaCanvas = document.createElement('canvas'); hoaCanvas.width = 128; hoaCanvas.height = 128;
-            const hCtx = hoaCanvas.getContext('2d'); hCtx.clearRect(0, 0, 128, 128);
-            const hue = Math.random() * 360; hCtx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-            for(let i = 0; i < 5; i++) {
-                const angle = (i * Math.PI * 2) / 5;
-                const cx = 64 + Math.cos(angle) * 22; const cy = 64 + Math.sin(angle) * 22;
-                hCtx.beginPath(); hCtx.arc(cx, cy, 20, 0, Math.PI * 2); hCtx.fill();
+        // --- ĐỂ TRANG TRÍ TƯỜNG CỦA CĂN PHÒNG ---
+        function taoTextureTrangTri(loai) {
+            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 128, 128);
+
+            if (loai === 'hoa') {
+                const hue = Math.random() * 360; ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+                for(let i = 0; i < 5; i++) {
+                    const angle = (i * Math.PI * 2) / 5;
+                    ctx.beginPath(); ctx.arc(64 + Math.cos(angle) * 22, 64 + Math.sin(angle) * 22, 20, 0, Math.PI * 2); ctx.fill();
+                }
+                ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(64, 64, 10, 0, Math.PI * 2); ctx.fill();
+            } else if (loai === 'buom') {
+                ctx.fillStyle = '#e040fb';
+                ctx.beginPath(); ctx.ellipse(44, 48, 24, 16, Math.PI/6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(84, 48, 24, 16, -Math.PI/6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(50, 80, 16, 12, -Math.PI/6, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.ellipse(78, 80, 16, 12, Math.PI/6, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = '#333'; ctx.beginPath(); ctx.ellipse(64, 64, 6, 28, 0, 0, Math.PI*2); ctx.fill();
+            } else if (loai === 'no') {
+                ctx.fillStyle = '#ff4081';
+                ctx.beginPath(); ctx.moveTo(64, 64); ctx.lineTo(24, 34); ctx.lineTo(24, 94); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(64, 64); ctx.lineTo(104, 34); ctx.lineTo(104, 94); ctx.closePath(); ctx.fill();
+                ctx.fillStyle = '#ff80ab'; ctx.beginPath(); ctx.arc(64, 64, 14, 0, Math.PI*2); ctx.fill();
+                ctx.strokeStyle = '#ff4081'; ctx.lineWidth = 8;
+                ctx.beginPath(); ctx.moveTo(54, 74); ctx.lineTo(34, 114); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(74, 74); ctx.lineTo(94, 114); ctx.stroke();
             }
-            hCtx.fillStyle = '#ffd700'; hCtx.beginPath(); hCtx.arc(64, 64, 10, 0, Math.PI * 2); hCtx.fill();
-
-            const hoaMat = new THREE.MeshStandardMaterial({ map: new THREE.CanvasTexture(hoaCanvas), transparent: true, side: THREE.DoubleSide, roughness: 0.5 });
-            const hoaMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5 * scale, 0.5 * scale), hoaMat);
-            hoaMesh.position.set(x, y, z); hoaMesh.rotation.y = rotY; roomGroup.add(hoaMesh);
-        }
-        for (let i = 0; i < 100; i++) {
-            let vịTríNgẫuNhiên = (Math.random() - 0.5) * 11.2, chiềuCaoNgẫuNhiên = 0.5 + Math.random() * 4.0;
-            let tỷLệKíchThước = 0.8 + Math.random() * 1.0, chọnTường = Math.floor(Math.random() * 4);
-            if (chọnTường === 0) hienThiHoaDocDien(-5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, Math.PI / 2);
-            else if (chọnTường === 1) hienThiHoaDocDien(5.93, chiềuCaoNgẫuNhiên, vịTríNgẫuNhiên, tỷLệKíchThước, -Math.PI / 2);
-            else if (chọnTường === 2 && (Math.abs(vịTríNgẫuNhiên) > 3.6 || chiềuCaoNgẫuNhiên < 1.2 || chiềuCaoNgẫuNhiên > 3.8)) hienThiHoaDocDien(vịTríNgẫuNhiên, chiềuCaoNgẫuNhiên, 5.93, tỷLệKíchThước, Math.PI);
-            else if (chọnTường === 3 && Math.abs(vịTríNgẫuNhiên) > 1.7) hienThiHoaDocDien(vịTríNgẫuNhiên, chiềuCaoNgẫuNhiên, -5.93, tỷLệKíchThước, 0);
+            return new THREE.CanvasTexture(canvas);
         }
 
-        // Texture đốm sáng chung cho sao tĩnh và chòm sao
-        const starCtx = document.createElement("canvas").getContext("2d");
-        starCtx.canvas.width = starCtx.canvas.height = 32;
-        starCtx.fillStyle = "#000"; starCtx.fillRect(0, 0, 32, 32);
-        let grd = starCtx.createRadialGradient(16, 16, 0, 16, 16, 16);
-        grd.addColorStop(0.1, "rgba(255, 255, 255, 1)"); grd.addColorStop(0.6, "rgba(0, 0, 0, 0)");
-        starCtx.fillStyle = grd; starCtx.fillRect(0, 0, 32, 32);
-        const alphaMap = new THREE.CanvasTexture(starCtx.canvas);
-
-        // --- NỀN SAO TĨNH (BẦU TRỜI PHÍA SAU) ---
-        const starCount = 6000; 
-        const starGeometry = new THREE.BufferGeometry();
-        const starPositions = new Float32Array(starCount * 3);
-        const starRadius = 550; 
-
-        for (let i = 0; i < starCount; i++) {
-            const u = Math.random(), v = Math.random();
-            const theta = u * 2.0 * Math.PI, phi = Math.acos(2.0 * v - 1.0);
-            starPositions[i * 3] = starRadius * Math.sin(phi) * Math.cos(theta);
-            starPositions[i * 3 + 1] = starRadius * Math.sin(phi) * Math.sin(theta);
-            starPositions[i * 3 + 2] = starRadius * Math.cos(phi);
+        function hienThiTrangTriTuong(loai, x, y, z, scale, rotY=0) {
+            const mat = new THREE.MeshStandardMaterial({ map: taoTextureTrangTri(loai), transparent: true, side: THREE.DoubleSide, roughness: 0.5 });
+            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5 * scale, 0.5 * scale), mat);
+            mesh.position.set(x, y, z); mesh.rotation.y = rotY; roomGroup.add(mesh);
         }
 
-        starGeometry.setAttribute('position', new THREE.BufferAttribute(starPositions, 3));
-        const starMaterial = new THREE.PointsMaterial({ color: 0xffffff, size: 1.3, transparent: true, opacity: 0.6, sizeAttenuation: false });
-        scene.add(new THREE.Points(starGeometry, starMaterial));
+        const cacLoaiDecor = ['hoa', 'buom', 'no'];
+        for (let i = 0; i < 35; i++) { 
+            let loaiRandom = cacLoaiDecor[Math.floor(Math.random() * cacLoaiDecor.length)];
+            let viTriNgauNhien = (Math.random() - 0.5) * 11.2, chieuCaoNgauNhien = 0.5 + Math.random() * 4.0;
+            let tyLeKichThuoc = 0.8 + Math.random() * 1.0, chonTuong = Math.floor(Math.random() * 4);
+            if (chonTuong === 0) hienThiTrangTriTuong(loaiRandom, -5.93, chieuCaoNgauNhien, viTriNgauNhien, tyLeKichThuoc, Math.PI / 2);
+            else if (chonTuong === 1) hienThiTrangTriTuong(loaiRandom, 5.93, chieuCaoNgauNhien, viTriNgauNhien, tyLeKichThuoc, -Math.PI / 2);
+            else if (chonTuong === 2 && (Math.abs(viTriNgauNhien) > 3.6 || chieuCaoNgauNhien < 1.2 || chieuCaoNgauNhien > 3.8)) hienThiTrangTriTuong(loaiRandom, viTriNgauNhien, chieuCaoNgauNhien, 5.93, tyLeKichThuoc, Math.PI);
+            else if (chonTuong === 3 && Math.abs(viTriNgauNhien) > 1.7) hienThiTrangTriTuong(loaiRandom, viTriNgauNhien, chieuCaoNgauNhien, -5.93, tyLeKichThuoc, 0);
+        }
 
-
-        // --- CHÒM SAO XỬ NỮ (VIRGO) CHUẨN THIÊN VĂN HỌC ---
-        const virgoGroup = new THREE.Group();
-
-        // Tọa độ 2D mô phỏng chính xác cấu trúc hình ảnh thực tế từ bức ảnh mẫu
-        const virgoPoints = [
-            new THREE.Vector3(52, 48, 0),     // 0
-            new THREE.Vector3(52, 73, 0),      // 1
-            new THREE.Vector3(75, 80, 0),      // 2
-            new THREE.Vector3(83, 67, 0),      // 3
-            new THREE.Vector3(140, 115, 0),     // 4
-            new THREE.Vector3(35, 46, 0),    // 5
-            new THREE.Vector3(33, 52, 0),    // 6
-            new THREE.Vector3(20, 52, 0),    // 7
-            new THREE.Vector3(37, 75, 0),     // 8
-            new THREE.Vector3(20, 73, 0),     // 9
-            new THREE.Vector3(74, 100, 0),    // 10
-            new THREE.Vector3(100, 77, 0)  // 11     
-        ];
-
-        // Khởi tạo mảng màu sắc cơ bản
-        const virgoPointColors = new Float32Array(virgoPoints.length * 3);
-        virgoPoints.forEach((p, i) => {
-            virgoPointColors[i*3] = 1; virgoPointColors[i*3+1] = 1; virgoPointColors[i*3+2] = 1; 
-        });
-
-        // Chỉ định các cặp nối dây chuẩn xác theo chòm sao Virgo thực tế
-        const connections = [
-            [0, 1], 
-            [1, 2], 
-            [2, 3], 
-            [3, 0], 
-            [11, 4], 
-            [5, 6], 
-            [6, 7], 
-            [0, 5],
-            [1, 8], 
-            [8, 9], 
-            [3, 11], 
-            [10, 2] // Syrma -> κ Vir (Nhánh đuôi trái)
-        ];
-
-        // ĐIỀU CHỈNH 1: Làm dây nối rõ hơn (Tăng độ đục opacity lên 0.85 và đổi sang màu trắng tinh khiết)
-        const lineMat = new THREE.LineBasicMaterial({ 
-    color: 0xffffff, 
-    transparent: true, opacity: 0.35,
-    fog: false 
-});
-        connections.forEach(pair => {
-            const geo = new THREE.BufferGeometry().setFromPoints([virgoPoints[pair[0]], virgoPoints[pair[1]]]);
-            virgoGroup.add(new THREE.Line(geo, lineMat));
-        });
-
-        const virgoGeo = new THREE.BufferGeometry().setFromPoints(virgoPoints);
-        virgoGeo.setAttribute('color', new THREE.BufferAttribute(virgoPointColors, 3));
-
-        // ĐIỀU CHỈNH 2: Làm cho ngôi sao lớn hơn (Tăng size từ 18 lên 32 để cực kỳ dễ nhìn thấy)
-        const virgoMat = new THREE.PointsMaterial({
-            size: 55, map: alphaMap, transparent: true, vertexColors: THREE.VertexColors, 
-            blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.95
-        });
-        const virgoPointsObj = new THREE.Points(virgoGeo, virgoMat);
-        virgoGroup.add(virgoPointsObj);
-
-        // Định vị chòm sao đối diện Mặt Trăng, ngửa mặt về trung tâm thế giới
-        virgoGroup.position.set(120, 160, -400); 
-        virgoGroup.scale.set(3.5, 3.5, 3.5); 
-        virgoGroup.lookAt(0, 0, 0); 
-        scene.add(virgoGroup);
-
-        // --- CHỮ THÔNG ĐIỆP ---
-        const messages = [ "Chán quá làm gì cho hết chán", "ngủ ik là hong chán", "khùng, làm dì dậy", "buồn ngủ" ];
+        // --- CHỮ THÔNG ĐIỆP BỔ SUNG ---
+        const messages = [ "", "", "", "" ];
         const textPlanes = [];
 
         function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
@@ -374,53 +362,149 @@
             scene.add(plane);
             textPlanes.push(plane);
         }
- createSignText(messages[0], 0, 0, -25, 0);           
+        createSignText(messages[0], 0, 0, -25, 0);           
         createSignText(messages[1], 1, 25, 0, -Math.PI/2);   
         createSignText(messages[2], 2, 0, 25, Math.PI);      
         createSignText(messages[3], 3, -25, 0, Math.PI/2);   
 
-        // --- MẶT TRĂNG ---
+        // --- HỆ THỐNG MÂY KHỐI ---
+        const cloudsGroup = new THREE.Group();
+        scene.add(cloudsGroup);
+        const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+
+        function createMinecraftCloud(startX, startY, startZ) {
+            const cluster = new THREE.Group();
+            const blocksCount = 3 + Math.floor(Math.random() * 5); 
+            for(let i=0; i<blocksCount; i++) {
+                const w = 15 + Math.floor(Math.random() * 20); const h = 4 + Math.floor(Math.random() * 4); const d = 15 + Math.floor(Math.random() * 20);
+                const cloudBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
+                cloudBlock.position.set((i * 12) - (blocksCount * 4), (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 10);
+                cluster.add(cloudBlock);
+            }
+            cluster.position.set(startX, startY, startZ); cloudsGroup.add(cluster);
+        }
+        for(let i=0; i<18; i++) {
+            createMinecraftCloud((Math.random() - 0.5) * 500, 80 + Math.random() * 40, (Math.random() - 0.5) * 500);
+        }
+
         const moonGroup = new THREE.Group();
-        const moonGeo = new THREE.CircleGeometry(32, 48); 
-        const moonMat = new THREE.MeshStandardMaterial({
-            color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 4.8, side: THREE.DoubleSide, roughness: 1.0
-        });
-        moonGroup.add(new THREE.Mesh(moonGeo, moonMat));
-
-        const flareMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, side: THREE.DoubleSide });
-        const moonFlare = new THREE.Mesh(new THREE.CircleGeometry(38, 48), flareMat);
+        moonGroup.add(new THREE.Mesh(new THREE.CircleGeometry(32, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 4.8, side: THREE.DoubleSide, roughness: 1.0 })));
+        const moonFlare = new THREE.Mesh(new THREE.CircleGeometry(38, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, side: THREE.DoubleSide }));
         moonFlare.position.z = -0.1; moonGroup.add(moonFlare);
+        moonGroup.position.set(-80.38, 100, 300); moonGroup.lookAt(0, 0, 0); scene.add(moonGroup);
 
-        moonGroup.position.set(-80.38, 100, 300);
-        moonGroup.lookAt(0, 0, 0); 
-        scene.add(moonGroup);
+        // --- XÂY DỰNG CHUỒNG HÀNG RÀO GỖ ---
+        const fenceGroup = new THREE.Group();
+        fenceGroup.position.set(0, 0, -18); 
+        scene.add(fenceGroup);
 
-        const shootingStarCount = 20;
-        const shootingStars = [];
-        for (let i = 0; i < shootingStarCount; i++) {
-            const lineGeometry = new THREE.BufferGeometry();
-            lineGeometry.setAttribute('position', new THREE.BufferAttribute(new Float32Array([0, 0, 0, -8, 4, -8]), 3));
-            const starLine = new THREE.Line(lineGeometry, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.0 }));
-            scene.add(starLine);
-            shootingStars.push({ mesh: starLine, speedX: 0, speedY: 0, speedZ: 0, active: false, progress: 0, maxProgress: 0 });
+        const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 });
+        function buildFenceBar(w, h, d, x, y, z, rotY = 0) {
+            const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), woodMat);
+            bar.position.set(x, y, z); bar.rotation.y = rotY; bar.castShadow = true; fenceGroup.add(bar);
+        }
+        for(let i = -6; i <= 6; i += 3) {
+            if(i !== 0) buildFenceBar(0.3, 1.8, 0.3, -6, 0.9, i);
+            buildFenceBar(0.3, 1.8, 0.3, 6, 0.9, i); buildFenceBar(0.3, 1.8, 0.3, i, 0.9, -6);
+            if(Math.abs(i) > 2) buildFenceBar(0.3, 1.8, 0.3, i, 0.9, 6); 
+        }
+        buildFenceBar(0.15, 0.2, 12, -6, 1.3, 0); buildFenceBar(0.15, 0.2, 12, -6, 0.5, 0);
+        buildFenceBar(0.15, 0.2, 12, 6, 1.3, 0);  buildFenceBar(0.15, 0.2, 12, 6, 0.5, 0);
+        buildFenceBar(12, 0.2, 0.15, 0, 1.3, -6); buildFenceBar(12, 0.2, 0.15, 0, 0.5, -6);
+        buildFenceBar(3.5, 0.2, 0.15, -4.25, 1.3, 6); buildFenceBar(3.5, 0.2, 0.15, -4.25, 0.5, 6);
+        buildFenceBar(3.5, 0.2, 0.15, 4.25, 1.3, 6);  buildFenceBar(3.5, 0.2, 0.15, 4.25, 0.5, 6);
+
+        // --- ĐỐNG CỎ/RƠM Ở GÓC CHUỒNG ---
+        const strawGroup = new THREE.Group();
+        strawGroup.position.set(4.5, 0, -4.5); fenceGroup.add(strawGroup);
+        const strawMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 1.0 });
+        for(let i=0; i<5; i++) {
+            const sGeo = new THREE.BoxGeometry(1.8 - i*0.3, 0.3, 1.8 - i*0.3);
+            const sMesh = new THREE.Mesh(sGeo, strawMat); sMesh.position.y = 0.15 + i*0.3; sMesh.castShadow = true; strawGroup.add(sMesh);
         }
 
-        function resetShootingStar(star) {
-            const range = 450;
-            star.mesh.position.set((Math.random() - 0.5) * range * 2, 60 + Math.random() * 180, (Math.random() - 0.5) * range * 2);
-            star.speedX = (4 + Math.random() * 6); star.speedY = -(2 + Math.random() * 4); star.speedZ = (4 + Math.random() * 6);
-            star.progress = 0; star.maxProgress = 40 + Math.floor(Math.random() * 50); 
-            star.active = true; star.mesh.material.opacity = 0.8 + Math.random() * 0.2; 
-        }
+        // --- MÔ HÌNH BÒ 3D (ĐÃ THÊM MŨI & MIỆNG NÂU NHẠT) ---
+        const cowGroup = new THREE.Group();
+        cowGroup.position.set(0, 0.1, 0); fenceGroup.add(cowGroup);
 
-        // --- ĐIỀU KHIỂN & SỰ KIỆN GIAO DIỆN ---
+        const cowWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
+        const cowBlackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
+        const cowPinkMat = new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.8 });
+        const cowTanMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.8 }); 
+
+        const cowBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2.2), cowWhiteMat); cowBody.position.y = 1.0; cowBody.castShadow = true; cowGroup.add(cowBody);
+        const spot1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.6), cowBlackMat); spot1.position.set(0.56, 1.2, 0.4); cowGroup.add(spot1);
+        const spot2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.5), cowBlackMat); spot2.position.set(-0.56, 0.9, -0.4); cowGroup.add(spot2);
+
+        const cowHead = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), cowWhiteMat); cowHead.position.set(0, 1.6, 1.2); cowHead.castShadow = true; cowGroup.add(cowHead);
+        const cowSnout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.3), cowPinkMat); cowSnout.position.set(0, 1.4, 1.7); cowGroup.add(cowSnout);
+
+        // Đốm lỗ mũi nâu nhạt dán lên bề mặt hồng
+        const nostrilGeo = new THREE.BoxGeometry(0.1, 0.12, 0.01);
+        const nostrilL = new THREE.Mesh(nostrilGeo, cowTanMat); nostrilL.position.set(0.18, 1.45, 1.851); cowGroup.add(nostrilL);
+        const nostrilR = new THREE.Mesh(nostrilGeo, cowTanMat); nostrilR.position.set(-0.18, 1.45, 1.851); cowGroup.add(nostrilR);
+
+        // Miệng bò dẹt dán bên dưới đầu bò
+        const mouthLine = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.01), cowTanMat); mouthLine.position.set(0, 1.18, 1.651); cowGroup.add(mouthLine);
+
+        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.1), cowBlackMat); eyeL.position.set(0.46, 1.7, 1.6); cowGroup.add(eyeL);
+        const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.1), cowBlackMat); eyeR.position.set(-0.46, 1.7, 1.6); cowGroup.add(eyeR);
+
+        function createLeg(x, z) {
+            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.6, 0.35), cowWhiteMat); leg.position.set(x, 0.3, z); leg.castShadow = true; cowGroup.add(leg);
+            const hoof = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.15, 0.37), cowBlackMat); hoof.position.set(x, 0.05, z); cowGroup.add(hoof);
+        }
+        createLeg(0.5, 0.7); createLeg(-0.5, 0.7); createLeg(0.5, -0.7); createLeg(-0.5, -0.7);
+
+        let currentCowScale = 0.25; cowGroup.scale.set(currentCowScale, currentCowScale, currentCowScale);
+
+        // --- ĐIỀU KHIỂN & CẤU TRÚC ĐỐI THOẠI KHẢO SÁT ---
         let moveF = false, moveB = false, moveL = false, moveR = false;
         let isDoorOpen = false, doorRot = 0, isCurtainOpen = false, curtainTargetProg = 0, curtainProg = 0;
-        let yaw = Math.PI, pitch = 0; const moveSpeed = 0.08;
+        let yaw = 0, pitch = 0; const moveSpeed = 0.08;
 
+        let feedCount = 0, hasStraw = false, isTalking = false;
+
+        const heThongCauHoi = {
+            cauHoiGoc: {
+                title: "Đoạn này tôi sẽ chèn câu hỏi vào sau", 
+                options: [
+                    { text: "Lựa chọn gốc 1", next: "nhanh1" }, 
+                    { text: "Lựa chọn gốc 2", next: "nhanh2" }, 
+                    { text: "Lựa chọn gốc 3", next: "nhanh3" }  
+                ]
+            },
+            nhanh1: {
+                title: "Câu hỏi nhánh 1", 
+                options: [
+                    { text: "Phương án 1.1", textEnd: "Câu trả lời cuối cùng số 1" }, 
+                    { text: "Phương án 1.2", textEnd: "Câu trả lời cuối cùng số 2" },
+                    { text: "Phương án 1.3", textEnd: "Câu trả lời cuối cùng số 3" }
+                ]
+            },
+            nhanh2: {
+                title: "Câu hỏi nhánh 2", 
+                options: [
+                    { text: "Phương án 2.1", textEnd: "Câu trả lời cuối cùng số 4" }, 
+                    { text: "Phương án 2.2", textEnd: "Câu trả lời cuối cùng số 5" },
+                    { text: "Phương án 2.3", textEnd: "Câu trả lời cuối cùng số 6" }
+                ]
+            },
+            nhanh3: {
+                title: "Câu hỏi nhánh 3", 
+                options: [
+                    { text: "Phương án 3.1", textEnd: "Câu trả lời cuối cùng số 7" }, 
+                    { text: "Phương án 3.2", textEnd: "Câu trả lời cuối cùng số 8" },
+                    { text: "Phương án 3.3", textEnd: "Câu trả lời cuối cùng số 9" }
+                ]
+            }
+        };
+
+        // --- XỬ LÝ SỰ KIỆN GIAO DIỆN & HOÀN THIỆN MOBILE TRUNCATION ---
         if ('ontouchstart' in window) document.getElementById('joystick-zone').style.display = 'block';
 
         window.addEventListener('keydown', (e) => {
+            if (isTalking) return;
             switch (e.code) { case 'ArrowUp': case 'KeyW': moveF = true; break; case 'ArrowLeft': case 'KeyA': moveL = true; break; case 'ArrowDown': case 'KeyS': moveB = true; break; case 'ArrowRight': case 'KeyD': moveR = true; break; }
         });
         window.addEventListener('keyup', (e) => {
@@ -428,13 +512,13 @@
         });
 
         let isMouseDown = false, prevMousePos = { x: 0, y: 0 };
-        window.addEventListener('mousedown', (e) => { if (e.target.id === 'door-prompt' || e.target.id === 'curtain-btn') return; isMouseDown = true; prevMousePos = { x: e.clientX, y: e.clientY }; });
-        window.addEventListener('mousemove', (e) => { if (!isMouseDown) return; yaw -= (e.clientX - prevMousePos.x) * 0.003; pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - (e.clientY - prevMousePos.y) * 0.003)); prevMousePos = { x: e.clientX, y: e.clientY }; });
+        window.addEventListener('mousedown', (e) => { if (['door-prompt', 'curtain-btn', 'action-prompt'].includes(e.target.id) || isTalking) return; isMouseDown = true; prevMousePos = { x: e.clientX, y: e.clientY }; });
+        window.addEventListener('mousemove', (e) => { if (!isMouseDown || isTalking) return; yaw -= (e.clientX - prevMousePos.x) * 0.003; pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - (e.clientY - prevMousePos.y) * 0.003)); prevMousePos = { x: e.clientX, y: e.clientY }; });
         window.addEventListener('mouseup', () => { isMouseDown = false; }); window.addEventListener('mouseleave', () => { isMouseDown = false; });
 
         let joyId = null, lookId = null, touchStart = { x: 0, y: 0 }, joyStart = { x: 0, y: 0 }, vMove = { x: 0, y: 0 };
         window.addEventListener('touchstart', (e) => {
-            if (e.target.id === 'curtain-btn' || e.target.id === 'door-prompt') return;
+            if (['curtain-btn', 'door-prompt', 'action-prompt'].includes(e.target.id) || isTalking) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const t = e.changedTouches[i];
                 if (t.clientX < window.innerWidth / 2 && joyId === null) {
@@ -446,6 +530,7 @@
             }
         });
         window.addEventListener('touchmove', (e) => {
+            if (isTalking) return;
             for (let i = 0; i < e.changedTouches.length; i++) {
                 const t = e.changedTouches[i];
                 if (t.identifier === joyId) {
@@ -476,85 +561,152 @@
         function toggleCurtain() { isCurtainOpen = !isCurtainOpen; }
         curtainBtn.addEventListener('click', toggleCurtain); curtainBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleCurtain(); });
 
-        // --- VÒNG LẶP ANIMATE ---
-        const clock = new THREE.Clock();
-        const tmpColor = new THREE.Color();
+        // --- QUẢN LÝ THOẠI & KÍCH HOẠT HỆ THỐNG ĐỒNG BỘ DỮ LIỆU GOOGLE SHEET ---
+        const actionPrompt = document.getElementById('action-prompt');
+        const dialogueBox = document.getElementById('dialogue-box');
+        const dialogueText = document.getElementById('dialogue-text');
+        const optionsContainer = document.getElementById('options-container');
 
-        function animate() {
-            requestAnimationFrame(animate);
-            const elapsedTime = clock.getElapsedTime(); 
+        function hienThiHộpThoai(noiDung, cacPhuongAn = []) {
+            isTalking = true;
+            dialogueText.innerText = noiDung;
+            optionsContainer.innerHTML = '';
+            
+            if (cacPhuongAn.length === 0) {
+                const btn = document.createElement('div'); btn.className = 'option-btn'; btn.innerText = 'Đóng';
+                btn.onclick = () => {
+                    // Đồng bộ nút Đóng câu trả lời cuối
+                    sendTrackingData(currentCowScale.toString(), noiDung, "Bấm kết thúc (Đóng)");
+                    dongHộpThoai();
+                };
+                optionsContainer.appendChild(btn);
+            } else {
+                cacPhuongAn.forEach(pa => {
+                    const btn = document.createElement('div'); btn.className = 'option-btn'; btn.innerText = pa.text;
+                    btn.onclick = () => {
+                        // Tự động đẩy sự lựa chọn nhánh của người chơi lên dữ liệu đám mây
+                        sendTrackingData(currentCowScale.toString(), noiDung, pa.text);
 
-            playerGroup.rotation.y = yaw; camera.rotation.x = pitch;
+                        if (pa.next) {
+                            const nodeNhanh = heThongCauHoi[pa.next];
+                            hienThiHộpThoai(nodeNhanh.title, nodeNhanh.options);
+                        } else if (pa.textEnd) {
+                            hienThiHộpThoai(pa.textEnd, []);
+                        } else if (pa.action === 'reset_loop') {
+                            hienThiHộpThoai(heThongCauHoi.cauHoiGoc.title, heThongCauHoi.cauHoiGoc.options);
+                        } else if (pa.action === 'close_happy') {
+                            hienThiHộpThoai('À, vậy chúc bạn 1 ngày vui vẻ.', []);
+                        }
+                    };
+                    optionsContainer.appendChild(btn);
+                });
+            }
+            dialogueBox.style.display = 'flex'; actionPrompt.style.display = 'none';
+        }
 
-            const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x, cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
-            let nextX = playerGroup.position.x, nextZ = playerGroup.position.z;
+        function dongHộpThoai() { dialogueBox.style.display = 'none'; isTalking = false; moveF = moveB = moveL = moveR = false; }
 
-            if (cx !== 0 || cz !== 0) {
-                const dir = new THREE.Vector3(cx, 0, cz).normalize(); dir.applyQuaternion(playerGroup.quaternion);
-                nextX += dir.x * moveSpeed; nextZ += dir.z * moveSpeed;
+        actionPrompt.addEventListener('click', () => {
+            const pPos = playerGroup.position;
+            const distToCow = pPos.distanceTo(new THREE.Vector3(0, 1.8, -18));
+            const distToStraw = pPos.distanceTo(new THREE.Vector3(4.5, 1.8, -22.5));
+
+            if (distToStraw < 2.5 && !hasStraw && feedCount < 3) {
+                hasStraw = true;
+                sendTrackingData(currentCowScale.toString(), "Tương tác môi trường", "Nhặt rơm tươi từ đống cỏ");
+                alert("Bạn đã nhặt một ít cỏ rơm tươi ngon! Hãy mang lại cho bò ăn.");
+                return;
             }
 
-            // VA CHẠM BOUNDS
-            const worldBound = 495;
-            if (nextX < -worldBound) nextX = -worldBound; if (nextX > worldBound) nextX = worldBound;
-            if (nextZ < -worldBound) nextZ = -worldBound; if (nextZ > worldBound) nextZ = worldBound;
+            if (distToCow < 3.5) {
+                if (feedCount < 3) {
+                    if (hasStraw) {
+                        feedCount++; hasStraw = false;
+                        if (feedCount === 1) currentCowScale = 0.45;
+                        else if (feedCount === 2) currentCowScale = 0.7;
+                        else if (feedCount === 3) currentCowScale = 1.0;
+                        cowGroup.scale.set(currentCowScale, currentCowScale, currentCowScale);
 
-            const wallThick = 0.6, rMinX = -6, rMaxX = 6, rMinZ = -6, rMaxZ = 6, doorGap = 1.35;
-            if (playerGroup.position.z < rMaxZ && playerGroup.position.z > rMinZ) {
-                if (nextX < rMinX + wallThick && nextX > rMinX - wallThick) nextX = playerGroup.position.x;
-                if (nextX < rMaxX + wallThick && nextX > rMaxX - wallThick) nextX = playerGroup.position.x;
-            }
-            if (playerGroup.position.x < rMaxX && playerGroup.position.x > rMinX) {
-                if (nextZ < rMaxZ + wallThick && nextZ > rMaxZ - wallThick) nextZ = playerGroup.position.z;
-                if (nextZ < rMinZ + wallThick && nextZ > rMinZ - wallThick) {
-                    if (Math.abs(playerGroup.position.x) > doorGap || !isDoorOpen) nextZ = playerGroup.position.z;
+                        if (feedCount === 1) {
+                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 1", "Yêu cầu: xin thêm cỏ rơm");
+                            hienThiHộpThoai("Mình thấy vẫn còn đói, bạn cho mình thêm ít cỏ nữa được không ?");
+                        } else if (feedCount === 2) {
+                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 2", "Yêu cầu: vẫn hơi đói chút xíu");
+                            hienThiHộpThoai("Cảm ơn nha, ngon lắm! Nhưng bụng mình vẫn còn hơi đói chút xíu...");
+                        } else if (feedCount === 3) {
+                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 3 (Kích hoạt khảo sát)", "Hệ thống hiển thị câu hỏi gốc");
+                            hienThiHộpThoai(heThongCauHoi.cauHoiGoc.title, heThongCauHoi.cauHoiGoc.options);
+                        }
+                    } else {
+                        sendTrackingData(currentCowScale.toString(), "Nói chuyện khi bò đói", "Bò đòi ăn cỏ rơm");
+                        hienThiHộpThoai("Mình đói quá, mình muốn ăn cỏ");
+                    }
+                } else {
+                    sendTrackingData(currentCowScale.toString(), "Yêu cầu khảo sát lại", "Hộp thoại reset vòng lặp khảo sát");
+                    hienThiHộpThoai("Bạn muốn trả lời lại à, vậy mình sẽ hỏi lại", [
+                        { text: "Đúng rồi", action: "reset_loop" },
+                        { text: "Không, mình bấm nhầm", action: "close_happy" }
+                    ]);
                 }
             }
+        });
 
-            playerGroup.position.x = nextX; playerGroup.position.z = nextZ;
+        // --- VÒNG LẶP TIẾN TRÌNH ANIMATION CHÍNH ---
+        const clock = new THREE.Clock();
 
-            if (!isDoorOpen && playerGroup.position.z <= -4.2 && playerGroup.position.z >= -6.0 && Math.abs(playerGroup.position.x) < 1.4) promptBtn.style.display = 'block';
-            else promptBtn.style.display = 'none';
+        function animate() {
+            requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); 
+            playerGroup.rotation.y = yaw; camera.rotation.x = pitch;
+
+            if (!isTalking) {
+                const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x, cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
+                let nextX = playerGroup.position.x, nextZ = playerGroup.position.z;
+                if (cx !== 0 || cz !== 0) {
+                    const dir = new THREE.Vector3(cx, 0, cz).normalize(); dir.applyQuaternion(playerGroup.quaternion);
+                    nextX += dir.x * moveSpeed; nextZ += dir.z * moveSpeed;
+                }
+
+                const worldBound = 495;
+                if (nextX < -worldBound) nextX = -worldBound; if (nextX > worldBound) nextX = worldBound;
+                if (nextZ < -worldBound) nextZ = -worldBound; if (nextZ > worldBound) nextZ = worldBound;
+
+                const wallThick = 0.6, rMinX = -6, rMaxX = 6, rMinZ = -6, rMaxZ = 6, doorGap = 1.35;
+                if (playerGroup.position.z < rMaxZ && playerGroup.position.z > rMinZ) {
+                    if (nextX < rMinX + wallThick && nextX > rMinX - wallThick) nextX = playerGroup.position.x;
+                    if (nextX < rMaxX + wallThick && nextX > rMaxX - wallThick) nextX = playerGroup.position.x;
+                }
+                if (playerGroup.position.x < rMaxX && playerGroup.position.x > rMinX) {
+                    if (nextZ < rMaxZ + wallThick && nextZ > rMaxZ - wallThick) nextZ = playerGroup.position.z;
+                    if (nextZ < rMinZ + wallThick && nextZ > rMinZ - wallThick) { if (Math.abs(playerGroup.position.x) > doorGap || !isDoorOpen) nextZ = playerGroup.position.z; }
+                }
+                if (nextZ < -11.5 && nextZ > -24.5) { if (nextX < -5.6 || nextX > 5.6) nextX = playerGroup.position.x; }
+                if (nextX < 5.6 && nextX > -5.6) { if (nextZ < -23.6) nextZ = playerGroup.position.z; if (nextZ > -12.4 && (Math.abs(playerGroup.position.x) > 1.5)) nextZ = playerGroup.position.z; }
+                playerGroup.position.x = nextX; playerGroup.position.z = nextZ;
+            }
+
+            cloudsGroup.children.forEach(cloudCluster => { cloudCluster.position.x += 0.03; if (cloudCluster.position.x > 350) cloudCluster.position.x = -350; });
+
+            const pPos = playerGroup.position; const distToCow = pPos.distanceTo(new THREE.Vector3(0, 1.8, -18)); const distToStraw = pPos.distanceTo(new THREE.Vector3(4.5, 1.8, -22.5));
+
+            if (!isDoorOpen && pPos.z <= -4.2 && pPos.z >= -6.0 && Math.abs(pPos.x) < 1.4) { promptBtn.style.display = 'block'; } else { promptBtn.style.display = 'none'; }
+
+            if (!isTalking) {
+                if (distToCow < 3.5) { actionPrompt.style.display = 'block'; actionPrompt.innerText = (hasStraw && feedCount < 3) ? "Cho bò ăn cỏ rơm 🌾" : "Nói chuyện với bò 🐮"; }
+                else if (distToStraw < 2.5 && !hasStraw && feedCount < 3) { actionPrompt.style.display = 'block'; actionPrompt.innerText = "Lấy cỏ rơm ôm tay 🌾"; }
+                else { actionPrompt.style.display = 'none'; }
+            }
 
             curtainTargetProg = isCurtainOpen ? 1 : 0; curtainProg = THREE.MathUtils.lerp(curtainProg, curtainTargetProg, 0.08);
             curtainLeft.scale.x = 1 - 0.7 * curtainProg; curtainLeft.position.x = -1.75 - 1.25 * curtainProg;
             curtainRight.scale.x = 1 - 0.7 * curtainProg; curtainRight.position.x = 1.75 + 1.25 * curtainProg;
 
             if (isDoorOpen) { doorRot = THREE.MathUtils.lerp(doorRot, -Math.PI / 1.7, 0.04); doorPivot.rotation.y = doorRot; }
-
-
-            // CHUYỂN MÀU LẤP LÁNH ĐA SẮC CHO CHÒM SAO
-            const colorsAttr = virgoPointsObj.geometry.attributes.color;
-            for (let i = 0; i < virgoPoints.length; i++) {
-                let brightness = 0.75 + Math.sin(elapsedTime * (2.2 + i * 0.25)) * 0.25;
-                tmpColor.setHSL((elapsedTime * 0.04 + i * 0.11) % 1.0, 1.0, brightness);
-                colorsAttr.setXYZ(i, tmpColor.r, tmpColor.g, tmpColor.b);
-            }
-            colorsAttr.needsUpdate = true;
-
-
-            shootingStars.forEach((star) => {
-                if (!star.active) { if (Math.random() < 0.015) resetShootingStar(star); } 
-                else {
-                    star.mesh.position.x += star.speedX; star.mesh.position.y += star.speedY; star.mesh.position.z += star.speedZ;
-                    star.progress++;
-                    if (star.progress > star.maxProgress * 0.7) star.mesh.material.opacity = THREE.MathUtils.lerp(star.mesh.material.opacity, 0.0, 0.1);
-                    if (star.progress >= star.maxProgress) { star.active = false; star.mesh.material.opacity = 0; }
-                }
-            });
-
-            textPlanes.forEach((plane, index) => {
-                plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15;
-            });
+            textPlanes.forEach((plane, index) => { plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15; });
 
             renderer.render(scene, camera);
         }
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
-
+        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
         animate();
     </script>
 </body>
