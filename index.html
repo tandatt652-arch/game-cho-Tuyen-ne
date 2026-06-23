@@ -691,9 +691,55 @@
             if (!isDoorOpen && pPos.z <= -4.2 && pPos.z >= -6.0 && Math.abs(pPos.x) < 1.4) { promptBtn.style.display = 'block'; } else { promptBtn.style.display = 'none'; }
 
             if (!isTalking) {
-                if (distToCow < 3.5) { actionPrompt.style.display = 'block'; actionPrompt.innerText = (hasStraw && feedCount < 3) ? "Cho bò ăn cỏ rơm 🌾" : "Nói chuyện với bò 🐮"; }
-                else if (distToStraw < 2.5 && !hasStraw && feedCount < 3) { actionPrompt.style.display = 'block'; actionPrompt.innerText = "Lấy cỏ rơm ôm tay 🌾"; }
-                else { actionPrompt.style.display = 'none'; }
+                const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x, cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
+                let nextX = playerGroup.position.x, nextZ = playerGroup.position.z;
+                if (cx !== 0 || cz !== 0) {
+                    const dir = new THREE.Vector3(cx, 0, cz).normalize(); dir.applyQuaternion(playerGroup.quaternion);
+                    nextX += dir.x * moveSpeed; nextZ += dir.z * moveSpeed;
+                }
+
+                // Giới hạn rìa thế giới
+                const worldBound = 495;
+                if (nextX < -worldBound) nextX = -worldBound; if (nextX > worldBound) nextX = worldBound;
+                if (nextZ < -worldBound) nextZ = -worldBound; if (nextZ > worldBound) nextZ = worldBound;
+
+                // --- HỆ THỐNG VA CHẠM CÔ LẬP (AABB) ---
+                const pR = 0.4; // Bán kính cơ thể người chơi
+                const walls = [
+                    // Các bức tường của căn phòng [minX, maxX, minZ, maxZ]
+                    [-6.5, -5.5, -6.5, 6.5],   // Tường trái
+                    [5.5, 6.5, -6.5, 6.5],     // Tường phải
+                    [-6.5, 6.5, 5.5, 6.5],     // Tường sau
+                    [-6.5, -1.3, -6.5, -5.5],  // Tường trước (bên trái cửa)
+                    [1.3, 6.5, -6.5, -5.5],    // Tường trước (bên phải cửa)
+                    
+                    // Hàng rào gỗ
+                    [-6.3, -5.7, -24.3, -11.7], // Rào trái
+                    [5.7, 6.3, -24.3, -11.7],   // Rào phải
+                    [-6.3, 6.3, -24.3, -23.7],  // Rào sau (đáy chuồng)
+                    [-6.3, -1.5, -12.3, -11.7], // Rào trước (trái cổng)
+                    [1.5, 6.3, -12.3, -11.7]    // Rào trước (phải cổng)
+                ];
+
+                // Nếu cửa đang đóng, thêm va chạm của cánh cửa vào thế giới
+                if (!isDoorOpen) walls.push([-1.5, 1.5, -6.3, -5.7]);
+
+                // Xử lý trượt dọc theo vách tường (cho phép đi chéo sát tường mà không bị kẹt)
+                let hitX = false, hitZ = false;
+                for (let w of walls) {
+                    if (nextX + pR > w[0] && nextX - pR < w[1] && playerGroup.position.z + pR > w[2] && playerGroup.position.z - pR < w[3]) {
+                        hitX = true;
+                    }
+                    if (playerGroup.position.x + pR > w[0] && playerGroup.position.x - pR < w[1] && nextZ + pR > w[2] && nextZ - pR < w[3]) {
+                        hitZ = true;
+                    }
+                }
+                
+                if (hitX) nextX = playerGroup.position.x;
+                if (hitZ) nextZ = playerGroup.position.z;
+
+                // Cập nhật vị trí cuối cùng
+                playerGroup.position.x = nextX; playerGroup.position.z = nextZ;
             }
 
             curtainTargetProg = isCurtainOpen ? 1 : 0; curtainProg = THREE.MathUtils.lerp(curtainProg, curtainTargetProg, 0.08);
