@@ -2,820 +2,799 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Bấm dô ii❤️</title>
-    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght=700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đếm cù 🐑</title>
     <style>
+        /* =========================================
+           CSS BIẾN & CÀI ĐẶT CƠ BẢN
+        ========================================= */
+        :root {
+            --sky-top: #0a1428;
+            --sky-bottom: #1e3a5f;
+            --moon-color: #fffac2;
+            --moon-glow: rgba(255, 250, 194, 0.4);
+            --grass-top: #24573b;
+            --grass-bottom: #163624;
+            --text-light: #f4f6f8;
+            --accent-color: #ffd166;
+            --wood-dark: #3e2723;
+            --wood-light: #5d4037;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
         body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            overflow: hidden; user-select: none; -webkit-user-select: none;
-            background-color: #000003; font-family: Arial, sans-serif;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--sky-top);
+            color: var(--text-light);
         }
-        #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+
+        /* =========================================
+           SCENE BỐ CỤC CHÍNH
+        ========================================= */
+        #scene {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: filter 2s ease-in-out;
+        }
+
+        /* Bầu trời */
+        .sky {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 65%;
+            background: linear-gradient(to bottom, var(--sky-top), var(--sky-bottom));
+            z-index: 1;
+        }
+
+        /* Mặt trăng */
+        .moon {
+            position: absolute;
+            top: 15%;
+            right: 15%;
+            width: 100px;
+            height: 100px;
+            background: var(--moon-color);
+            border-radius: 50%;
+            box-shadow: 0 0 50px 15px var(--moon-glow);
+            z-index: 2;
+            transition: box-shadow 3s ease, background 3s ease;
+        }
+
+        .moon.glow {
+            box-shadow: 0 0 100px 30px rgba(255, 255, 255, 0.8);
+            background: #ffffff;
+        }
+
+        /* Ngôi sao */
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            z-index: 1;
+            animation: twinkle alternate infinite;
+        }
+
+        .star.bright {
+            animation: twinkle-bright alternate infinite;
+            box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.6);
+        }
+
+        /* Mây */
+        .cloud {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50px;
+            z-index: 1;
+            animation: drift linear infinite;
+        }
+        .cloud::before, .cloud::after {
+            content: '';
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+        }
+
+        /* Đồi núi xa xa */
+        .hills {
+            position: absolute;
+            bottom: 35%;
+            width: 100%;
+            height: 15%;
+            z-index: 2;
+        }
+        .hill {
+            position: absolute;
+            bottom: -20px;
+            border-radius: 50%;
+        }
         
-        #instruction {
-            position: absolute; top: 20px; left: 50%; transform: translateX(-50%);
-            color: rgba(255, 255, 255, 0.9); z-index: 10; text-align: center; pointer-events: none;
-            font-size: 14px; background: rgba(30, 40, 60, 0.6); padding: 10px 20px; border-radius: 20px;
-            box-shadow: 0 0 10px rgba(135, 206, 235, 0.5);
-            width: 85%; max-width: 600px;
+        /* Chiều sâu đồi núi */
+        .hill:nth-child(1) { background: #122a1d; z-index: 1; }
+        .hill:nth-child(2) { background: #1c4530; z-index: 2; }
+        .hill:nth-child(3) { background: #173624; z-index: 1; }
+
+        /* =========================================
+           CÁC LỚP CẢNH VẬT
+        ========================================= */
+        .meadow-bg {
+            position: absolute;
+            bottom: 12%; 
+            left: 0;
+            width: 100%;
+            height: 25%;
+            background: linear-gradient(to bottom, #1a3d2a, var(--grass-top));
+            z-index: 3;
+            overflow: visible;
         }
 
-        /* JOYSTICK */
-        #joystick-zone {
-            position: absolute; bottom: 40px; left: 40px; width: 120px; height: 120px;
-            background: rgba(255, 255, 255, 0.2); border: 2px solid rgba(255, 255, 255, 0.5);
-            border-radius: 50%; z-index: 10; display: none; touch-action: none;
-        }
-        #joystick-knob {
-            position: absolute; top: 35px; left: 35px; width: 50px; height: 50px;
-            background: rgba(255, 255, 255, 0.9); box-shadow: 0 0 15px rgba(0,0,0,0.2); border-radius: 50%;
-        }
-
-        /* Các nút tương tác cũ */
-        #door-prompt {
-            position: absolute; bottom: 25%; left: 50%; transform: translateX(-50%);
-            color: #fff; background: linear-gradient(45deg, #4caf50, #2196f3);
-            padding: 14px 28px; border-radius: 30px; font-size: 18px; font-weight: bold;
-            display: none; cursor: pointer; z-index: 10;
-            box-shadow: 0 0 20px rgba(33, 150, 243, 0.6);
-            animation: pulse 1.5s infinite alternate;
+        .fence-iso-back {
+            position: absolute;
+            bottom: 12%; 
+            left: 50%;
+            width: 0; 
+            height: 0;
+            z-index: 3;
+            overflow: visible;
         }
 
-        #curtain-btn {
-            position: absolute; bottom: 25px; right: 25px;
-            color: #fff; background: linear-gradient(45deg, #9c27b0, #3f51b5);
-            padding: 12px 24px; border-radius: 25px; font-size: 16px; font-weight: bold;
-            cursor: pointer; z-index: 10;
-            box-shadow: 0 0 15px rgba(156, 39, 176, 0.6);
-            transition: transform 0.2s;
-        }
-        #curtain-btn:active { transform: scale(0.95); }
-
-        /* HỆ THỐNG UI TƯƠNG TÁC MỚI (BÒ & CỎ) */
-        #action-prompt {
-            position: absolute; bottom: 30%; left: 50%; transform: translateX(-50%);
-            color: #fff; background: linear-gradient(45deg, #ff9800, #e91e63);
-            padding: 14px 28px; border-radius: 30px; font-size: 18px; font-weight: bold;
-            display: none; cursor: pointer; z-index: 20;
-            box-shadow: 0 0 20px rgba(233, 30, 99, 0.6);
+        #sheep-layer {
+            position: absolute;
+            bottom: 12%; 
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 4;
+            pointer-events: none;
         }
 
-        #dialogue-box {
-            position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-            width: 90%; max-width: 500px; background: rgba(20, 20, 35, 0.92);
-            border: 3px solid #ff6b8b; border-radius: 20px; padding: 20px;
-            box-shadow: 0 0 25px rgba(255, 107, 139, 0.5);
-            display: none; flex-direction: column; z-index: 30; color: #fff;
+        .fence-iso-front {
+            position: absolute;
+            bottom: 12%; 
+            left: 50%;
+            width: 0; 
+            height: 0;
+            z-index: 5;
+            overflow: visible;
         }
-        #dialogue-text {
-            font-size: 16px; line-height: 1.5; margin-bottom: 20px; text-align: center; font-weight: 500;
-        }
-        .dialogue-options {
-            display: flex; flex-direction: column; gap: 10px; width: 100%;
-        }
-        .option-btn {
-            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff; padding: 12px; border-radius: 12px; font-size: 15px; font-weight: bold;
-            cursor: pointer; transition: all 0.2s; text-align: center;
-        }
-        .option-btn:hover { background: #ff6b8b; border-color: #ff6b8b; }
 
-        @keyframes pulse {
-            0% { transform: translateX(-50%) scale(1); }
-            100% { transform: translateX(-50%) scale(1.08); }
+        .meadow-fg {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 12%;
+            background: linear-gradient(to bottom, var(--grass-top), var(--grass-bottom));
+            z-index: 6;
+            border-top: 2px solid #24573b; 
         }
+
+        .firefly {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #cdffa6;
+            border-radius: 50%;
+            box-shadow: 0 0 10px 2px #a3ff52;
+            animation: float 4s ease-in-out infinite alternate;
+        }
+
+        /* =========================================
+           THIẾT KẾ HÀNG RÀO ISOMETRIC
+        ========================================= */
+        .iso-post {
+            position: absolute;
+            background: var(--wood-dark);
+            border-right: 3px solid var(--wood-light);
+            border-radius: 4px 4px 0 0;
+            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
+        }
+        
+        .p1 { left: -10px; bottom: -20px; width: 22px; height: 130px; }
+        .p2 { left: 25px; bottom: 15px; width: 16px; height: 90px; }
+        .p3 { left: 55px; bottom: 45px; width: 12px; height: 60px; border-right: 2px solid var(--wood-light); }
+        .p4 { left: 80px; bottom: 70px; width: 9px;  height: 40px; border-right: 2px solid var(--wood-light); }
+
+        .iso-rail {
+            position: absolute;
+            background: var(--wood-dark);
+            border-top: 2px solid var(--wood-light);
+            border-bottom: 3px solid #2a1a17;
+            transform-origin: left bottom;
+            box-shadow: 0 5px 5px rgba(0,0,0,0.2);
+        }
+        
+        .r-top-front { left: -5px; bottom: 50px; width: 36px; height: 10px; transform: rotate(-25deg); }
+        .r-bottom-front { left: -5px; bottom: -5px; width: 46px; height: 12px; transform: rotate(-45deg); }
+
+        .r-top-back { left: 25px; bottom: 64px; width: 75px; height: 10px; transform: rotate(-25deg); }
+        .r-bottom-back { left: 25px; bottom: 25px; width: 85px; height: 12px; transform: rotate(-45deg); }
+
+
+        /* =========================================
+           CỪU & CHUYỂN ĐỘNG
+        ========================================= */
+        .sheep-wrapper {
+            position: absolute;
+            bottom: 0px; 
+            left: -150px;
+            width: 120px;
+            height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        .sheep-inner {
+            position: relative;
+            width: 100%;
+            text-align: center;
+            transform-origin: center bottom;
+            margin-bottom: 5px; 
+            z-index: 2; 
+        }
+
+        .sheep-shadow {
+            position: absolute;
+            bottom: 0; 
+            width: 60px;
+            height: 10px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 50%;
+        }
+
+        .default-sheep svg {
+            width: 90px;
+            height: 90px;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
+            animation: walk-bounce 0.4s infinite alternate;
+        }
+
+        .custom-sheep-img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
+            animation: walk-bounce 0.4s infinite alternate;
+        }
+
+        .sheep-sleeping svg, .sheep-sleeping img {
+            animation: none;
+            transform: translateY(20px) rotate(-10deg);
+            opacity: 0;
+            transition: opacity 2s ease;
+        }
+
+        /* =========================================
+           GIAO DIỆN NGƯỜI DÙNG (UI)
+        ========================================= */
+        #ui-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        /* Menu Start Nằm Giữa Màn Hình */
+        .controls {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 40px 50px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: auto;
+            z-index: 50;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+            text-align: center;
+        }
+
+        .btn {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 30px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            font-weight: 600;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        #file-input { display: none; }
+
+        .counter-board {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px 25px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            text-align: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .counter-title {
+            font-size: 14px;
+            color: #b0c4de;
+            margin-bottom: 5px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .counter-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--accent-color);
+            text-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
+        }
+
+        .counter-emojis {
+            font-size: 20px;
+            margin-top: 5px;
+            min-height: 30px;
+        }
+
+        #message-box {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: #fff;
+            color: #333;
+            width: 90%;
+            max-width: 400px;
+            padding: 40px 30px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 100;
+            pointer-events: auto;
+            opacity: 0;
+        }
+
+        #message-box.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .message-text {
+            font-size: 20px;
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-weight: 500;
+            color: #2c3e50;
+        }
+
+        .message-text span {
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .heart {
+            color: #e74c3c;
+            animation: heartbeat 1.5s infinite;
+            display: inline-block;
+        }
+
+        #good-night-text {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 60px;
+            font-family: 'Georgia', serif;
+            font-style: italic;
+            color: #e0f7fa;
+            text-shadow: 0 0 20px rgba(224, 247, 250, 0.8), 0 0 40px rgba(129, 212, 250, 0.5);
+            opacity: 0;
+            z-index: 90;
+            transition: opacity 3s ease;
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        #good-night-text.show { opacity: 1; }
+
+        /* =========================================
+           ANIMATIONS
+        ========================================= */
+        @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 0.8; } }
+        @keyframes twinkle-bright { 0% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.3); } }
+        @keyframes drift { from { transform: translateX(-150px); } to { transform: translateX(100vw); } }
+        @keyframes float { 0% { transform: translateY(0) translateX(0); opacity: 0.5; } 50% { opacity: 1; } 100% { transform: translateY(-20px) translateX(20px); opacity: 0.5; } }
+        @keyframes walk-bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
+        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
+        .scene-blur { filter: blur(4px) brightness(0.8); }
+
     </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
 <body>
-    <div id="door-prompt">Mở cửa ra đi nèe🚪</div>
-    <div id="curtain-btn">Chạm Mở/Đóng Rèm</div>
-    
-    <div id="action-prompt">Tương tác</div>
-    <div id="dialogue-box">
-        <div id="dialogue-text">Lời thoại của bò hiển thị ở đây...</div>
-        <div class="dialogue-options" id="options-container"></div>
+
+    <!-- CẢNH VẬT NỀN -->
+    <div id="scene">
+        <!-- Bầu trời -->
+        <div class="sky" id="sky">
+            <div class="moon" id="moon"></div>
+        </div>
+
+        <!-- Cảnh đồi núi -->
+        <div class="hills" id="hills"></div>
+
+        <!-- LỚP 1: Cánh đồng HẬU CẢNH -->
+        <div class="meadow-bg" id="meadow-bg"></div>
+
+        <!-- LỚP 2: HÀNG RÀO ISOMETRIC (Nửa xa - Nằm sau cừu) -->
+        <div class="fence-iso-back">
+            <div class="iso-post p2"></div>
+            <div class="iso-post p3"></div>
+            <div class="iso-post p4"></div>
+            <div class="iso-rail r-top-back"></div>
+            <div class="iso-rail r-bottom-back"></div>
+        </div>
+
+        <!-- LỚP 3: LAYER CHỨA CỪU -->
+        <div id="sheep-layer"></div>
+
+        <!-- LỚP 4: HÀNG RÀO ISOMETRIC (Nửa gần - Nằm trước che cừu) -->
+        <div class="fence-iso-front">
+            <div class="iso-post p1"></div>
+            <div class="iso-rail r-top-front"></div>
+            <div class="iso-rail r-bottom-front"></div>
+        </div>
+
+        <!-- LỚP 5: Cánh đồng TIỀN CẢNH -->
+        <div class="meadow-fg" id="meadow-fg"></div>
     </div>
 
-    <div id="joystick-zone"><div id="joystick-knob"></div></div>
-    <div id="canvas-container"></div>
+    <!-- GIAO DIỆN NGƯỜI DÙNG -->
+    <div id="ui-layer">
+        <!-- Bảng đếm -->
+        <div class="counter-board">
+            <div class="counter-title">Đếm cừu</div>
+            <div class="counter-number" id="counter-num">0</div>
+            <div class="counter-emojis" id="counter-emojis"></div>
+        </div>
+
+        <!-- Màn hình chờ bắt đầu (Start Menu) -->
+        <div class="controls" id="controls">
+            <div style="font-size: 24px; font-weight: bold; margin-bottom: 25px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Bé muốn dùng cừu nào? 🌙</div>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
+                <label for="file-input" class="btn" style="background: #e74c3c; border-color: #c0392b;">Chọn ảnh của em ❤️</label>
+                <input type="file" id="file-input" accept="image/*">
+                <button class="btn" id="default-btn" style="background: #3498db; border-color: #2980b9;">Dùng cừu bình thường🐑</button>
+            </div>
+        </div>
+
+        <!-- Lời nhắn kết thúc -->
+        <div id="message-box">
+            <div class="message-text">
+                <span>Đếm tới đây là ngủ được rồi. 🌙</span>
+                <span>Không được lén coi tiktok nữa 😼</span>
+                <span>Khuye rồi ngủ sớm đi nhaa <span class="heart">❤️</span></span>
+            </div>
+            <button class="btn" id="replay-btn" style="background: #3498db; color: #fff; border: none; padding: 12px 25px; font-size: 16px;">
+                Đếm lại, chưa buồn ngủ!
+            </button>
+        </div>
+
+        <!-- Text Good Night -->
+        <div id="good-night-text">Good Night 💙</div>
+    </div>
 
     <script>
-        // --- CẤU HÌNH LIÊN KẾT THEO DÕI GOOGLE FORM CHÍNH XÁC CỦA BẠN ---
-        const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-        
-        const FORM_ENTRY_IDS = {
-            playerId: "entry.1666228409",      // test1 -> Lưu mã người chơi
-            cowScale: "entry.992038501",       // test2 -> Lưu kích thước bò
-            questionText: "entry.1275903316",   // test3 -> Lời thoại/Ngữ cảnh
-            playerChoice: "entry.444679017"    // test4 -> Lựa chọn của người dùng
-        };
+        /* =========================================
+           CẤU HÌNH & TRẠNG THÁI (STATE)
+        ========================================= */
+        const TARGET_COUNT = 15;
+        const SPAWN_INTERVAL_MS = 1400; // 1.4 giây sinh 1 con
+        const RUN_DURATION_MS = 6000;   // 6 giây để cừu chạy qua màn hình
+        const JUMP_DURATION_MS = 900;   // 0.9 giây nhảy
 
-        // Tạo ID ngẫu nhiên cho mỗi lượt tải trang để phân biệt giữa các người chơi khác nhau
-        const randomPlayerId = "User-" + Math.random().toString(36).substring(2, 9).toUpperCase();
+        let currentCount = 0;       // Số cừu đã nhảy qua (hiển thị lên màn hình)
+        let spawnedCount = 0;       // Số cừu đã được sinh ra
+        let isCounting = false;
+        let spawnTimer = null;
+        let customSheepSrc = null;
 
-        // Hàm xử lý gửi dữ liệu chạy ngầm không gây lag game
-        function sendTrackingData(cowScale, questionText, playerChoice) {
-            const formData = new FormData();
-            formData.append(FORM_ENTRY_IDS.playerId, randomPlayerId);
-            formData.append(FORM_ENTRY_IDS.cowScale, cowScale);
-            formData.append(FORM_ENTRY_IDS.questionText, questionText);
-            formData.append(FORM_ENTRY_IDS.playerChoice, playerChoice);
+        /* =========================================
+           QUẢN LÝ DOM ELEMENTS
+        ========================================= */
+        const sheepLayer = document.getElementById('sheep-layer');
+        const countNumEl = document.getElementById('counter-num');
+        const countEmojiEl = document.getElementById('counter-emojis');
+        const fileInput = document.getElementById('file-input');
+        const defaultBtn = document.getElementById('default-btn');
+        const messageBox = document.getElementById('message-box');
+        const replayBtn = document.getElementById('replay-btn');
+        const scene = document.getElementById('scene');
+        const moon = document.getElementById('moon');
+        const goodNightText = document.getElementById('good-night-text');
+        const controls = document.getElementById('controls');
 
-            fetch(GOOGLE_FORM_URL, {
-                method: "POST",
-                mode: "no-cors",
-                body: formData
-            }).then(() => {
-                console.log("Đã lưu lựa chọn:", {cowScale, questionText, playerChoice});
-            }).catch(err => console.error("Lỗi đồng bộ hệ thống:", err));
+        /* =========================================
+           TẠO CẢNH VẬT (Bầu trời, Sao, Đom đóm)
+        ========================================= */
+        function initEnvironment() {
+            const sky = document.getElementById('sky');
+            const meadowBg = document.getElementById('meadow-bg');
+            const meadowFg = document.getElementById('meadow-fg');
+            const hills = document.getElementById('hills');
+
+            for (let i = 0; i < 80; i++) {
+                let star = document.createElement('div');
+                star.className = Math.random() > 0.8 ? 'star bright' : 'star';
+                star.style.width = Math.random() * 3 + 'px';
+                star.style.height = star.style.width;
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
+                star.style.animationDelay = (Math.random() * 2) + 's';
+                sky.appendChild(star);
+            }
+
+            for(let i = 0; i < 4; i++) {
+                let cloud = document.createElement('div');
+                cloud.className = 'cloud';
+                cloud.style.width = (Math.random() * 100 + 100) + 'px';
+                cloud.style.height = '40px';
+                cloud.style.top = (Math.random() * 30 + 5) + '%';
+                cloud.style.left = '-' + (Math.random() * 200 + 150) + 'px';
+                cloud.style.animationDuration = (Math.random() * 30 + 40) + 's';
+                cloud.style.animationDelay = (Math.random() * -40) + 's';
+                sky.appendChild(cloud);
+            }
+
+            for(let i=0; i<3; i++) {
+                let hill = document.createElement('div');
+                hill.className = 'hill';
+                hill.style.width = (Math.random() * 300 + 400) + 'px';
+                hill.style.height = '150px';
+                hill.style.left = (i * 35 - 10) + '%';
+                hills.appendChild(hill);
+            }
+
+            for (let i = 0; i < 15; i++) {
+                let firefly = document.createElement('div');
+                firefly.className = 'firefly';
+                firefly.style.left = Math.random() * 100 + '%';
+                firefly.style.bottom = Math.random() * 80 + '%';
+                firefly.style.animationDuration = (Math.random() * 3 + 3) + 's';
+                firefly.style.animationDelay = (Math.random() * 2) + 's';
+                if (Math.random() > 0.5) meadowBg.appendChild(firefly);
+                else meadowFg.appendChild(firefly);
+            }
         }
 
-        // --- KHỞI TẠO HỆ THỐNG MÔI TRƯỜNG NGÀY ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        scene.background = new THREE.Color(0x7ec0ee);
-        scene.fog = new THREE.FogExp2(0x7ec0ee, 0.005);
+        /* =========================================
+           HÌNH ẢNH CỪU (Mặc định bằng SVG)
+        ========================================= */
+        const DEFAULT_SHEEP_SVG = `
+            <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
+                <rect x="35" y="70" width="8" height="20" rx="4" fill="#333" />
+                <rect x="55" y="75" width="8" height="15" rx="4" fill="#333" />
+                <rect x="75" y="70" width="8" height="20" rx="4" fill="#333" />
+                <path d="M 25 55 C 25 35, 45 25, 60 25 C 80 25, 95 35, 95 55 C 105 55, 110 70, 100 80 C 95 85, 30 85, 20 80 C 10 70, 15 55, 25 55 Z" fill="#ffffff" />
+                <circle cx="45" cy="35" r="15" fill="#ffffff" />
+                <circle cx="70" cy="35" r="18" fill="#ffffff" />
+                <circle cx="85" cy="45" r="15" fill="#ffffff" />
+                <circle cx="35" cy="45" r="15" fill="#ffffff" />
+                <ellipse cx="95" cy="50" rx="15" ry="12" fill="#333" transform="rotate(-15 95 50)" />
+                <ellipse cx="102" cy="45" rx="8" ry="15" fill="#333" transform="rotate(30 102 45)" /> 
+                <path d="M 98 48 Q 102 52 106 48" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+        `;
 
-        const playerGroup = new THREE.Group();
-        playerGroup.position.set(-3, 1.8, 3); 
-        scene.add(playerGroup);
+        /* =========================================
+           LOGIC ĐẾM & HOẠT ẢNH CỪU
+        ========================================= */
+        function startCounting() {
+            if (isCounting) return;
+            isCounting = true;
+            
+            currentCount = 0;
+            spawnedCount = 0;
+            updateCounterUI();
+            
+            sheepLayer.innerHTML = '';
+            scene.classList.remove('scene-blur');
+            moon.classList.remove('glow');
+            goodNightText.classList.remove('show');
+            messageBox.classList.remove('show');
+            controls.style.display = 'none'; // Ẩn menu đi khi bắt đầu chạy
 
-        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 2000);
-        playerGroup.add(camera);
-
-        const renderer = new THREE.WebGLRenderer({ antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        renderer.setPixelRatio(window.devicePixelRatio);
-        renderer.shadowMap.enabled = true;
-        container.appendChild(renderer.domElement);
-
-        const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
-        scene.add(ambientLight);
-
-        const sunLight = new THREE.DirectionalLight(0xfffaed, 0.9);
-        sunLight.position.set(120, 150, 100);
-        scene.add(sunLight);
-
-        const roomLight = new THREE.PointLight(0xffeedd, 1.0, 15);
-        roomLight.position.set(0, 3.2, 1);
-        scene.add(roomLight);
-
-        function createMat(color, roughness = 0.7) {
-            return new THREE.MeshStandardMaterial({ color: color, roughness: roughness, side: THREE.FrontSide });
-        }
-
-        // --- ĐỔI SÀN THẾ GIỚI THÀNH NỀN CỎ RỘNG VÔ TẬN ---
-        const grassMat = new THREE.MeshStandardMaterial({ color: 0x557a46, roughness: 0.9, metalness: 0.1 }); 
-        const floor = new THREE.Mesh(new THREE.PlaneGeometry(10000, 10000), grassMat);
-        floor.rotation.x = -Math.PI / 2; 
-        floor.receiveShadow = true;
-        floor.position.y = 0; 
-        scene.add(floor); 
-
-        // --- CĂN PHÒNG ---
-        const roomGroup = new THREE.Group();
-        scene.add(roomGroup);
-
-        const wallMat = new THREE.MeshStandardMaterial({ color: 0xf29cbc, roughness: 1.0, metalness: 0.0, side: THREE.DoubleSide }); 
-        const roomFloorMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.25, metalness: 0.15 }); 
-
-        const roomFloor = new THREE.Mesh(new THREE.PlaneGeometry(12, 12), roomFloorMat);
-        roomFloor.rotation.x = -Math.PI / 2; 
-        roomFloor.position.y = 0.005; // Đã sửa khoảng cách để triệt tiêu lỗi chồng lấp đổi màu nền
-        roomFloor.receiveShadow = true; 
-        roomGroup.add(roomFloor);
-
-        function createWallMesh(geo, mat) {
-            const mesh = new THREE.Mesh(geo, mat);
-            mesh.castShadow = true; mesh.receiveShadow = true;
-            return mesh;
-        }
-
-        const ceiling = createWallMesh(new THREE.PlaneGeometry(12, 12), wallMat);
-        ceiling.rotation.x = Math.PI / 2; ceiling.position.y = 5; roomGroup.add(ceiling);
-
-        const leftWall = createWallMesh(new THREE.PlaneGeometry(12, 5), wallMat);
-        leftWall.position.set(-6, 2.5, 0); leftWall.rotation.y = Math.PI / 2; roomGroup.add(leftWall);
-
-        const rightWall = createWallMesh(new THREE.PlaneGeometry(12, 5), wallMat);
-        rightWall.position.set(6, 2.5, 0); rightWall.rotation.y = -Math.PI / 2; roomGroup.add(rightWall);
-
-        const frontWallLeft = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat); frontWallLeft.position.set(-3.75, 2.5, -6); roomGroup.add(frontWallLeft);
-
-        const frontWallRight = createWallMesh(new THREE.PlaneGeometry(4.5, 5), wallMat); frontWallRight.position.set(3.75, 2.5, -6); roomGroup.add(frontWallRight);
-
-        const frontWallTop = createWallMesh(new THREE.PlaneGeometry(3, 1.4), wallMat); frontWallTop.position.set(0, 4.3, -6); roomGroup.add(frontWallTop);
-
-        const backWallBottom = createWallMesh(new THREE.PlaneGeometry(12, 1.25), wallMat); backWallBottom.position.set(0, 0.625, 6); backWallBottom.rotation.y = Math.PI; roomGroup.add(backWallBottom);
-
-        const backWallTop = createWallMesh(new THREE.PlaneGeometry(12, 1.35), wallMat); backWallTop.position.set(0, 4.325, 6); backWallTop.rotation.y = Math.PI; roomGroup.add(backWallTop);
-
-        const backWallLeft = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat); backWallLeft.position.set(-4.75, 2.45, 6); backWallLeft.rotation.y = Math.PI; roomGroup.add(backWallLeft);
-
-        const backWallRight = createWallMesh(new THREE.PlaneGeometry(2.5, 2.4), wallMat); backWallRight.position.set(4.75, 2.45, 6); backWallRight.rotation.y = Math.PI; roomGroup.add(backWallRight);
-
-        // --- KHUNG NHÔM CỬA SỔ ---
-        const aluMat = new THREE.MeshStandardMaterial({ color: 0xdddddd, metalness: 0.8, roughness: 0.2 });
-        const frames = [
-            { w: 7.0, h: 0.1, d: 0.15, x: 0, y: 3.6, z: 5.95 }, { w: 7.0, h: 0.1, d: 0.15, x: 0, y: 1.3, z: 5.95 }, 
-            { w: 0.1, h: 2.4, d: 0.15, x: -3.45, y: 2.45, z: 5.95 }, { w: 0.1, h: 2.4, d: 0.15, x: 3.45, y: 2.45, z: 5.95 }, 
-            { w: 7.0, h: 0.08, d: 0.15, x: 0, y: 2.45, z: 5.95 }, { w: 0.08, h: 2.4, d: 0.15, x: 0, y: 2.45, z: 5.95 }  
-        ];
-        frames.forEach(f => {
-            const bar = new THREE.Mesh(new THREE.BoxGeometry(f.w, f.h, f.d), aluMat);
-            bar.position.set(f.x, f.y, f.z); bar.castShadow = true; roomGroup.add(bar);
-        });
-
-        const glassMat = new THREE.MeshStandardMaterial({ color: 0xffffff, transparent: true, opacity: 0.08, roughness: 0.0, metalness: 1.0, depthWrite: false });
-        const windowGlass = new THREE.Mesh(new THREE.PlaneGeometry(7.0, 2.4), glassMat);
-        windowGlass.position.set(0, 2.45, 5.92); windowGlass.rotation.y = Math.PI; roomGroup.add(windowGlass);
-
-        // --- RÈM VẢI (CURTAINS) ---
-        const curtainMat = new THREE.MeshStandardMaterial({ color: 0xff0000, roughness: 0.9, side: THREE.DoubleSide });
-        const curtainGeo = new THREE.PlaneGeometry(3.6, 2.6, 10, 1);
-        
-        const curtainLeft = new THREE.Mesh(curtainGeo, curtainMat); curtainLeft.position.set(-1.75, 2.45, 5.85); curtainLeft.castShadow = true;
-        const curtainRight = new THREE.Mesh(curtainGeo, curtainMat); curtainRight.position.set(1.75, 2.45, 5.85); curtainRight.castShadow = true;
-        roomGroup.add(curtainLeft, curtainRight);
-
-        // --- CÁNH CỬA PHÒNG ---
-        const doorWidth = 3.0, doorHeight = 3.6;
-        const doorCanvas = document.createElement('canvas'); doorCanvas.width = 256; doorCanvas.height = 512;
-        const dCtx = doorCanvas.getContext('2d');
-        dCtx.fillStyle = '#2b190e'; dCtx.fillRect(0,0,256,512);
-        dCtx.strokeStyle = '#1a0f08'; dCtx.lineWidth = 14;
-        dCtx.strokeRect(20, 20, 216, 472); dCtx.strokeRect(20, 20, 216, 220);
-        dCtx.fillStyle = '#ffcc00'; dCtx.beginPath(); dCtx.arc(40, 256, 12, 0, Math.PI*2); dCtx.fill();
-
-        const doorTex = new THREE.CanvasTexture(doorCanvas);
-        const doorMesh = new THREE.Mesh(new THREE.BoxGeometry(doorWidth, doorHeight, 0.15), new THREE.MeshStandardMaterial({ map: doorTex }));
-        doorMesh.position.set(doorWidth/2, doorHeight/2, 0);
-
-        const doorPivot = new THREE.Group(); doorPivot.position.set(-doorWidth/2, 0, -6);
-        doorPivot.add(doorMesh); scene.add(doorPivot);
-
-        // --- TRANG TRÍ TRONG PHÒNG ---
-        const bedGroup = new THREE.Group(); bedGroup.position.set(-4.2, 0, 3.0);
-        const bedBase = new THREE.Mesh(new THREE.BoxGeometry(2.8, 0.5, 4), createMat(0xf2b8d1)); bedBase.castShadow = true; bedBase.receiveShadow = true;
-        const bedMattress = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.4, 3.8), createMat(0xf29cbc, 0.8)); bedMattress.position.y = 0.4; bedMattress.castShadow = true;
-        const pillow = new THREE.Mesh(new THREE.BoxGeometry(2.0, 0.2, 0.8), createMat(0xbd3a6d)); pillow.position.set(0, 0.65, 1.3); pillow.castShadow = true;
-        const blanket = new THREE.Mesh(new THREE.BoxGeometry(2.62, 0.42, 2.5), createMat(0xbd3a6d, 0.7)); blanket.position.set(0, 0.42, -0.6); blanket.castShadow = true;
-        bedGroup.add(bedBase, bedMattress, pillow, blanket); roomGroup.add(bedGroup);
-
-        // --- ĐỂ TRANG TRÍ TƯỜNG CỦA CĂN PHÒNG ---
-        function taoTextureTrangTri(loai) {
-            const canvas = document.createElement('canvas'); canvas.width = 128; canvas.height = 128;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 128, 128);
-
-            if (loai === 'hoa') {
-                const hue = Math.random() * 360; ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
-                for(let i = 0; i < 5; i++) {
-                    const angle = (i * Math.PI * 2) / 5;
-                    ctx.beginPath(); ctx.arc(64 + Math.cos(angle) * 22, 64 + Math.sin(angle) * 22, 20, 0, Math.PI * 2); ctx.fill();
+            spawnTimer = setInterval(() => {
+                if (spawnedCount < TARGET_COUNT) {
+                    spawnedCount++;
+                    spawnSheep(spawnedCount);
+                } else {
+                    clearInterval(spawnTimer);
                 }
-                ctx.fillStyle = '#ffd700'; ctx.beginPath(); ctx.arc(64, 64, 10, 0, Math.PI * 2); ctx.fill();
-            } else if (loai === 'buom') {
-                ctx.fillStyle = '#e040fb';
-                ctx.beginPath(); ctx.ellipse(44, 48, 24, 16, Math.PI/6, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(84, 48, 24, 16, -Math.PI/6, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(50, 80, 16, 12, -Math.PI/6, 0, Math.PI*2); ctx.fill();
-                ctx.beginPath(); ctx.ellipse(78, 80, 16, 12, Math.PI/6, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#333'; ctx.beginPath(); ctx.ellipse(64, 64, 6, 28, 0, 0, Math.PI*2); ctx.fill();
-            } else if (loai === 'no') {
-                ctx.fillStyle = '#ff4081';
-                ctx.beginPath(); ctx.moveTo(64, 64); ctx.lineTo(24, 34); ctx.lineTo(24, 94); ctx.closePath(); ctx.fill();
-                ctx.beginPath(); ctx.moveTo(64, 64); ctx.lineTo(104, 34); ctx.lineTo(104, 94); ctx.closePath(); ctx.fill();
-                ctx.fillStyle = '#ff80ab'; ctx.beginPath(); ctx.arc(64, 64, 14, 0, Math.PI*2); ctx.fill();
-                ctx.strokeStyle = '#ff4081'; ctx.lineWidth = 8;
-                ctx.beginPath(); ctx.moveTo(54, 74); ctx.lineTo(34, 114); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(74, 74); ctx.lineTo(94, 114); ctx.stroke();
+            }, SPAWN_INTERVAL_MS);
+        }
+
+        function spawnSheep(number) {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'sheep-wrapper';
+
+            const inner = document.createElement('div');
+            inner.className = 'sheep-inner';
+
+            if (customSheepSrc) {
+                const img = document.createElement('img');
+                img.src = customSheepSrc;
+                img.className = 'custom-sheep-img';
+                inner.appendChild(img);
+            } else {
+                const def = document.createElement('div');
+                def.className = 'default-sheep';
+                def.innerHTML = DEFAULT_SHEEP_SVG;
+                inner.appendChild(def);
             }
-            return new THREE.CanvasTexture(canvas);
-        }
 
-        function hienThiTrangTriTuong(loai, x, y, z, scale, rotY=0) {
-            const mat = new THREE.MeshStandardMaterial({ map: taoTextureTrangTri(loai), transparent: true, side: THREE.DoubleSide, roughness: 0.5 });
-            const mesh = new THREE.Mesh(new THREE.PlaneGeometry(0.5 * scale, 0.5 * scale), mat);
-            mesh.position.set(x, y, z); mesh.rotation.y = rotY; roomGroup.add(mesh);
-        }
+            const shadow = document.createElement('div');
+            shadow.className = 'sheep-shadow';
 
-        const cacLoaiDecor = ['hoa', 'buom', 'no'];
-        for (let i = 0; i < 35; i++) { 
-            let loaiRandom = cacLoaiDecor[Math.floor(Math.random() * cacLoaiDecor.length)];
-            let viTriNgauNhien = (Math.random() - 0.5) * 11.2, chieuCaoNgauNhien = 0.5 + Math.random() * 4.0;
-            let tyLeKichThuoc = 0.8 + Math.random() * 1.0, chonTuong = Math.floor(Math.random() * 4);
-            if (chonTuong === 0) hienThiTrangTriTuong(loaiRandom, -5.93, chieuCaoNgauNhien, viTriNgauNhien, tyLeKichThuoc, Math.PI / 2);
-            else if (chonTuong === 1) hienThiTrangTriTuong(loaiRandom, 5.93, chieuCaoNgauNhien, viTriNgauNhien, tyLeKichThuoc, -Math.PI / 2);
-            else if (chonTuong === 2 && (Math.abs(viTriNgauNhien) > 3.6 || chieuCaoNgauNhien < 1.2 || chieuCaoNgauNhien > 3.8)) hienThiTrangTriTuong(loaiRandom, viTriNgauNhien, chieuCaoNgauNhien, 5.93, tyLeKichThuoc, Math.PI);
-            else if (chonTuong === 3 && Math.abs(viTriNgauNhien) > 1.7) hienThiTrangTriTuong(loaiRandom, viTriNgauNhien, chieuCaoNgauNhien, -5.93, tyLeKichThuoc, 0);
-        }
-
-        // --- CHỮ THÔNG ĐIỆP BỔ SUNG ---
-        const messages = [ "", "", "", "" ];
-        const textPlanes = [];
-
-        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-            const words = text.split(' ');
-            let line = '';
-            let lines = [];
-            for (let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > maxWidth && n > 0) {
-                    lines.push(line);
-                    line = words[n] + ' ';
-                } else { line = testLine; }
-            }
-            lines.push(line);
-            let currentY = y - ((lines.length - 1) * lineHeight) / 2;
-            for (let i = 0; i < lines.length; i++) {
-                ctx.fillText(lines[i].trim(), x, currentY);
-                currentY += lineHeight;
-            }
-            return currentY; 
-        }
-
-        function createSignText(text, index, posX, posZ, rotY) {
-            const canvas = document.createElement('canvas');
-            canvas.width = 2048; canvas.height = 1024; 
-            const ctx = canvas.getContext('2d');
-            const tex = new THREE.CanvasTexture(canvas);
-
-            document.fonts.load('10pt "Dancing Script"').then(() => {
-                ctx.font = 'bold 95px "Dancing Script", cursive'; 
-                ctx.fillStyle = '#ffccd5'; 
-                ctx.textAlign = 'center';
-                ctx.shadowColor = '#ff6b8b'; 
-                ctx.shadowBlur = 40;
-                let nextY = wrapText(ctx, text, 1024, 400, 1700, 120); 
-                ctx.font = '100px Arial'; 
-                ctx.fillStyle = '#ff6b8b'; 
-                ctx.fillText('', 1024, Math.max(nextY + 40, 620));
-                tex.needsUpdate = true;
+            wrapper.appendChild(inner);
+            wrapper.appendChild(shadow);
+            sheepLayer.appendChild(wrapper);
+            
+            const screenWidth = window.innerWidth;
+            const distance = screenWidth + 300; 
+            
+            const runAnim = wrapper.animate([
+                { transform: `translateX(0px)` },
+                { transform: `translateX(${distance}px)` }
+            ], {
+                duration: RUN_DURATION_MS,
+                easing: 'linear',
+                fill: 'forwards'
             });
 
-            const plane = new THREE.Mesh(new THREE.PlaneGeometry(24, 10.5), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
-            plane.position.set(posX, 5.8, posZ); plane.rotation.y = rotY;
-            scene.add(plane);
-            textPlanes.push(plane);
-        }
-        createSignText(messages[0], 0, 0, -25, 0);           
-        createSignText(messages[1], 1, 25, 0, -Math.PI/2);   
-        createSignText(messages[2], 2, 0, 25, Math.PI);      
-        createSignText(messages[3], 3, -25, 0, Math.PI/2);   
+            const speed = distance / RUN_DURATION_MS;
+            const timeToCenter = (150 + screenWidth / 2) / speed;
+            const jumpStartTime = timeToCenter - (JUMP_DURATION_MS / 2);
 
-        // --- HỆ THỐNG MÂY KHỐI ---
-        const cloudsGroup = new THREE.Group();
-        scene.add(cloudsGroup);
-        const cloudMat = new THREE.MeshLambertMaterial({ color: 0xffffff, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
-
-        function createMinecraftCloud(startX, startY, startZ) {
-            const cluster = new THREE.Group();
-            const blocksCount = 3 + Math.floor(Math.random() * 5); 
-            for(let i=0; i<blocksCount; i++) {
-                const w = 15 + Math.floor(Math.random() * 20); const h = 4 + Math.floor(Math.random() * 4); const d = 15 + Math.floor(Math.random() * 20);
-                const cloudBlock = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), cloudMat);
-                cloudBlock.position.set((i * 12) - (blocksCount * 4), (Math.random() - 0.5) * 2, (Math.random() - 0.5) * 10);
-                cluster.add(cloudBlock);
-            }
-            cluster.position.set(startX, startY, startZ); cloudsGroup.add(cluster);
-        }
-        for(let i=0; i<18; i++) {
-            createMinecraftCloud((Math.random() - 0.5) * 500, 80 + Math.random() * 40, (Math.random() - 0.5) * 500);
-        }
-
-        const moonGroup = new THREE.Group();
-        moonGroup.add(new THREE.Mesh(new THREE.CircleGeometry(32, 48), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0xffffff, emissiveIntensity: 4.8, side: THREE.DoubleSide, roughness: 1.0 })));
-        const moonFlare = new THREE.Mesh(new THREE.CircleGeometry(38, 48), new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.32, side: THREE.DoubleSide }));
-        moonFlare.position.z = -0.1; moonGroup.add(moonFlare);
-        moonGroup.position.set(-80.38, 100, 300); moonGroup.lookAt(0, 0, 0); scene.add(moonGroup);
-
-        // --- XÂY DỰNG CHUỒNG HÀNG RÀO GỖ ---
-        const fenceGroup = new THREE.Group();
-        fenceGroup.position.set(0, 0, -18); 
-        scene.add(fenceGroup);
-
-        const woodMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b, roughness: 0.9 });
-        function buildFenceBar(w, h, d, x, y, z, rotY = 0) {
-            const bar = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), woodMat);
-            bar.position.set(x, y, z); bar.rotation.y = rotY; bar.castShadow = true; fenceGroup.add(bar);
-        }
-        for(let i = -6; i <= 6; i += 3) {
-            if(i !== 0) buildFenceBar(0.3, 1.8, 0.3, -6, 0.9, i);
-            buildFenceBar(0.3, 1.8, 0.3, 6, 0.9, i); buildFenceBar(0.3, 1.8, 0.3, i, 0.9, -6);
-            if(Math.abs(i) > 2) buildFenceBar(0.3, 1.8, 0.3, i, 0.9, 6); 
-        }
-        buildFenceBar(0.15, 0.2, 12, -6, 1.3, 0); buildFenceBar(0.15, 0.2, 12, -6, 0.5, 0);
-        buildFenceBar(0.15, 0.2, 12, 6, 1.3, 0);  buildFenceBar(0.15, 0.2, 12, 6, 0.5, 0);
-        buildFenceBar(12, 0.2, 0.15, 0, 1.3, -6); buildFenceBar(12, 0.2, 0.15, 0, 0.5, -6);
-        buildFenceBar(3.5, 0.2, 0.15, -4.25, 1.3, 6); buildFenceBar(3.5, 0.2, 0.15, -4.25, 0.5, 6);
-        buildFenceBar(3.5, 0.2, 0.15, 4.25, 1.3, 6);  buildFenceBar(3.5, 0.2, 0.15, 4.25, 0.5, 6);
-
-        // --- ĐỐNG CỎ/RƠM Ở GÓC CHUỒNG ---
-        const strawGroup = new THREE.Group();
-        strawGroup.position.set(4.5, 0, -4.5); fenceGroup.add(strawGroup);
-        const strawMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 1.0 });
-        for(let i=0; i<5; i++) {
-            const sGeo = new THREE.BoxGeometry(1.8 - i*0.3, 0.3, 1.8 - i*0.3);
-            const sMesh = new THREE.Mesh(sGeo, strawMat); sMesh.position.y = 0.15 + i*0.3; sMesh.castShadow = true; strawGroup.add(sMesh);
-        }
-
-        // --- MÔ HÌNH BÒ 3D (ĐÃ THÊM MŨI & MIỆNG NÂU NHẠT) ---
-        const cowGroup = new THREE.Group();
-        cowGroup.position.set(0, 0.1, 0); fenceGroup.add(cowGroup);
-
-        const cowWhiteMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.8 });
-        const cowBlackMat = new THREE.MeshStandardMaterial({ color: 0x111111, roughness: 0.8 });
-        const cowPinkMat = new THREE.MeshStandardMaterial({ color: 0xffb6c1, roughness: 0.8 });
-        const cowTanMat = new THREE.MeshStandardMaterial({ color: 0xd2b48c, roughness: 0.8 }); 
-
-        const cowBody = new THREE.Mesh(new THREE.BoxGeometry(1.6, 1.2, 2.2), cowWhiteMat); cowBody.position.y = 1.0; cowBody.castShadow = true; cowGroup.add(cowBody);
-        const spot1 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.5, 0.6), cowBlackMat); spot1.position.set(0.56, 1.2, 0.4); cowGroup.add(spot1);
-        const spot2 = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.7, 0.5), cowBlackMat); spot2.position.set(-0.56, 0.9, -0.4); cowGroup.add(spot2);
-
-        const cowHead = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.9, 0.9), cowWhiteMat); cowHead.position.set(0, 1.6, 1.2); cowHead.castShadow = true; cowGroup.add(cowHead);
-        const cowSnout = new THREE.Mesh(new THREE.BoxGeometry(0.7, 0.4, 0.3), cowPinkMat); cowSnout.position.set(0, 1.4, 1.7); cowGroup.add(cowSnout);
-
-        // Đốm lỗ mũi nâu nhạt dán lên bề mặt hồng
-        const nostrilGeo = new THREE.BoxGeometry(0.1, 0.12, 0.01);
-        const nostrilL = new THREE.Mesh(nostrilGeo, cowTanMat); nostrilL.position.set(0.18, 1.45, 1.851); cowGroup.add(nostrilL);
-        const nostrilR = new THREE.Mesh(nostrilGeo, cowTanMat); nostrilR.position.set(-0.18, 1.45, 1.851); cowGroup.add(nostrilR);
-
-        // Miệng bò dẹt dán bên dưới đầu bò
-        const mouthLine = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.06, 0.01), cowTanMat); mouthLine.position.set(0, 1.18, 1.651); cowGroup.add(mouthLine);
-
-        const eyeL = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.1), cowBlackMat); eyeL.position.set(0.46, 1.7, 1.6); cowGroup.add(eyeL);
-        const eyeR = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.15, 0.1), cowBlackMat); eyeR.position.set(-0.46, 1.7, 1.6); cowGroup.add(eyeR);
-
-        function createLeg(x, z) {
-            const leg = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.6, 0.35), cowWhiteMat); leg.position.set(x, 0.3, z); leg.castShadow = true; cowGroup.add(leg);
-            const hoof = new THREE.Mesh(new THREE.BoxGeometry(0.37, 0.15, 0.37), cowBlackMat); hoof.position.set(x, 0.05, z); cowGroup.add(hoof);
-        }
-        createLeg(0.5, 0.7); createLeg(-0.5, 0.7); createLeg(0.5, -0.7); createLeg(-0.5, -0.7);
-
-        let currentCowScale = 0.25; cowGroup.scale.set(currentCowScale, currentCowScale, currentCowScale);
-
-        // --- ĐIỀU KHIỂN & CẤU TRÚC ĐỐI THOẠI KHẢO SÁT ---
-        let moveF = false, moveB = false, moveL = false, moveR = false;
-        let isDoorOpen = false, doorRot = 0, isCurtainOpen = false, curtainTargetProg = 0, curtainProg = 0;
-        let yaw = 0, pitch = 0; const moveSpeed = 0.08;
-
-        let feedCount = 0, hasStraw = false, isTalking = false;
-
-        const heThongCauHoi = {
-            // TẦNG 0: CÂU HỎI GỐC
-            cauHoiGoc: {
-                title: "🐮Cảm ơn bạn nhiều lắm, bây giờ chúng ta bắt đầu nhé. Nếu hôm nay được tạm gác hết mọi thứ trong 1 ngày, bạn muốn điều gì nhất?", 
-                options: [
-                    { text: "🌙 Được nghỉ ngơi thật nhiều", next: "nhanh1" }, 
-                    { text: "🌱 Mọi thứ trở nên dễ hiểu hơn", next: "nhanh2" }, 
-                    { text: "☀️ Có thêm động lực để cố gắng", next: "nhanh3" }  
-                ]
-            },
-
-            // TẦNG 1: 3 NHÁNH CẤP 1
-            nhanh1: {
-                title: "🐮 Điều gì làm bạn mệt nhất?", 
-                options: [
-                    { text: "📚 Việc học và trách nhiệm", next: "nhanh1_1" }, 
-                    { text: "🧠 Suy nghĩ trong đầu", next: "nhanh1_2" },
-                    { text: "💬 Các mối quan hệ", next: "nhanh1_3" }
-                ]
-            },
-            nhanh2: {
-                title: "🐮 Điều gì bạn muốn hiểu nhất?", 
-                options: [
-                    { text: "Chính bản thân mình", next: "nhanh2_1" }, 
-                    { text: "Người khác đang nghĩ gì", next: "nhanh2_2" },
-                    { text: "Tương lai sẽ thế nào", next: "nhanh2_3" }
-                ]
-            },
-            nhanh3: {
-                title: "🐮 Điều nào khiến bạn vui nhất?", 
-                options: [
-                    { text: "Được công nhận", next: "nhanh3_1" }, 
-                    { text: "Được quan tâm", next: "nhanh3_2" },
-                    { text: "Đạt được mục tiêu", next: "nhanh3_3" }
-                ]
-            },
-
-            // TẦNG 2: 9 NHÁNH CẤP 2 (Chứa 27 kết quả cuối cùng)
-            
-            // --- Cụm của Hướng 1 ---
-            nhanh1_1: {
-                title: "🐮 Nếu được nghỉ một chút, bạn sẽ...", 
-                options: [
-                    { text: "Ngủ một giấc thật dài", textEnd: "Mình nghĩ bạn đã mệt thật rồi. Không phải kiểu lười biếng đâu. Mà là kiểu đã cố gắng rất lâu rồi. Nếu hôm nay muốn nghỉ ngơi một chút thì cũng không sao hết. Bạn không cần phải mạnh mẽ mọi lúc đâu." }, 
-                    { text: "Đi đâu đó thật yên tĩnh", textEnd: "Có những lúc tiếng ồn không nằm ở bên ngoài. Mà nằm trong đầu mình. Mình nghĩ bạn đang cần một nơi để thở hơn là một nơi để chạy trốn. Hy vọng bạn sớm tìm được khoảng bình yên đó nha." },
-                    { text: "Làm điều mình thích", textEnd: "Mình rất thích lựa chọn này. Vì đôi khi giữa rất nhiều trách nhiệm, người ta quên mất bản thân cũng cần được vui. Hôm nay nếu có điều gì khiến bạn mỉm cười thì hãy giữ lấy nó thật lâu nha." }
-                ]
-            },
-            nhanh1_2: {
-                title: "🐮 Khi suy nghĩ quá nhiều bạn thường...", 
-                options: [
-                    { text: "Tự giải quyết", textEnd: "Mình có cảm giác bạn là người không thích làm phiền người khác. Có chuyện gì cũng tự nghĩ, tự chịu, tự tìm cách vượt qua. Điều đó rất đáng quý. Nhưng nếu một ngày thấy quá nặng thì chia bớt cho người khác một chút cũng không sao đâu." }, 
-                    { text: "Viết ra", textEnd: "Có những cảm xúc khi ở trong đầu thì rất rối. Nhưng khi viết ra lại trở nên dễ hiểu hơn nhiều. Có lẽ trong lòng bạn đang có nhiều điều chưa biết phải nói với ai. Mình hy vọng những điều đó rồi sẽ tìm được nơi để ở." },
-                    { text: "Mong ai đó hiểu", textEnd: "Mình nghĩ đây là một cảm giác rất cô đơn. Không phải vì không có ai bên cạnh. Mà vì có những điều rất khó diễn tả thành lời. Nếu hiện tại chưa ai hiểu bạn hoàn toàn thì cũng đừng buồn nha. Có khi chính bạn cũng đang cố hiểu bản thân mình mà." }
-                ]
-            },
-            nhanh1_3: {
-                title: "🐮 Khi buồn vì ai đó bạn thường...", 
-                options: [
-                    { text: "Im lặng", textEnd: "Có vẻ mỗi khi buồn bạn thường thu mình lại. Không phải vì không quan tâm. Mà vì không biết phải bắt đầu từ đâu. Mình chỉ muốn nói là cảm xúc của bạn cũng quan trọng lắm. Đừng quên lắng nghe chính mình nha." }, 
-                    { text: "Nói thẳng", textEnd: "Nói ra cảm xúc thật chưa bao giờ là dễ. Đặc biệt là với những người mình quý. Nhưng mình nghĩ sự chân thành luôn đáng được trân trọng. Dù kết quả có như thế nào đi nữa." },
-                    { text: "Chờ người đó hiểu", textEnd: "Mình hiểu cảm giác này. Ai cũng từng mong có người hiểu mình mà không cần giải thích quá nhiều. Nhưng đôi khi người ta không cố ý làm mình buồn đâu. Chỉ là họ chưa nhìn thấy những điều mình đang giữ trong lòng thôi. Hy vọng rồi sẽ có người đủ kiên nhẫn để hiểu bạn từng chút một." }
-                ]
-            },
-
-            // --- Cụm của Hướng 2 ---
-            nhanh2_1: {
-                title: "🐮 Bạn muốn nghe điều gì nhất?", 
-                options: [
-                    { text: "Mình làm tốt rồi", textEnd: "Có những chuyện xảy ra không phải vì bạn chưa đủ tốt. Đôi khi bạn đã cố hết sức rồi, chỉ là kết quả không như mong muốn thôi. Đừng nhận hết lỗi về phía mình nha." },
-                    { text: "Mình đã cố gắng rồi", textEnd: "Mình thấy bạn đang cố tìm đáp án cho rất nhiều chuyện. Nhưng không phải chuyện nào cũng cần giải quyết ngay hôm nay. Có những câu trả lời phải chờ thêm một chút mới xuất hiện." }, 
-                    { text: "Mình quan trọng với ai đó", textEnd: "Mình biết bạn mạnh mẽ lắm nên thường giữ mọi thứ trong lòng. Nhưng nếu một ngày nào đó bạn thấy mệt thì cũng không sao đâu. Không ai bắt bạn phải gồng mãi cả." }
-                ]
-            },
-            nhanh2_2: {
-                title: "🐮 Nếu có một năng lực đặc biệt...", 
-                options: [
-                    { text: "Biết người khác có đang buồn không", textEnd: "Người biết lo cho cảm xúc của người khác thường là người rất tốt bụng. Nhưng đừng quên hỏi xem chính mình có đang buồn không nha." }, 
-                    { text: "Biết người khác có hiểu mình không", textEnd: "Mình nghĩ ai cũng từng có cảm giác muốn được hiểu mà không biết phải giải thích thế nào. Nếu có người chịu lắng nghe bạn thật lòng thì đó đã là một điều rất đáng quý rồi." },
-                    { text: "Biết người khác có thật lòng không", textEnd: "Có những người không giỏi thể hiện bằng lời. Đôi khi sự chân thành nằm trong những điều rất nhỏ mà họ làm mỗi ngày. Chỉ là mình thường không nhận ra ngay thôi." }
-                ]
-            },
-            nhanh2_3: {
-                title: "🐮 Điều khiến bạn lo nhất?", 
-                options: [
-                    { text: "Làm không tốt", textEnd: "Bạn đang cố gắng nhiều hơn bạn nghĩ đó. Người luôn sợ làm chưa tốt thường là người rất có trách nhiệm. Hãy cho bản thân một chút tín nhiệm nha." }, 
-                    { text: "Làm người khác thất vọng", textEnd: "Mình nghĩ bạn đã dành rất nhiều tâm sức cho những người mình quý. Nhưng đôi khi điều quan trọng không phải là làm hài lòng tất cả mọi người. Mà là đừng đánh mất chính mình." },
-                    { text: "Đưa ra quyết định sai", textEnd: "Chẳng ai biết trước lựa chọn nào là hoàn hảo cả. Điều duy nhất mình làm được là chọn bằng sự chân thành ở thời điểm hiện tại. Như vậy đã đủ dũng cảm rồi." }
-                ]
-            },
-
-            // --- Cụm của Hướng 3 ---
-            nhanh3_1: {
-                title: "🐮 Bạn muốn nghe điều gì nhất?", 
-                options: [
-                    { text: "Mình làm tốt rồi", textEnd: "Có thể hôm nay bạn chưa đạt được điều mình muốn. Nhưng mình thấy bạn đã đi được một đoạn đường rất xa rồi đó. Đừng quên nhìn lại những gì mình đã làm được nha." }, 
-                    { text: "Mình đã cố gắng rồi", textEnd: "Kết quả rất quan trọng. Nhưng sự cố gắng của bạn cũng đáng được ghi nhận như vậy. Mình tin điều đó." },
-                    { text: "Mình quan trọng với ai đó", textEnd: "Trên thế giới này luôn có những người vui khi thấy bạn xuất hiện. Có thể họ không nói ra nhiều. Nhưng sự tồn tại của bạn thật sự có ý nghĩa với ai đó." }
-                ]
-            },
-            nhanh3_2: {
-                title: "🐮 Khi buồn bạn thích người khác...", 
-                options: [
-                    { text: "Ở bên cạnh", textEnd: "Có những ngày chẳng cần ai giải quyết vấn đề giúp mình. Chỉ cần biết mình không phải ở một mình là đủ rồi." }, 
-                    { text: "Lắng nghe", textEnd: "Cảm giác được lắng nghe thật sự rất dễ chịu nhỉ. Không cần đúng hay sai. Chỉ cần có người chịu ngồi lại nghe mình nói thôi." },
-                    { text: "Cho mình không gian", textEnd: "Muốn ở một mình không có nghĩa là muốn rời xa mọi người. Đôi khi đó chỉ là cách để trái tim được nghỉ ngơi một chút thôi." }
-                ]
-            },
-            nhanh3_3: {
-                title: "🐮 Sau khi vượt qua khó khăn bạn muốn...", 
-                options: [
-                    { text: "Nghỉ ngơi", textEnd: "Bạn đã đi xa tới đây rồi. Nghỉ một chút không làm bạn tụt lại đâu. Nó chỉ giúp bạn có sức để đi tiếp thôi." }, 
-                    { text: "Chia sẻ với ai đó", textEnd: "Những niềm vui được chia sẻ thường trở nên lớn hơn. Nếu có ai đó mà bạn muốn kể cho họ nghe đầu tiên, thì người đó chắc hẳn rất đặc biệt với bạn." },
-                    { text: "Bắt đầu mục tiêu mới", textEnd: "Mình thích sự dũng cảm của bạn. Vừa hoàn thành một chặng đường lại muốn bước tiếp. Nhưng nhớ tự thưởng cho bản thân một chút trước nha. 🐮🌷" }
-                ]
-            }
-        };
-        // --- XỬ LÝ SỰ KIỆN GIAO DIỆN & HOÀN THIỆN MOBILE TRUNCATION ---
-        if ('ontouchstart' in window) document.getElementById('joystick-zone').style.display = 'block';
-
-        window.addEventListener('keydown', (e) => {
-            if (isTalking) return;
-            switch (e.code) { case 'ArrowUp': case 'KeyW': moveF = true; break; case 'ArrowLeft': case 'KeyA': moveL = true; break; case 'ArrowDown': case 'KeyS': moveB = true; break; case 'ArrowRight': case 'KeyD': moveR = true; break; }
-        });
-        window.addEventListener('keyup', (e) => {
-            switch (e.code) { case 'ArrowUp': case 'KeyW': moveF = false; break; case 'ArrowLeft': case 'KeyA': moveL = false; break; case 'ArrowDown': case 'KeyS': moveB = false; break; case 'ArrowRight': case 'KeyD': moveR = false; break; }
-        });
-
-        let isMouseDown = false, prevMousePos = { x: 0, y: 0 };
-        window.addEventListener('mousedown', (e) => { if (['door-prompt', 'curtain-btn', 'action-prompt'].includes(e.target.id) || isTalking) return; isMouseDown = true; prevMousePos = { x: e.clientX, y: e.clientY }; });
-        window.addEventListener('mousemove', (e) => { if (!isMouseDown || isTalking) return; yaw -= (e.clientX - prevMousePos.x) * 0.003; pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - (e.clientY - prevMousePos.y) * 0.003)); prevMousePos = { x: e.clientX, y: e.clientY }; });
-        window.addEventListener('mouseup', () => { isMouseDown = false; }); window.addEventListener('mouseleave', () => { isMouseDown = false; });
-
-        let joyId = null, lookId = null, touchStart = { x: 0, y: 0 }, joyStart = { x: 0, y: 0 }, vMove = { x: 0, y: 0 };
-        window.addEventListener('touchstart', (e) => {
-            if (['curtain-btn', 'door-prompt', 'action-prompt'].includes(e.target.id) || isTalking) return;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i];
-                if (t.clientX < window.innerWidth / 2 && joyId === null) {
-                    joyId = t.identifier; joyStart = { x: t.clientX, y: t.clientY };
-                    document.getElementById('joystick-zone').style.left = (t.clientX - 60) + 'px'; document.getElementById('joystick-zone').style.bottom = (window.innerHeight - t.clientY - 60) + 'px';
-                } else if (t.clientX >= window.innerWidth / 2 && lookId === null) {
-                    lookId = t.identifier; touchStart = { x: t.clientX, y: t.clientY };
-                }
-            }
-        });
-        window.addEventListener('touchmove', (e) => {
-            if (isTalking) return;
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i];
-                if (t.identifier === joyId) {
-                    let dx = t.clientX - joyStart.x, dy = t.clientY - joyStart.y, d = Math.sqrt(dx*dx + dy*dy);
-                    if(d > 40) { dx = (dx/d)*40; dy = (dy/d)*40; }
-                    document.getElementById('joystick-knob').style.transform = `translate(${dx}px, ${dy}px)`;
-                    vMove.x = dx / 40; vMove.y = -dy / 40;
-                }
-                if (t.identifier === lookId) {
-                    yaw -= (t.clientX - touchStart.x) * 0.005; pitch = Math.max(-Math.PI/3, Math.min(Math.PI/3, pitch - (t.clientY - touchStart.y) * 0.005)); touchStart = { x: t.clientX, y: t.clientY };
-                }
-            }
-        });
-        const endTouch = (e) => {
-            for (let i = 0; i < e.changedTouches.length; i++) {
-                const t = e.changedTouches[i];
-                if (t.identifier === joyId) { joyId = null; vMove = { x: 0, y: 0 }; document.getElementById('joystick-knob').style.transform = 'translate(0px, 0px)'; document.getElementById('joystick-zone').style.left = '40px'; document.getElementById('joystick-zone').style.bottom = '40px'; }
-                if (t.identifier === lookId) lookId = null;
-            }
-        };
-        window.addEventListener('touchend', endTouch); window.addEventListener('touchcancel', endTouch);
-
-        const promptBtn = document.getElementById('door-prompt');
-        function openDoor() { isDoorOpen = true; promptBtn.style.display = 'none'; roomLight.intensity = 0.5; }
-        promptBtn.addEventListener('click', openDoor); promptBtn.addEventListener('touchstart', openDoor);
-
-        const curtainBtn = document.getElementById('curtain-btn');
-        function toggleCurtain() { isCurtainOpen = !isCurtainOpen; }
-        curtainBtn.addEventListener('click', toggleCurtain); curtainBtn.addEventListener('touchstart', (e) => { e.preventDefault(); toggleCurtain(); });
-
-        // --- QUẢN LÝ THOẠI & KÍCH HOẠT HỆ THỐNG ĐỒNG BỘ DỮ LIỆU GOOGLE SHEET ---
-        const actionPrompt = document.getElementById('action-prompt');
-        const dialogueBox = document.getElementById('dialogue-box');
-        const dialogueText = document.getElementById('dialogue-text');
-        const optionsContainer = document.getElementById('options-container');
-
-        function hienThiHộpThoai(noiDung, cacPhuongAn = []) {
-            isTalking = true;
-            dialogueText.innerText = noiDung;
-            optionsContainer.innerHTML = '';
-            
-            if (cacPhuongAn.length === 0) {
-                const btn = document.createElement('div'); btn.className = 'option-btn'; btn.innerText = 'Đóng';
-                btn.onclick = () => {
-                    // Đồng bộ nút Đóng câu trả lời cuối
-                    sendTrackingData(currentCowScale.toString(), noiDung, "Bấm kết thúc (Đóng)");
-                    dongHộpThoai();
-                };
-                optionsContainer.appendChild(btn);
-            } else {
-                cacPhuongAn.forEach(pa => {
-                    const btn = document.createElement('div'); btn.className = 'option-btn'; btn.innerText = pa.text;
-                    btn.onclick = () => {
-                        // Tự động đẩy sự lựa chọn nhánh của người chơi lên dữ liệu đám mây
-                        sendTrackingData(currentCowScale.toString(), noiDung, pa.text);
-
-                        if (pa.next) {
-                            const nodeNhanh = heThongCauHoi[pa.next];
-                            hienThiHộpThoai(nodeNhanh.title, nodeNhanh.options);
-                        } else if (pa.textEnd) {
-                            hienThiHộpThoai(pa.textEnd, []);
-                        } else if (pa.action === 'reset_loop') {
-                            hienThiHộpThoai(heThongCauHoi.cauHoiGoc.title, heThongCauHoi.cauHoiGoc.options);
-                        } else if (pa.action === 'close_happy') {
-                            hienThiHộpThoai('Được rồi, vậy chúc bạn có 1 ngày thật vui vẻ nhé!', []);
-                        }
-                    };
-                    optionsContainer.appendChild(btn);
+            setTimeout(() => {
+                inner.animate([
+                    { transform: 'translateY(0) rotate(0deg)', easing: 'ease-out' },
+                    { transform: 'translateY(-160px) rotate(-15deg)', offset: 0.5, easing: 'ease-in' },
+                    { transform: 'translateY(0) rotate(5deg)', offset: 0.95 },
+                    { transform: 'translateY(0) rotate(0deg)' }
+                ], {
+                    duration: JUMP_DURATION_MS,
+                    fill: 'forwards'
                 });
-            }
-            dialogueBox.style.display = 'flex'; actionPrompt.style.display = 'none';
+
+                shadow.animate([
+                    { transform: 'scale(1)', opacity: 0.5, easing: 'ease-out' },
+                    { transform: 'scale(0.3)', opacity: 0.1, offset: 0.5, easing: 'ease-in' },
+                    { transform: 'scale(1)', opacity: 0.6, offset: 0.95 },
+                    { transform: 'scale(1)', opacity: 0.4 }
+                ], {
+                    duration: JUMP_DURATION_MS,
+                    fill: 'forwards'
+                });
+            }, jumpStartTime);
+
+            setTimeout(() => {
+                currentCount++;
+                updateCounterUI();
+            }, timeToCenter);
+
+            runAnim.onfinish = () => {
+                if (number !== TARGET_COUNT) {
+                    wrapper.remove();
+                } else {
+                    wrapper.style.transform = `translateX(${150 + screenWidth/2 + 100}px)`; 
+                    inner.classList.add('sheep-sleeping');
+                    shadow.style.opacity = 0;
+                    
+                    isCounting = false;
+                    setTimeout(showEndingScreen, 500);
+                }
+            };
         }
 
-        function dongHộpThoai() { dialogueBox.style.display = 'none'; isTalking = false; moveF = moveB = moveL = moveR = false; }
+        function updateCounterUI() {
+            countNumEl.innerText = currentCount;
+            let emojis = '🐑'.repeat(Math.min(currentCount, 5));
+            if (currentCount > 5) emojis += ' +';
+            countEmojiEl.innerText = emojis;
+        }
 
-        actionPrompt.addEventListener('click', () => {
-            const pPos = playerGroup.position;
-            const distToCow = pPos.distanceTo(new THREE.Vector3(0, 1.8, -18));
-            const distToStraw = pPos.distanceTo(new THREE.Vector3(4.5, 1.8, -22.5));
+        function showEndingScreen() {
+            scene.classList.add('scene-blur');
+            moon.classList.add('glow');
+            messageBox.classList.add('show');
+            goodNightText.classList.add('show');
+            
+            const lastSheepInner = document.querySelector('.sheep-sleeping svg, .sheep-sleeping img');
+            if(lastSheepInner) lastSheepInner.style.opacity = 1;
+        }
 
-            if (distToStraw < 2.5 && !hasStraw && feedCount < 3) {
-                hasStraw = true;
-                sendTrackingData(currentCowScale.toString(), "Tương tác môi trường", "Nhặt rơm tươi từ đống cỏ");
-                alert("Bạn đã nhặt một ít cỏ rơm tươi ngon! Hãy mang lại cho bò ăn.");
-                return;
-            }
+        /* =========================================
+           XỬ LÝ SỰ KIỆN GIAO DIỆN TỪ NGƯỜI DÙNG
+        ========================================= */
 
-            if (distToCow < 3.5) {
-                if (feedCount < 3) {
-                    if (hasStraw) {
-                        feedCount++; hasStraw = false;
-                        if (feedCount === 1) currentCowScale = 0.45;
-                        else if (feedCount === 2) currentCowScale = 0.7;
-                        else if (feedCount === 3) currentCowScale = 1.0;
-                        cowGroup.scale.set(currentCowScale, currentCowScale, currentCowScale);
+        // 1. Khi người dùng bấm nút Dùng cừu mặc định
+        defaultBtn.addEventListener('click', () => {
+            customSheepSrc = null;
+            startCounting();
+        });
 
-                        if (feedCount === 1) {
-                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 1", "Yêu cầu: xin thêm cỏ rơm");
-                            hienThiHộpThoai("Mình thấy vẫn còn đói, bạn cho mình thêm ít cỏ nữa được không ?");
-                        } else if (feedCount === 2) {
-                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 2", "Yêu cầu: vẫn hơi đói chút xíu");
-                            hienThiHộpThoai("Cảm ơn nha, ngon lắm! Nhưng bụng mình vẫn còn hơi đói chút xíu... khi mình no mình sẽ có thể tâm sự với bạn 1 chút");
-                        } else if (feedCount === 3) {
-                            sendTrackingData(currentCowScale.toString(), "Cho ăn lần 3 (Kích hoạt khảo sát)", "Hệ thống hiển thị câu hỏi gốc");
-                            hienThiHộpThoai(heThongCauHoi.cauHoiGoc.title, heThongCauHoi.cauHoiGoc.options);
-                        }
-                    } else {
-                        sendTrackingData(currentCowScale.toString(), "Nói chuyện khi bò đói", "Bò đòi ăn cỏ rơm");
-                        hienThiHộpThoai("Mình đói quá, mình muốn ăn cỏ");
-                    }
-                } else {
-                    sendTrackingData(currentCowScale.toString(), "Yêu cầu khảo sát lại", "Hộp thoại reset vòng lặp khảo sát");
-                    hienThiHộpThoai("Bạn còn muốn tâm sự tiếp à, mình sẽ tâm sự với bạn", [
-                        { text: "Đúng vậy", action: "reset_loop" },
-                        { text: "Không, mình bấm nhầm", action: "close_happy" }
-                    ]);
+        // 2. Khi người dùng chọn ảnh của riêng mình
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    customSheepSrc = evt.target.result;
+                    startCounting();
                 }
+                reader.readAsDataURL(file);
             }
         });
 
-        // --- VÒNG LẶP TIẾN TRÌNH ANIMATION CHÍNH ---
-        const clock = new THREE.Clock();
+        // 3. Khi bấm nút Replay ở màn hình kết thúc (sẽ quay lại Start Menu)
+        replayBtn.addEventListener('click', () => {
+            // Dọn dẹp cảnh cũ
+            messageBox.classList.remove('show');
+            scene.classList.remove('scene-blur');
+            moon.classList.remove('glow');
+            goodNightText.classList.remove('show');
+            
+            currentCount = 0;
+            spawnedCount = 0;
+            updateCounterUI();
+            sheepLayer.innerHTML = '';
+            
+            // Xóa file đã chọn trước đó để bắt sự kiện change nếu chọn lại đúng file đó
+            fileInput.value = ""; 
+            
+            // Hiện lại menu chọn cừu
+            controls.style.display = 'flex'; 
+        });
 
-        function animate() {
-            requestAnimationFrame(animate); const elapsedTime = clock.getElapsedTime(); 
-            playerGroup.rotation.y = yaw; camera.rotation.x = pitch;
+        /* =========================================
+           KHỞI CHẠY LẦN ĐẦU
+        ========================================= */
+        window.onload = () => {
+            initEnvironment();
+            // Trang web sẽ nằm yên chờ cho đến khi bấm nút chọn ảnh hoặc chọn mặc định
+        };
 
-            if (!isTalking) {
-                const cx = (moveL ? -1 : 0) + (moveR ? 1 : 0) + vMove.x, cz = (moveF ? -1 : 0) + (moveB ? 1 : 0) - vMove.y;
-                let nextX = playerGroup.position.x, nextZ = playerGroup.position.z;
-                if (cx !== 0 || cz !== 0) {
-                    const dir = new THREE.Vector3(cx, 0, cz).normalize(); dir.applyQuaternion(playerGroup.quaternion);
-                    nextX += dir.x * moveSpeed; nextZ += dir.z * moveSpeed;
-                }
-
-                // Giới hạn rìa thế giới
-                const worldBound = 495;
-                if (nextX < -worldBound) nextX = -worldBound; if (nextX > worldBound) nextX = worldBound;
-                if (nextZ < -worldBound) nextZ = -worldBound; if (nextZ > worldBound) nextZ = worldBound;
-
-                // --- HỆ THỐNG VA CHẠM CÔ LẬP (AABB) ---
-                const pR = 0.4; // Bán kính cơ thể người chơi
-                const walls = [
-                    // Các bức tường của căn phòng [minX, maxX, minZ, maxZ]
-                    [-6.5, -5.5, -6.5, 6.5],   // Tường trái
-                    [5.5, 6.5, -6.5, 6.5],     // Tường phải
-                    [-6.5, 6.5, 5.5, 6.5],     // Tường sau
-                    [-6.5, -1.3, -6.5, -5.5],  // Tường trước (bên trái cửa)
-                    [1.3, 6.5, -6.5, -5.5],    // Tường trước (bên phải cửa)
-                    
-                    // Hàng rào gỗ
-                    [-6.3, -5.7, -24.3, -11.7], // Rào trái
-                    [5.7, 6.3, -24.3, -11.7],   // Rào phải
-                    [-6.3, 6.3, -24.3, -23.7],  // Rào sau (đáy chuồng)
-                    [-6.3, -1.5, -12.3, -11.7], // Rào trước (trái cổng)
-                    [1.5, 6.3, -12.3, -11.7]    // Rào trước (phải cổng)
-                ];
-
-                // Nếu cửa đang đóng, thêm va chạm của cánh cửa vào thế giới
-                if (!isDoorOpen) walls.push([-1.5, 1.5, -6.3, -5.7]);
-
-                // Xử lý trượt dọc theo vách tường (cho phép đi chéo sát tường mà không bị kẹt)
-                let hitX = false, hitZ = false;
-                for (let w of walls) {
-                    if (nextX + pR > w[0] && nextX - pR < w[1] && playerGroup.position.z + pR > w[2] && playerGroup.position.z - pR < w[3]) {
-                        hitX = true;
-                    }
-                    if (playerGroup.position.x + pR > w[0] && playerGroup.position.x - pR < w[1] && nextZ + pR > w[2] && nextZ - pR < w[3]) {
-                        hitZ = true;
-                    }
-                }
-                
-                if (hitX) nextX = playerGroup.position.x;
-                if (hitZ) nextZ = playerGroup.position.z;
-
-                // Cập nhật vị trí cuối cùng
-                playerGroup.position.x = nextX; playerGroup.position.z = nextZ;
-            }
-
-            cloudsGroup.children.forEach(cloudCluster => { cloudCluster.position.x += 0.03; if (cloudCluster.position.x > 350) cloudCluster.position.x = -350; });
-
-            const pPos = playerGroup.position; const distToCow = pPos.distanceTo(new THREE.Vector3(0, 1.8, -18)); const distToStraw = pPos.distanceTo(new THREE.Vector3(4.5, 1.8, -22.5));
-
-            if (!isDoorOpen && pPos.z <= -4.2 && pPos.z >= -6.0 && Math.abs(pPos.x) < 1.4) { promptBtn.style.display = 'block'; } else { promptBtn.style.display = 'none'; }
-
-            if (!isTalking) {
-                if (distToCow < 3.5) { actionPrompt.style.display = 'block'; actionPrompt.innerText = (hasStraw && feedCount < 3) ? "Cho bò ăn cỏ rơm 🌾" : "Nói chuyện với bò 🐮"; }
-                else if (distToStraw < 2.5 && !hasStraw && feedCount < 3) { actionPrompt.style.display = 'block'; actionPrompt.innerText = "Lấy cỏ rơm 🌾"; }
-                else { actionPrompt.style.display = 'none'; }
-            }
-
-            curtainTargetProg = isCurtainOpen ? 1 : 0; curtainProg = THREE.MathUtils.lerp(curtainProg, curtainTargetProg, 0.08);
-            curtainLeft.scale.x = 1 - 0.7 * curtainProg; curtainLeft.position.x = -1.75 - 1.25 * curtainProg;
-            curtainRight.scale.x = 1 - 0.7 * curtainProg; curtainRight.position.x = 1.75 + 1.25 * curtainProg;
-
-            if (isDoorOpen) { doorRot = THREE.MathUtils.lerp(doorRot, -Math.PI / 1.7, 0.04); doorPivot.rotation.y = doorRot; }
-            textPlanes.forEach((plane, index) => { plane.position.y = 5.5 + Math.sin(elapsedTime * 1.2 + index) * 0.15; });
-
-            renderer.render(scene, camera);
-        }
-
-        window.addEventListener('resize', () => { camera.aspect = window.innerWidth / window.innerHeight; camera.updateProjectionMatrix(); renderer.setSize(window.innerWidth, window.innerHeight); });
-        animate();
     </script>
 </body>
 </html>
