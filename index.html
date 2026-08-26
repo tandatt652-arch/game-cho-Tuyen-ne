@@ -2,799 +2,758 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Đếm cù 🐑</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Happy Birthday To My "cucdang"</title>
     <style>
-        /* =========================================
-           CSS BIẾN & CÀI ĐẶT CƠ BẢN
-        ========================================= */
         :root {
-            --sky-top: #0a1428;
-            --sky-bottom: #1e3a5f;
-            --moon-color: #fffac2;
-            --moon-glow: rgba(255, 250, 194, 0.4);
-            --grass-top: #24573b;
-            --grass-bottom: #163624;
-            --text-light: #f4f6f8;
-            --accent-color: #ffd166;
-            --wood-dark: #3e2723;
-            --wood-light: #5d4037;
+            --midnight: #060814;
+            --deep-violet: #1d0f35;
+            --magenta: #d90f5a;
+            --rose-pink: #ff749f;
+            --lavender: #c4a1ff;
+            --champagne: #f9e5a5;
+            --cyan: #4ffaff;
+            --warm-white: #fffdf5;
+            --glass-bg: rgba(29, 15, 53, 0.4);
+            --glass-border: rgba(196, 161, 255, 0.3);
+            
+            --ink: #1d0f35;
+            --c-primary: #ff749f;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none;
+        * { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
+
+        html, body {
+            margin: 0; padding: 0; width: 100%;
+            background-color: var(--midnight); color: var(--warm-white);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden; 
+        }
+        body { height: 400vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+        ::-webkit-scrollbar { display: none; }
+
+        .glass-panel {
+            background: var(--glass-bg); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border); border-radius: 20px; padding: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.05);
         }
 
-        body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
-            font-family: 'Quicksand', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: var(--sky-top);
-            color: var(--text-light);
+        button {
+            background: linear-gradient(45deg, var(--magenta), var(--rose-pink)); border: none; color: white;
+            padding: 12px 24px; border-radius: 30px; font-size: 16px; font-weight: bold;
+            box-shadow: 0 0 15px var(--magenta); cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
         }
+        button:active { transform: scale(0.95); box-shadow: 0 0 5px var(--magenta); }
 
-        /* =========================================
-           SCENE BỐ CỤC CHÍNH
-        ========================================= */
-        #scene {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: filter 2s ease-in-out;
-        }
+        #canvas-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1; pointer-events: none; }
+        canvas { display: block; width: 100%; height: 100%; }
 
-        /* Bầu trời */
-        .sky {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 65%;
-            background: linear-gradient(to bottom, var(--sky-top), var(--sky-bottom));
-            z-index: 1;
-        }
+        #world { position: absolute; top: 0; left: 0; width: 100%; height: 400vh; z-index: 2; pointer-events: none; }
+        .scroll-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; will-change: transform; }
 
-        /* Mặt trăng */
-        .moon {
-            position: absolute;
-            top: 15%;
-            right: 15%;
-            width: 100px;
-            height: 100px;
-            background: var(--moon-color);
-            border-radius: 50%;
-            box-shadow: 0 0 50px 15px var(--moon-glow);
-            z-index: 2;
-            transition: box-shadow 3s ease, background 3s ease;
-        }
+        /* --- MÂY MỜ ẢO --- */
+        .cloud { position: absolute; background: rgba(255, 255, 255, 0.08); border-radius: 100px; filter: blur(12px); left: -300px; pointer-events: none; }
+        @keyframes floatCloud { 0% { transform: translateX(0); } 100% { transform: translateX(150vw); } }
 
-        .moon.glow {
-            box-shadow: 0 0 100px 30px rgba(255, 255, 255, 0.8);
-            background: #ffffff;
-        }
+        #ui-layer { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; pointer-events: none; display: flex; justify-content: center; align-items: center; }
+        #opening { position: fixed; width: 100%; height: 100%; background: var(--midnight); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 200; pointer-events: auto; transition: opacity 2s ease; }
+        .opening-star { width: 4px; height: 4px; background: var(--warm-white); border-radius: 50%; box-shadow: 0 0 10px 2px var(--warm-white), 0 0 30px 5px var(--champagne); animation: pulseStar 2s infinite alternate, rotateStar 10s linear infinite; cursor: pointer; position: relative; }
+        .opening-star::before, .opening-star::after { content: ''; position: absolute; top: 50%; left: 50%; background: var(--warm-white); transform: translate(-50%, -50%); border-radius: 50%; filter: blur(2px); }
+        .opening-star::before { width: 40px; height: 1px; } .opening-star::after { width: 1px; height: 40px; }
+        .opening-text { margin-top: 40px; font-size: 14px; color: var(--lavender); opacity: 0; letter-spacing: 2px; text-align: center; text-shadow: 0 0 10px var(--lavender); transition: opacity 2s; }
+        @keyframes pulseStar { 0% { transform: scale(1); box-shadow: 0 0 10px 2px var(--warm-white), 0 0 20px 2px var(--champagne); } 100% { transform: scale(1.5); box-shadow: 0 0 20px 5px var(--warm-white), 0 0 50px 10px var(--champagne); } }
+        @keyframes rotateStar { 100% { transform: rotate(360deg); } }
 
-        /* Ngôi sao */
-        .star {
-            position: absolute;
-            background: white;
-            border-radius: 50%;
-            z-index: 1;
-            animation: twinkle alternate infinite;
-        }
+        .aurora { position: absolute; width: 200%; height: 50%; top: 20%; left: -50%; background: linear-gradient(90deg, transparent, rgba(196, 161, 255, 0.1), rgba(79, 250, 255, 0.1), rgba(217, 15, 90, 0.1), transparent); filter: blur(60px); border-radius: 50%; animation: auroraWove 15s infinite alternate ease-in-out; opacity: 0; transition: opacity 3s; }
+        @keyframes auroraWove { 0% { transform: translateY(0) scaleY(1) rotate(-5deg); } 100% { transform: translateY(-30px) scaleY(1.5) rotate(5deg); } }
 
-        .star.bright {
-            animation: twinkle-bright alternate infinite;
-            box-shadow: 0 0 8px 2px rgba(255, 255, 255, 0.6);
-        }
+        .interactive-obj { pointer-events: auto; cursor: pointer; position: absolute; }
+        .moon { width: 150px; height: 150px; border-radius: 50%; background: radial-gradient(circle at 30% 30%, var(--warm-white), #e0c3fc 40%, #8e44ad 90%); box-shadow: 0 0 50px 10px rgba(196, 161, 255, 0.4), inset -20px -20px 40px rgba(0,0,0,0.5); }
+        .moon-crater { position: absolute; border-radius: 50%; background: rgba(0,0,0,0.1); box-shadow: inset 2px 2px 5px rgba(0,0,0,0.2), inset -1px -1px 2px rgba(255,255,255,0.2); }
+        .crater1 { width: 30px; height: 30px; top: 20%; left: 40%; } .crater2 { width: 15px; height: 15px; top: 50%; left: 20%; } .crater3 { width: 20px; height: 25px; top: 60%; left: 60%; transform: rotate(45deg); }
 
-        /* Mây */
-        .cloud {
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50px;
-            z-index: 1;
-            animation: drift linear infinite;
-        }
-        .cloud::before, .cloud::after {
-            content: '';
-            position: absolute;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 50%;
-        }
+        .planet { border-radius: 50%; box-shadow: inset -10px -10px 20px rgba(0,0,0,0.6), 0 0 20px rgba(255,255,255,0.1); }
+        .planet-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotateX(70deg) rotateY(-20deg); border-radius: 50%; border: 4px solid transparent; }
+        #planet1 { width: 80px; height: 80px; background: linear-gradient(45deg, var(--rose-pink), var(--deep-violet)); }
+        #planet2 { width: 60px; height: 60px; background: linear-gradient(135deg, var(--cyan), var(--midnight)); }
+        #planet2 .planet-ring { width: 120px; height: 120px; border-top-color: var(--cyan); border-bottom-color: rgba(79, 250, 255, 0.3); }
 
-        /* Đồi núi xa xa */
-        .hills {
-            position: absolute;
-            bottom: 35%;
-            width: 100%;
-            height: 15%;
-            z-index: 2;
+        .mascot-svg { width: 100%; height: 100%; filter: drop-shadow(0 0 10px var(--cyan)); }
+        #easter-egg-mascot { width: 50px; height: 50px; transition: transform 0.3s, left 1s; }
+
+        /* --- SÂN KHẤU CUỐI CÙNG --- */
+        #finale-stage { position: absolute; top: 350vh; left: 50%; width: 320px; height: 150px; transform: translateX(-50%); pointer-events: none; }
+        #finale-stage > * { pointer-events: auto; }
+
+        #cake-scene { display: flex; flex-direction: column; align-items: center; bottom: 0; left: 50%; transform: translateX(-50%); }
+        .cake-tier { background: linear-gradient(to right, #ffccdf, #ff99bb); border-radius: 10px; box-shadow: inset 0 5px 10px rgba(255,255,255,0.5), 0 5px 15px rgba(0,0,0,0.3); position: relative;}
+        .cake-bottom { width: 180px; height: 60px; z-index: 1; }
+        .cake-middle { width: 140px; height: 50px; z-index: 2; margin-bottom: -10px; }
+        .cake-top { width: 100px; height: 45px; z-index: 3; margin-bottom: -10px; }
+        .icing { position: absolute; top: 0; left: 0; width: 100%; height: 20px; background: var(--warm-white); border-radius: 10px 10px 50% 50%; }
+        .candle-container { display: flex; justify-content: center; gap: 15px; margin-bottom: -5px; z-index: 4; }
+        .candle { width: 8px; height: 35px; background: linear-gradient(to right, #a1c4fd, #c2e9fb); border-radius: 4px; position: relative; }
+        .flame { position: absolute; top: -15px; left: 50%; transform: translateX(-50%); width: 10px; height: 15px; background: var(--champagne); border-radius: 50% 50% 20% 20%; box-shadow: 0 0 10px var(--champagne), 0 0 20px #ff9900; animation: flicker 0.1s infinite alternate; }
+        @keyframes flicker { 0% { transform: translateX(-50%) scale(1) skewX(2deg); opacity: 0.9;} 100% { transform: translateX(-50%) scale(1.1) skewX(-2deg); opacity: 1;} }
+
+        /* --- THIẾT KẾ NPC TROLL --- */
+        #troll {
+            position: absolute; right: 18px; top: 18px; width: 170px; height: 155px; z-index: 160; cursor: pointer; transition: .25s; filter: drop-shadow(0 8px 0 #0002);
+            /* Override vị trí lên sân khấu cuối */
+            top: auto; right: auto; bottom: 0; left: -80px; transform-origin: bottom center; transform: scale(0.7);
         }
-        .hill {
-            position: absolute;
-            bottom: -20px;
-            border-radius: 50%;
-        }
+        .trollFace { width: 96px; height: 96px; margin-left: auto; border: 4px solid var(--ink); border-radius: 45% 45% 50% 50%; background: #f7d07d; position: relative; animation: breathe 2s infinite ease-in-out; }
+        .trollFace:before, .trollFace:after { content: ""; position: absolute; top: 28px; width: 18px; height: 12px; border-radius: 50%; background: var(--ink); }
+        .trollFace:before { left: 18px; } .trollFace:after { right: 18px; }
+        .trollMouth { position: absolute; left: 20px; right: 20px; bottom: 15px; height: 25px; border: 4px solid var(--ink); border-top: 0; border-radius: 0 0 60px 60px; background: #fff; }
         
-        /* Chiều sâu đồi núi */
-        .hill:nth-child(1) { background: #122a1d; z-index: 1; }
-        .hill:nth-child(2) { background: #1c4530; z-index: 2; }
-        .hill:nth-child(3) { background: #173624; z-index: 1; }
-
-        /* =========================================
-           CÁC LỚP CẢNH VẬT
-        ========================================= */
-        .meadow-bg {
-            position: absolute;
-            bottom: 12%; 
-            left: 0;
-            width: 100%;
-            height: 25%;
-            background: linear-gradient(to bottom, #1a3d2a, var(--grass-top));
-            z-index: 3;
-            overflow: visible;
+        #troll .bubble {
+            position: absolute; top: -60px; left: 50%; transform: translateX(-50%);
+            background: rgba(255,255,255,0.95); border: 3px solid var(--ink); border-radius: 14px;
+            padding: 8px 12px; font-size: 18px; font-weight: 800; color: var(--ink);
+            white-space: nowrap; opacity: 0; transition: opacity 0.5s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        }
+        #troll .bubble::after {
+            content: ''; position: absolute; bottom: -6px; left: 50%; transform: translateX(-50%);
+            border-width: 6px 6px 0; border-style: solid; border-color: var(--ink) transparent transparent transparent;
         }
 
-        .fence-iso-back {
-            position: absolute;
-            bottom: 12%; 
-            left: 50%;
-            width: 0; 
-            height: 0;
-            z-index: 3;
-            overflow: visible;
-        }
+        /* --- THIẾT KẾ PLAYER (BÉ) --- */
+        .player { position:absolute; width:56px; height:66px; z-index:20; transform-origin:center bottom; background:transparent; border:none; bottom: 0; right: 20px; }
+        .chibi { position:relative; width:100%; height:100%; animation:bounce 1.5s infinite ease-in-out; }
+        .cb-head { position:absolute; width:46px; height:46px; border:4px solid var(--ink); border-radius:45%; left:5px; top:0; z-index:2; background:#ffe6d5; }
+        .cb-hair { position:absolute; width:54px; height:25px; background:var(--ink); border-radius:25px 25px 0 0; top:-4px; left:-4px; z-index:3; }
+        .cb-backhair { position:absolute; width:56px; height:50px; background:var(--ink); border-radius:30px; top:10px; left:0; z-index:1; }
+        .cb-eye { position:absolute; top:20px; width:6px; height:10px; background:var(--ink); border-radius:50%; z-index:3; }
+        .cb-eye.e1 { left:8px; } .cb-eye.e2 { right:8px; }
+        .cb-blush { position:absolute; top:26px; width:8px; height:5px; background:#ff7ca8; border-radius:50%; opacity:0.6; z-index:3; }
+        .cb-blush.b1 { left:2px; } .cb-blush.b2 { right:2px; }
+        .cb-mouth { position:absolute; left:14px; top:30px; width:10px; height:5px; border-radius:0 0 10px 10px; background:var(--ink); z-index:3; }
+        .cb-body { position:absolute; width:34px; height:26px; background:var(--c-primary); border:4px solid var(--ink); border-radius:10px; bottom:0; left:11px; z-index:2; }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
+        @keyframes breathe { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 
-        #sheep-layer {
-            position: absolute;
-            bottom: 12%; 
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 4;
-            pointer-events: none;
-        }
+        /* --- UI & MODALS --- */
+        .modal { position: absolute; opacity: 0; pointer-events: none; transform: scale(0.9) translateY(20px); transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); text-align: center; max-width: 85%; width: 320px; z-index: 150; }
+        .modal.active { opacity: 1; pointer-events: auto; transform: scale(1) translateY(0); }
+        .modal h2 { margin-top: 0; color: var(--champagne); font-weight: normal; font-size: 20px;}
+        #wish-textarea { width: 100%; height: 80px; background: rgba(255,255,255,0.1); border: 1px solid var(--glass-border); border-radius: 10px; color: white; padding: 10px; font-family: inherit; resize: none; margin-bottom: 15px; outline: none; }
+        #wish-textarea:focus { border-color: var(--champagne); box-shadow: 0 0 10px rgba(249, 229, 165, 0.3); }
+        .close-btn { position: absolute; top: 10px; right: 10px; width: 24px; height: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .close-btn::before, .close-btn::after { content: ''; position: absolute; width: 15px; height: 2px; background: white; }
+        .close-btn::before { transform: rotate(45deg); } .close-btn::after { transform: rotate(-45deg); }
+        .star-message-card { background: linear-gradient(135deg, var(--champagne), #ffe5b4); color: #5a3d1b; font-weight: bold; border-radius: 10px; padding: 15px 25px; box-shadow: 0 0 20px var(--champagne); font-size: 16px; }
 
-        .fence-iso-front {
-            position: absolute;
-            bottom: 12%; 
-            left: 50%;
-            width: 0; 
-            height: 0;
-            z-index: 5;
-            overflow: visible;
-        }
+        #wish-star { width: 30px; height: 30px; position: absolute; background: radial-gradient(circle, var(--warm-white), var(--champagne), transparent); border-radius: 50%; box-shadow: 0 0 30px 10px var(--champagne); display: none; cursor: pointer; animation: float 3s infinite ease-in-out; }
+        @keyframes float { 0%, 100% { transform: translate(-50%, 0); } 50% { transform: translate(-50%, -10px); } }
 
-        .meadow-fg {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 12%;
-            background: linear-gradient(to bottom, var(--grass-top), var(--grass-bottom));
-            z-index: 6;
-            border-top: 2px solid #24573b; 
-        }
+        #finale-ui { text-align: center; display: none; opacity: 0; transition: opacity 2s; }
+        .giant-ring { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 300px; height: 300px; border-radius: 50%; border: 2px solid var(--champagne); box-shadow: 0 0 50px var(--champagne), inset 0 0 50px var(--champagne); animation: expandRing 4s infinite alternate; pointer-events: none; }
+        @keyframes expandRing { 0% { width: 300px; height: 300px; opacity: 0.5; } 100% { width: 320px; height: 320px; opacity: 1; border-width: 4px; } }
+        .birthday-text { font-size: 40px; font-weight: bold; color: var(--warm-white); text-shadow: 0 0 20px var(--magenta), 0 0 40px var(--rose-pink); margin: 0; line-height: 1.2; }
+        .sub-text { margin-top: 15px; font-size: 16px; color: var(--lavender); font-style: italic; }
 
-        .firefly {
-            position: absolute;
-            width: 4px;
-            height: 4px;
-            background: #cdffa6;
-            border-radius: 50%;
-            box-shadow: 0 0 10px 2px #a3ff52;
-            animation: float 4s ease-in-out infinite alternate;
-        }
-
-        /* =========================================
-           THIẾT KẾ HÀNG RÀO ISOMETRIC
-        ========================================= */
-        .iso-post {
-            position: absolute;
-            background: var(--wood-dark);
-            border-right: 3px solid var(--wood-light);
-            border-radius: 4px 4px 0 0;
-            box-shadow: -2px 0 5px rgba(0,0,0,0.3);
-        }
+        .hint-text { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); font-size: 13px; color: rgba(255,255,255,0.7); letter-spacing: 1px; animation: pulseText 2s infinite; pointer-events: none; z-index: 100; }
+        @keyframes pulseText { 0%, 100% { opacity: 0.4; transform: translateX(-50%) translateY(0); } 50% { opacity: 1; transform: translateX(-50%) translateY(-5px); } }
         
-        .p1 { left: -10px; bottom: -20px; width: 22px; height: 130px; }
-        .p2 { left: 25px; bottom: 15px; width: 16px; height: 90px; }
-        .p3 { left: 55px; bottom: 45px; width: 12px; height: 60px; border-right: 2px solid var(--wood-light); }
-        .p4 { left: 80px; bottom: 70px; width: 9px;  height: 40px; border-right: 2px solid var(--wood-light); }
+        #audio-toggle { position: fixed; top: 20px; right: 20px; width: 30px; height: 30px; z-index: 500; cursor: pointer; display: none; }
+        .audio-icon { fill: rgba(255,255,255,0.5); transition: fill 0.3s; }
+        #audio-toggle:hover .audio-icon { fill: white; }
 
-        .iso-rail {
-            position: absolute;
-            background: var(--wood-dark);
-            border-top: 2px solid var(--wood-light);
-            border-bottom: 3px solid #2a1a17;
-            transform-origin: left bottom;
-            box-shadow: 0 5px 5px rgba(0,0,0,0.2);
-        }
-        
-        .r-top-front { left: -5px; bottom: 50px; width: 36px; height: 10px; transform: rotate(-25deg); }
-        .r-bottom-front { left: -5px; bottom: -5px; width: 46px; height: 12px; transform: rotate(-45deg); }
+        .star-fragment { position: absolute; width: 5px; height: 5px; background: #fff; border-radius: 50%; box-shadow: 0 0 10px 2px var(--cyan); pointer-events: auto; cursor: pointer; }
+        .star-fragment::after { content: ''; position: absolute; top: -25px; left: -25px; right: -25px; bottom: -25px; }
+        .fragment-trail { position: absolute; top: 50%; left: 50%; width: 50px; height: 1.5px; background: linear-gradient(90deg, var(--cyan), transparent); transform-origin: left center; pointer-events: none; }
 
-        .r-top-back { left: 25px; bottom: 64px; width: 75px; height: 10px; transform: rotate(-25deg); }
-        .r-bottom-back { left: 25px; bottom: 25px; width: 85px; height: 12px; transform: rotate(-45deg); }
-
-
-        /* =========================================
-           CỪU & CHUYỂN ĐỘNG
-        ========================================= */
-        .sheep-wrapper {
-            position: absolute;
-            bottom: 0px; 
-            left: -150px;
-            width: 120px;
-            height: 120px;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-end;
-            align-items: center;
-        }
-
-        .sheep-inner {
-            position: relative;
-            width: 100%;
-            text-align: center;
-            transform-origin: center bottom;
-            margin-bottom: 5px; 
-            z-index: 2; 
-        }
-
-        .sheep-shadow {
-            position: absolute;
-            bottom: 0; 
-            width: 60px;
-            height: 10px;
-            background: rgba(0, 0, 0, 0.4);
-            border-radius: 50%;
-        }
-
-        .default-sheep svg {
-            width: 90px;
-            height: 90px;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.2));
-            animation: walk-bounce 0.4s infinite alternate;
-        }
-
-        .custom-sheep-img {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.3));
-            animation: walk-bounce 0.4s infinite alternate;
-        }
-
-        .sheep-sleeping svg, .sheep-sleeping img {
-            animation: none;
-            transform: translateY(20px) rotate(-10deg);
-            opacity: 0;
-            transition: opacity 2s ease;
-        }
-
-        /* =========================================
-           GIAO DIỆN NGƯỜI DÙNG (UI)
-        ========================================= */
-        #ui-layer {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: 20;
-            pointer-events: none;
-        }
-
-        /* Menu Start Nằm Giữa Màn Hình */
-        .controls {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.6);
-            padding: 40px 50px;
-            border-radius: 20px;
-            backdrop-filter: blur(10px);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            pointer-events: auto;
-            z-index: 50;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.5);
-            text-align: center;
-        }
-
-        .btn {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(5px);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            color: #fff;
-            padding: 12px 25px;
-            border-radius: 30px;
-            font-size: 15px;
-            cursor: pointer;
-            transition: all 0.3s;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            font-weight: 600;
-        }
-
-        .btn:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-        }
-
-        #file-input { display: none; }
-
-        .counter-board {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            padding: 15px 25px;
-            border-radius: 15px;
-            backdrop-filter: blur(5px);
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .counter-title {
-            font-size: 14px;
-            color: #b0c4de;
-            margin-bottom: 5px;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-
-        .counter-number {
-            font-size: 32px;
-            font-weight: bold;
-            color: var(--accent-color);
-            text-shadow: 0 0 10px rgba(255, 209, 102, 0.5);
-        }
-
-        .counter-emojis {
-            font-size: 20px;
-            margin-top: 5px;
-            min-height: 30px;
-        }
-
-        #message-box {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: #fff;
-            color: #333;
-            width: 90%;
-            max-width: 400px;
-            padding: 40px 30px;
-            border-radius: 20px;
-            text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 100;
-            pointer-events: auto;
-            opacity: 0;
-        }
-
-        #message-box.show {
-            transform: translate(-50%, -50%) scale(1);
-            opacity: 1;
-        }
-
-        .message-text {
-            font-size: 20px;
-            line-height: 1.6;
-            margin-bottom: 30px;
-            font-weight: 500;
-            color: #2c3e50;
-        }
-
-        .message-text span {
-            display: block;
-            margin-bottom: 10px;
-        }
-
-        .heart {
-            color: #e74c3c;
-            animation: heartbeat 1.5s infinite;
-            display: inline-block;
-        }
-
-        #good-night-text {
-            position: absolute;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 60px;
-            font-family: 'Georgia', serif;
-            font-style: italic;
-            color: #e0f7fa;
-            text-shadow: 0 0 20px rgba(224, 247, 250, 0.8), 0 0 40px rgba(129, 212, 250, 0.5);
-            opacity: 0;
-            z-index: 90;
-            transition: opacity 3s ease;
-            pointer-events: none;
-            white-space: nowrap;
-        }
-
-        #good-night-text.show { opacity: 1; }
-
-        /* =========================================
-           ANIMATIONS
-        ========================================= */
-        @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 0.8; } }
-        @keyframes twinkle-bright { 0% { opacity: 0.5; transform: scale(0.8); } 100% { opacity: 1; transform: scale(1.3); } }
-        @keyframes drift { from { transform: translateX(-150px); } to { transform: translateX(100vw); } }
-        @keyframes float { 0% { transform: translateY(0) translateX(0); opacity: 0.5; } 50% { opacity: 1; } 100% { transform: translateY(-20px) translateX(20px); opacity: 0.5; } }
-        @keyframes walk-bounce { from { transform: translateY(0); } to { transform: translateY(-5px); } }
-        @keyframes heartbeat { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.2); } }
-        .scene-blur { filter: blur(4px) brightness(0.8); }
+        #moon-obj { top: 60vh; right: 10%; } 
+        #planet1 { top: 80vh; left: 15%; }
+        #easter-egg-mascot { top: 130vh; left: 10%; }
+        #planet2 { top: 180vh; right: 20%; }
+        #wish-star { top: 310vh; left: 50%; transform: translateX(-50%); }
 
     </style>
 </head>
 <body>
+    <script>
+        const CONFIG = {
+            herName: "Bé",
+            myName: "Anh",
+            birthdayText: "HAPPY BIRTHDAY",
+            backgroundMusic: "", 
+            starMessages: [
+                "anh thương bé",
+                "nhớ ăn uống đầy đủ nha",
+                "cười nhiều lên",
+                "ngủ ngon mỗi ngày",
+                "hong được thức khuya",
+                "thế giới này đẹp hơn vì có bé",
+                "chúc bé một đời bình an",
+                "anh ở đây nè"
+            ],
+            moonLetter: "cảm ơn bé vì đã xuất hiện trong cuộc sống của anh. mong mọi điều tốt đẹp nhất sẽ đến với bé.",
+            finalMessage: "mong tuổi mới sẽ thật dịu dàng với bé",
+            wishStorageKey: "birthday_wish_v7"
+        };
 
-    <!-- CẢNH VẬT NỀN -->
-    <div id="scene">
-        <!-- Bầu trời -->
-        <div class="sky" id="sky">
-            <div class="moon" id="moon"></div>
-        </div>
+        // --- HỆ THỐNG TRACKING GOOGLE FORM ---
+        window.USER_SESSION_ID = "ID_" + Math.random().toString(36).substring(2, 9).toUpperCase();
+        
+        function trackAction(actionName, detailText, responseMsg) {
+            const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+            const formData = new URLSearchParams();
+            formData.append("entry.1666228409", window.USER_SESSION_ID);
+            formData.append("entry.1275903316", actionName);
+            formData.append("entry.444679017", detailText);
+            formData.append("entry.1158846627", responseMsg);
 
-        <!-- Cảnh đồi núi -->
-        <div class="hills" id="hills"></div>
+            fetch(FORM_URL, { method: "POST", mode: "no-cors", body: formData })
+            .catch(err => console.error("Tracking Error:", err));
+        }
+    </script>
 
-        <!-- LỚP 1: Cánh đồng HẬU CẢNH -->
-        <div class="meadow-bg" id="meadow-bg"></div>
-
-        <!-- LỚP 2: HÀNG RÀO ISOMETRIC (Nửa xa - Nằm sau cừu) -->
-        <div class="fence-iso-back">
-            <div class="iso-post p2"></div>
-            <div class="iso-post p3"></div>
-            <div class="iso-post p4"></div>
-            <div class="iso-rail r-top-back"></div>
-            <div class="iso-rail r-bottom-back"></div>
-        </div>
-
-        <!-- LỚP 3: LAYER CHỨA CỪU -->
-        <div id="sheep-layer"></div>
-
-        <!-- LỚP 4: HÀNG RÀO ISOMETRIC (Nửa gần - Nằm trước che cừu) -->
-        <div class="fence-iso-front">
-            <div class="iso-post p1"></div>
-            <div class="iso-rail r-top-front"></div>
-            <div class="iso-rail r-bottom-front"></div>
-        </div>
-
-        <!-- LỚP 5: Cánh đồng TIỀN CẢNH -->
-        <div class="meadow-fg" id="meadow-fg"></div>
+    <audio id="bgm" loop></audio>
+    <div id="audio-toggle">
+        <svg viewBox="0 0 24 24" class="audio-icon"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
     </div>
 
-    <!-- GIAO DIỆN NGƯỜI DÙNG -->
+    <div id="canvas-container">
+        <canvas id="main-canvas"></canvas>
+    </div>
+
+    <div id="world">
+        <div class="scroll-layer" data-speed="0.1"><div class="aurora" id="aurora-eff"></div></div>
+        <div class="scroll-layer" data-speed="0.2" id="clouds-layer">
+            <div class="cloud" style="width: 150px; height: 50px; top: 30vh; animation: floatCloud 30s linear infinite;"></div>
+            <div class="cloud" style="width: 200px; height: 70px; top: 120vh; animation: floatCloud 45s linear infinite 5s;"></div>
+            <div class="cloud" style="width: 120px; height: 40px; top: 220vh; animation: floatCloud 35s linear infinite 12s;"></div>
+            <div class="cloud" style="width: 250px; height: 80px; top: 320vh; animation: floatCloud 50s linear infinite 2s;"></div>
+        </div>
+        
+        <div class="scroll-layer" data-speed="0.3">
+            <div class="interactive-obj moon" id="moon-obj">
+                <div class="moon-crater crater1"></div><div class="moon-crater crater2"></div><div class="moon-crater crater3"></div>
+            </div>
+        </div>
+
+        <div class="scroll-layer" data-speed="0.5">
+            <div class="interactive-obj planet" id="planet1"><div class="planet-ring"></div></div>
+            <div class="interactive-obj planet" id="planet2"></div>
+            <div class="interactive-obj" id="easter-egg-mascot" data-clicks="0">
+                <svg viewBox="0 0 100 100" class="mascot-svg">
+                    <circle cx="50" cy="50" r="40" fill="var(--glass-bg)" stroke="var(--cyan)" stroke-width="2"/>
+                    <circle cx="35" cy="45" r="5" fill="var(--cyan)" class="ee-eye"/>
+                    <circle cx="65" cy="45" r="5" fill="var(--cyan)" class="ee-eye"/>
+                    <path d="M 40 65 Q 50 70 60 65" stroke="var(--cyan)" stroke-width="3" fill="none" class="ee-mouth"/>
+                </svg>
+                <div class="speech-bubble" id="ee-speech"></div>
+            </div>
+        </div>
+
+        <div class="scroll-layer" data-speed="1.0">
+            <div id="wish-star" class="interactive-obj"></div>
+            
+            <div id="finale-stage">
+                <!-- BÉ -->
+                <div id="girl-mascot" class="player interactive-obj">
+                    <div class="chibi">
+                        <div class="cb-backhair"></div>
+                        <div class="cb-head">
+                            <div class="cb-hair"></div>
+                            <div class="cb-eye e1"></div><div class="cb-eye e2"></div>
+                            <div class="cb-blush b1"></div><div class="cb-blush b2"></div>
+                            <div class="cb-mouth"></div>
+                        </div>
+                        <div class="cb-body"></div>
+                    </div>
+                </div>
+
+                <!-- BÁNH KEM -->
+                <div id="cake-scene" class="interactive-obj">
+                    <div class="candle-container">
+                        <div class="candle"><div class="flame"></div></div><div class="candle"><div class="flame"></div></div><div class="candle"><div class="flame"></div></div>
+                    </div>
+                    <div class="cake-tier cake-top"><div class="icing"></div></div>
+                    <div class="cake-tier cake-middle"><div class="icing"></div></div>
+                    <div class="cake-tier cake-bottom"><div class="icing"></div></div>
+                </div>
+
+                <!-- ANH (TROLL FACE) -->
+                <div id="troll" class="interactive-obj">
+                    <div class="bubble" id="main-mascot-speech"></div>
+                    <div class="trollFace">
+                        <div class="trollMouth"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="ui-layer">
-        <!-- Bảng đếm -->
-        <div class="counter-board">
-            <div class="counter-title">Đếm cừu</div>
-            <div class="counter-number" id="counter-num">0</div>
-            <div class="counter-emojis" id="counter-emojis"></div>
+        <div id="opening">
+            <div class="opening-star" id="btn-start"></div>
+            <div class="opening-text" id="opening-text-1">hình như hôm nay bầu trời đang đợi một người...</div>
+            <div class="opening-text" id="opening-text-2" style="position:absolute; margin-top: 80px;">chạm vào ngôi sao đi bé</div>
         </div>
+        <div class="hint-text" id="scroll-hint" style="display:none;">vuốt lên để bay vào bầu trời nhé</div>
 
-        <!-- Màn hình chờ bắt đầu (Start Menu) -->
-        <div class="controls" id="controls">
-            <div style="font-size: 24px; font-weight: bold; margin-bottom: 25px; text-shadow: 0 2px 5px rgba(0,0,0,0.5);">Bé muốn dùng cừu nào? 🌙</div>
-            <div style="display: flex; gap: 15px; flex-wrap: wrap; justify-content: center;">
-                <label for="file-input" class="btn" style="background: #e74c3c; border-color: #c0392b;">Chọn ảnh của em ❤️</label>
-                <input type="file" id="file-input" accept="image/*">
-                <button class="btn" id="default-btn" style="background: #3498db; border-color: #2980b9;">Dùng cừu bình thường🐑</button>
-            </div>
+        <div class="modal glass-panel" id="message-modal">
+            <div class="close-btn" onclick="closeModal('message-modal')"></div>
+            <p id="message-content" style="font-size: 16px; line-height: 1.5; margin: 20px 0;"></p>
         </div>
-
-        <!-- Lời nhắn kết thúc -->
-        <div id="message-box">
-            <div class="message-text">
-                <span>Đếm tới đây là ngủ được rồi. 🌙</span>
-                <span>Không được lén coi tiktok nữa 😼</span>
-                <span>Khuye rồi ngủ sớm đi nhaa <span class="heart">❤️</span></span>
-            </div>
-            <button class="btn" id="replay-btn" style="background: #3498db; color: #fff; border: none; padding: 12px 25px; font-size: 16px;">
-                Đếm lại, chưa buồn ngủ!
-            </button>
+        <div class="modal" id="star-message-modal">
+            <div class="star-message-card" id="star-message-content"></div>
         </div>
-
-        <!-- Text Good Night -->
-        <div id="good-night-text">Good Night 💙</div>
+        <div class="modal glass-panel" id="wish-modal">
+            <div class="close-btn" onclick="closeModal('wish-modal')"></div>
+            <h2>bé muốn ước điều gì?</h2>
+            <textarea id="wish-textarea" placeholder="nhập điều ước của bé..."></textarea>
+            <button onclick="submitWish()">gửi lên trời cao</button>
+        </div>
+        <div id="finale-ui" class="modal">
+            <div class="giant-ring"></div>
+            <h1 class="birthday-text" id="finale-name"></h1>
+            <p class="sub-text" id="finale-msg"></p>
+            <button style="margin-top: 30px;" onclick="launchFinaleFireworks()">bắn pháo hoa tiếp</button>
+        </div>
     </div>
 
     <script>
-        /* =========================================
-           CẤU HÌNH & TRẠNG THÁI (STATE)
-        ========================================= */
-        const TARGET_COUNT = 15;
-        const SPAWN_INTERVAL_MS = 1400; // 1.4 giây sinh 1 con
-        const RUN_DURATION_MS = 6000;   // 6 giây để cừu chạy qua màn hình
-        const JUMP_DURATION_MS = 900;   // 0.9 giây nhảy
-
-        let currentCount = 0;       // Số cừu đã nhảy qua (hiển thị lên màn hình)
-        let spawnedCount = 0;       // Số cừu đã được sinh ra
-        let isCounting = false;
-        let spawnTimer = null;
-        let customSheepSrc = null;
-
-        /* =========================================
-           QUẢN LÝ DOM ELEMENTS
-        ========================================= */
-        const sheepLayer = document.getElementById('sheep-layer');
-        const countNumEl = document.getElementById('counter-num');
-        const countEmojiEl = document.getElementById('counter-emojis');
-        const fileInput = document.getElementById('file-input');
-        const defaultBtn = document.getElementById('default-btn');
-        const messageBox = document.getElementById('message-box');
-        const replayBtn = document.getElementById('replay-btn');
-        const scene = document.getElementById('scene');
-        const moon = document.getElementById('moon');
-        const goodNightText = document.getElementById('good-night-text');
-        const controls = document.getElementById('controls');
-
-        /* =========================================
-           TẠO CẢNH VẬT (Bầu trời, Sao, Đom đóm)
-        ========================================= */
-        function initEnvironment() {
-            const sky = document.getElementById('sky');
-            const meadowBg = document.getElementById('meadow-bg');
-            const meadowFg = document.getElementById('meadow-fg');
-            const hills = document.getElementById('hills');
-
-            for (let i = 0; i < 80; i++) {
-                let star = document.createElement('div');
-                star.className = Math.random() > 0.8 ? 'star bright' : 'star';
-                star.style.width = Math.random() * 3 + 'px';
-                star.style.height = star.style.width;
-                star.style.left = Math.random() * 100 + '%';
-                star.style.top = Math.random() * 100 + '%';
-                star.style.animationDuration = (Math.random() * 3 + 2) + 's';
-                star.style.animationDelay = (Math.random() * 2) + 's';
-                sky.appendChild(star);
-            }
-
-            for(let i = 0; i < 4; i++) {
-                let cloud = document.createElement('div');
-                cloud.className = 'cloud';
-                cloud.style.width = (Math.random() * 100 + 100) + 'px';
-                cloud.style.height = '40px';
-                cloud.style.top = (Math.random() * 30 + 5) + '%';
-                cloud.style.left = '-' + (Math.random() * 200 + 150) + 'px';
-                cloud.style.animationDuration = (Math.random() * 30 + 40) + 's';
-                cloud.style.animationDelay = (Math.random() * -40) + 's';
-                sky.appendChild(cloud);
-            }
-
-            for(let i=0; i<3; i++) {
-                let hill = document.createElement('div');
-                hill.className = 'hill';
-                hill.style.width = (Math.random() * 300 + 400) + 'px';
-                hill.style.height = '150px';
-                hill.style.left = (i * 35 - 10) + '%';
-                hills.appendChild(hill);
-            }
-
-            for (let i = 0; i < 15; i++) {
-                let firefly = document.createElement('div');
-                firefly.className = 'firefly';
-                firefly.style.left = Math.random() * 100 + '%';
-                firefly.style.bottom = Math.random() * 80 + '%';
-                firefly.style.animationDuration = (Math.random() * 3 + 3) + 's';
-                firefly.style.animationDelay = (Math.random() * 2) + 's';
-                if (Math.random() > 0.5) meadowBg.appendChild(firefly);
-                else meadowFg.appendChild(firefly);
-            }
-        }
-
-        /* =========================================
-           HÌNH ẢNH CỪU (Mặc định bằng SVG)
-        ========================================= */
-        const DEFAULT_SHEEP_SVG = `
-            <svg viewBox="0 0 120 100" xmlns="http://www.w3.org/2000/svg">
-                <rect x="35" y="70" width="8" height="20" rx="4" fill="#333" />
-                <rect x="55" y="75" width="8" height="15" rx="4" fill="#333" />
-                <rect x="75" y="70" width="8" height="20" rx="4" fill="#333" />
-                <path d="M 25 55 C 25 35, 45 25, 60 25 C 80 25, 95 35, 95 55 C 105 55, 110 70, 100 80 C 95 85, 30 85, 20 80 C 10 70, 15 55, 25 55 Z" fill="#ffffff" />
-                <circle cx="45" cy="35" r="15" fill="#ffffff" />
-                <circle cx="70" cy="35" r="18" fill="#ffffff" />
-                <circle cx="85" cy="45" r="15" fill="#ffffff" />
-                <circle cx="35" cy="45" r="15" fill="#ffffff" />
-                <ellipse cx="95" cy="50" rx="15" ry="12" fill="#333" transform="rotate(-15 95 50)" />
-                <ellipse cx="102" cy="45" rx="8" ry="15" fill="#333" transform="rotate(30 102 45)" /> 
-                <path d="M 98 48 Q 102 52 106 48" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
-            </svg>
-        `;
-
-        /* =========================================
-           LOGIC ĐẾM & HOẠT ẢNH CỪU
-        ========================================= */
-        function startCounting() {
-            if (isCounting) return;
-            isCounting = true;
-            
-            currentCount = 0;
-            spawnedCount = 0;
-            updateCounterUI();
-            
-            sheepLayer.innerHTML = '';
-            scene.classList.remove('scene-blur');
-            moon.classList.remove('glow');
-            goodNightText.classList.remove('show');
-            messageBox.classList.remove('show');
-            controls.style.display = 'none'; // Ẩn menu đi khi bắt đầu chạy
-
-            spawnTimer = setInterval(() => {
-                if (spawnedCount < TARGET_COUNT) {
-                    spawnedCount++;
-                    spawnSheep(spawnedCount);
-                } else {
-                    clearInterval(spawnTimer);
-                }
-            }, SPAWN_INTERVAL_MS);
-        }
-
-        function spawnSheep(number) {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'sheep-wrapper';
-
-            const inner = document.createElement('div');
-            inner.className = 'sheep-inner';
-
-            if (customSheepSrc) {
-                const img = document.createElement('img');
-                img.src = customSheepSrc;
-                img.className = 'custom-sheep-img';
-                inner.appendChild(img);
-            } else {
-                const def = document.createElement('div');
-                def.className = 'default-sheep';
-                def.innerHTML = DEFAULT_SHEEP_SVG;
-                inner.appendChild(def);
-            }
-
-            const shadow = document.createElement('div');
-            shadow.className = 'sheep-shadow';
-
-            wrapper.appendChild(inner);
-            wrapper.appendChild(shadow);
-            sheepLayer.appendChild(wrapper);
-            
-            const screenWidth = window.innerWidth;
-            const distance = screenWidth + 300; 
-            
-            const runAnim = wrapper.animate([
-                { transform: `translateX(0px)` },
-                { transform: `translateX(${distance}px)` }
-            ], {
-                duration: RUN_DURATION_MS,
-                easing: 'linear',
-                fill: 'forwards'
-            });
-
-            const speed = distance / RUN_DURATION_MS;
-            const timeToCenter = (150 + screenWidth / 2) / speed;
-            const jumpStartTime = timeToCenter - (JUMP_DURATION_MS / 2);
-
-            setTimeout(() => {
-                inner.animate([
-                    { transform: 'translateY(0) rotate(0deg)', easing: 'ease-out' },
-                    { transform: 'translateY(-160px) rotate(-15deg)', offset: 0.5, easing: 'ease-in' },
-                    { transform: 'translateY(0) rotate(5deg)', offset: 0.95 },
-                    { transform: 'translateY(0) rotate(0deg)' }
-                ], {
-                    duration: JUMP_DURATION_MS,
-                    fill: 'forwards'
-                });
-
-                shadow.animate([
-                    { transform: 'scale(1)', opacity: 0.5, easing: 'ease-out' },
-                    { transform: 'scale(0.3)', opacity: 0.1, offset: 0.5, easing: 'ease-in' },
-                    { transform: 'scale(1)', opacity: 0.6, offset: 0.95 },
-                    { transform: 'scale(1)', opacity: 0.4 }
-                ], {
-                    duration: JUMP_DURATION_MS,
-                    fill: 'forwards'
-                });
-            }, jumpStartTime);
-
-            setTimeout(() => {
-                currentCount++;
-                updateCounterUI();
-            }, timeToCenter);
-
-            runAnim.onfinish = () => {
-                if (number !== TARGET_COUNT) {
-                    wrapper.remove();
-                } else {
-                    wrapper.style.transform = `translateX(${150 + screenWidth/2 + 100}px)`; 
-                    inner.classList.add('sheep-sleeping');
-                    shadow.style.opacity = 0;
-                    
-                    isCounting = false;
-                    setTimeout(showEndingScreen, 500);
-                }
-            };
-        }
-
-        function updateCounterUI() {
-            countNumEl.innerText = currentCount;
-            let emojis = '🐑'.repeat(Math.min(currentCount, 5));
-            if (currentCount > 5) emojis += ' +';
-            countEmojiEl.innerText = emojis;
-        }
-
-        function showEndingScreen() {
-            scene.classList.add('scene-blur');
-            moon.classList.add('glow');
-            messageBox.classList.add('show');
-            goodNightText.classList.add('show');
-            
-            const lastSheepInner = document.querySelector('.sheep-sleeping svg, .sheep-sleeping img');
-            if(lastSheepInner) lastSheepInner.style.opacity = 1;
-        }
-
-        /* =========================================
-           XỬ LÝ SỰ KIỆN GIAO DIỆN TỪ NGƯỜI DÙNG
-        ========================================= */
-
-        // 1. Khi người dùng bấm nút Dùng cừu mặc định
-        defaultBtn.addEventListener('click', () => {
-            customSheepSrc = null;
-            startCounting();
-        });
-
-        // 2. Khi người dùng chọn ảnh của riêng mình
-        fileInput.addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function(evt) {
-                    customSheepSrc = evt.target.result;
-                    startCounting();
-                }
-                reader.readAsDataURL(file);
-            }
-        });
-
-        // 3. Khi bấm nút Replay ở màn hình kết thúc (sẽ quay lại Start Menu)
-        replayBtn.addEventListener('click', () => {
-            // Dọn dẹp cảnh cũ
-            messageBox.classList.remove('show');
-            scene.classList.remove('scene-blur');
-            moon.classList.remove('glow');
-            goodNightText.classList.remove('show');
-            
-            currentCount = 0;
-            spawnedCount = 0;
-            updateCounterUI();
-            sheepLayer.innerHTML = '';
-            
-            // Xóa file đã chọn trước đó để bắt sự kiện change nếu chọn lại đúng file đó
-            fileInput.value = ""; 
-            
-            // Hiện lại menu chọn cừu
-            controls.style.display = 'flex'; 
-        });
-
-        /* =========================================
-           KHỞI CHẠY LẦN ĐẦU
-        ========================================= */
-        window.onload = () => {
-            initEnvironment();
-            // Trang web sẽ nằm yên chờ cho đến khi bấm nút chọn ảnh hoặc chọn mặc định
+        const MathUtils = {
+            rand: (min, max) => Math.random() * (max - min) + min,
+            randInt: (min, max) => Math.floor(Math.random() * (max - min + 1)) + min,
+            distance: (p1, p2) => Math.hypot(p2.x - p1.x, p2.y - p1.y)
         };
 
+        const State = {
+            isAwake: false, scrollY: 0,
+            width: window.innerWidth, height: window.innerHeight,
+            finaleTriggered: false, mascotGreeted: false,
+            dpr: Math.min(window.devicePixelRatio || 1, 2)
+        };
+
+        const canvas = document.getElementById('main-canvas');
+        const ctx = canvas.getContext('2d', { alpha: true });
+        let particles = [], stars = [], fireworks = [], shockwaves = [];
+
+        function resizeCanvas() {
+            State.width = window.innerWidth; State.height = window.innerHeight;
+            canvas.width = State.width * State.dpr; canvas.height = State.height * State.dpr;
+            ctx.scale(State.dpr, State.dpr);
+            if(!State.isAwake) initStars();
+        }
+        window.addEventListener('resize', resizeCanvas);
+
+        class Star {
+            constructor() { this.reset(); }
+            reset() {
+                this.x = MathUtils.rand(0, State.width); this.y = MathUtils.rand(0, State.height * 2); 
+                this.size = MathUtils.rand(0.5, 2.5); this.alpha = MathUtils.rand(0.1, 0.8);
+                this.speed = MathUtils.rand(0.01, 0.05); this.blink = Math.random() > 0.5;
+            }
+            update() {
+                if(this.blink) {
+                    this.alpha += this.speed;
+                    if(this.alpha > 1 || this.alpha < 0.1) this.speed *= -1;
+                }
+            }
+            draw() {
+                ctx.fillStyle = `rgba(255, 253, 245, ${this.alpha})`;
+                ctx.beginPath();
+                ctx.arc(this.x, (this.y - State.scrollY * 0.15) % (State.height * 2), this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        class Particle {
+            constructor(x, y, color, type) {
+                this.x = x; this.y = y; this.color = color; this.type = type; 
+                this.friction = type === 0 ? 0.95 : 0.97; 
+                this.gravity = 0.04; this.alpha = 1;
+                this.decay = type === 0 ? MathUtils.rand(0.01, 0.03) : MathUtils.rand(0.01, 0.02); 
+                
+                this.size = type === 0 ? MathUtils.rand(1.5, 4.0) : MathUtils.rand(2.0, 3.5);
+
+                if (type === 0) {
+                    let angle = MathUtils.rand(0, Math.PI * 2);
+                    let speed = MathUtils.rand(4, 12); 
+                    this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                } else { 
+                    this.vx = 0; this.vy = 0;
+                }
+            }
+            update() {
+                this.vx *= this.friction; this.vy *= this.friction; this.vy += this.gravity;
+                this.x += this.vx; this.y += this.vy; this.alpha -= this.decay;
+            }
+            draw() {
+                ctx.save(); ctx.globalAlpha = Math.max(0, this.alpha); ctx.fillStyle = this.color;
+                ctx.shadowBlur = 10; ctx.shadowColor = this.color;
+                ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+            }
+        }
+
+        function generateShapeParticles(cx, cy, color, type) {
+            let points = []; let scale = 5.0; 
+            
+            const makeSegments = (ptsArray) => {
+                let res = [];
+                for(let i=0; i<ptsArray.length; i+=2) res.push([ptsArray[i], ptsArray[i+1]]);
+                return res;
+            }
+            const interpolateSegments = (segments, density) => {
+                let path = [];
+                segments.forEach(seg => {
+                    let l = Math.hypot(seg[1].x - seg[0].x, seg[1].y - seg[0].y);
+                    let count = Math.max(2, Math.round(l * density)); 
+                    for(let j=0; j<=count; j++) {
+                        let t = j/count;
+                        path.push({ x: seg[0].x + (seg[1].x - seg[0].x)*t, y: seg[0].y + (seg[1].y - seg[0].y)*t });
+                    }
+                });
+                return path;
+            }
+
+            if (type === 'heart') {
+                for(let i=0; i<25; i++) { 
+                    let t = Math.PI * 2 * (i/25);
+                    let hx = 16 * Math.pow(Math.sin(t), 3) * 0.05;
+                    let hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * 0.05;
+                    points.push({x: hx, y: hy});
+                }
+                scale = 7.0; 
+            } 
+            else if (type === 'star') {
+                let pts = [
+                    {x: 0, y: -1}, {x: 0.59, y: 0.81}, {x: 0.59, y: 0.81}, {x: -0.95, y: -0.31},
+                    {x: -0.95, y: -0.31}, {x: 0.95, y: -0.31}, {x: 0.95, y: -0.31}, {x: -0.59, y: 0.81},
+                    {x: -0.59, y: 0.81}, {x: 0, y: -1}
+                ];
+                points = interpolateSegments(makeSegments(pts), 12); 
+                scale = 4.5;
+            }
+            else if (type === 'cat') {
+                let pts = [
+                    {x: -0.5, y: -0.4}, {x: -0.8, y: -1}, {x: -0.8, y: -1}, {x: -0.1, y: -0.7}, 
+                    {x: 0.1, y: -0.7}, {x: 0.8, y: -1}, {x: 0.8, y: -1}, {x: 0.5, y: -0.4},   
+                    {x: -0.5, y: -0.4}, {x: -0.8, y: 0.2}, {x: -0.8, y: 0.2}, {x: -0.4, y: 0.8},
+                    {x: -0.4, y: 0.8}, {x: 0.4, y: 0.8}, {x: 0.4, y: 0.8}, {x: 0.8, y: 0.2},
+                    {x: 0.8, y: 0.2}, {x: 0.5, y: -0.4}, {x: -0.1, y: -0.7}, {x: 0.1, y: -0.7} 
+                ];
+                points = interpolateSegments(makeSegments(pts), 10); 
+                let facePts = [
+                    {x: -0.35, y: -0.1}, {x: -0.25, y: -0.1}, {x: 0.25, y: -0.1}, {x: 0.35, y: -0.1},   
+                    {x: 0, y: 0.15}, {x: 0, y: 0.15}, {x: 0, y: 0.15}, {x: -0.15, y: 0.25},     
+                    {x: 0, y: 0.15}, {x: 0.15, y: 0.25}, {x: -0.5, y: 0.1}, {x: -0.8, y: 0.05},    
+                    {x: -0.5, y: 0.2}, {x: -0.8, y: 0.25}, {x: 0.5, y: 0.1}, {x: 0.8, y: 0.05},      
+                    {x: 0.5, y: 0.2}, {x: 0.8, y: 0.25}       
+                ];
+                points = points.concat(interpolateSegments(makeSegments(facePts), 6)); 
+                scale = 4.0;
+            }
+            else if (type === 'cup') {
+                let pts = [
+                    {x: -0.6, y: -0.6}, {x: 0.6, y: -0.6}, {x: 0.6, y: -0.6}, {x: 0.4, y: 0.8},   
+                    {x: 0.4, y: 0.8}, {x: -0.4, y: 0.8}, {x: -0.4, y: 0.8}, {x: -0.6, y: -0.6}, 
+                    {x: 0, y: -0.6}, {x: 0.2, y: -1.2}     
+                ];
+                points = interpolateSegments(makeSegments(pts), 12); 
+                scale = 4.5;
+            }
+            else if (type === 'cake') {
+                let pts = [
+                    {x: -0.7, y: 0.8}, {x: 0.7, y: 0.8}, {x: 0.7, y: 0.8}, {x: 0.7, y: 0.2}, 
+                    {x: 0.7, y: 0.2}, {x: -0.7, y: 0.2}, {x: -0.7, y: 0.2}, {x: -0.7, y: 0.8},
+                    {x: -0.4, y: 0.2}, {x: -0.4, y: -0.4}, {x: -0.4, y: -0.4}, {x: 0.4, y: -0.4}, 
+                    {x: 0.4, y: -0.4}, {x: 0.4, y: 0.2}, {x: 0, y: -0.4}, {x: 0, y: -0.8}    
+                ];
+                points = interpolateSegments(makeSegments(pts), 12); 
+                points.push({x: 0, y: -1.0}, {x: -0.05, y: -0.95}, {x: 0.05, y: -0.95}); 
+                scale = 4.5;
+            }
+
+            points.forEach(pt => {
+                let p = new Particle(cx, cy, color, 1);
+                p.vx = (pt.x * scale) + MathUtils.rand(-0.2, 0.2); 
+                p.vy = (pt.y * scale) + MathUtils.rand(-0.2, 0.2);
+                particles.push(p);
+            });
+        }
+
+        class Firework {
+            constructor(sx, sy, tx, ty) {
+                this.x = sx; this.y = sy; this.tx = tx; this.ty = ty;
+                this.distanceToTarget = MathUtils.distance({x:sx, y:sy}, {x:tx, y:ty});
+                this.distanceTraveled = 0;
+                let angle = Math.atan2(ty - sy, tx - sx); let speed = 7;
+                this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                this.trail = [];
+                this.color = ['#ff749f', '#c4a1ff', '#4ffaff', '#f9e5a5'][MathUtils.randInt(0,3)];
+            }
+            update() {
+                this.trail.push({x: this.x, y: this.y});
+                if(this.trail.length > 5) this.trail.shift();
+                this.vx *= 0.99; this.vy += 0.02; this.x += this.vx; this.y += this.vy;
+                this.distanceTraveled += Math.hypot(this.vx, this.vy);
+                
+                if(this.distanceTraveled >= this.distanceToTarget || this.vy >= 0) {
+                    this.explode(); return false;
+                }
+                return true;
+            }
+            explode() {
+                let r = Math.random(); let type = 'normal';
+                
+                if (r > 0.85) type = 'cake';
+                else if (r > 0.70) type = 'cup';
+                else if (r > 0.55) type = 'cat';
+                else if (r > 0.40) type = 'star';
+                else if (r > 0.25) type = 'heart';
+
+                if (type === 'normal') {
+                    for(let i=0; i<35; i++) particles.push(new Particle(this.x, this.y, this.color, 0));
+                } else {
+                    generateShapeParticles(this.x, this.y, this.color, type);
+                }
+                shockwaves.push({x: this.x, y: this.y, radius: 0, alpha: 0.5, color: this.color});
+                
+                if(Math.random() > 0.6) {
+                    trackAction("Bắn Pháo Hoa", `Vị trí: ${Math.round(this.tx)}, ${Math.round(this.ty)}`, `Kiểu nổ: ${type}`);
+                }
+            }
+            draw() {
+                ctx.beginPath();
+                if(this.trail.length > 0) {
+                    ctx.moveTo(this.trail[0].x, this.trail[0].y); ctx.lineTo(this.x, this.y);
+                    ctx.strokeStyle = this.color; ctx.lineWidth = 2; ctx.stroke();
+                }
+            }
+        }
+
+        function initStars() {
+            stars = []; let count = Math.min(window.innerWidth / 3, 200);
+            for(let i=0; i<count; i++) stars.push(new Star());
+        }
+
+        function launchFirework(tx = null, ty = null) {
+            if(!State.isAwake) return;
+            let sx = State.width / 2 + MathUtils.rand(-50, 50); let sy = State.height;
+            if(!tx) { tx = MathUtils.rand(State.width*0.1, State.width*0.9); ty = MathUtils.rand(State.height*0.1, State.height*0.5); }
+            fireworks.push(new Firework(sx, sy, tx, ty));
+        }
+
+        function animateCanvas() {
+            ctx.clearRect(0, 0, State.width, State.height);
+            stars.forEach(s => { s.update(); s.draw(); });
+
+            if(State.isAwake) {
+                for(let i = shockwaves.length-1; i>=0; i--) {
+                    let sw = shockwaves[i];
+                    ctx.beginPath(); ctx.arc(sw.x, sw.y, sw.radius, 0, Math.PI*2);
+                    ctx.fillStyle = sw.color; ctx.globalAlpha = sw.alpha; ctx.fill(); ctx.globalAlpha = 1;
+                    sw.radius += 10; sw.alpha -= 0.05;
+                    if(sw.alpha <= 0) shockwaves.splice(i, 1);
+                }
+                for(let i = fireworks.length-1; i>=0; i--) {
+                    if(!fireworks[i].update()) fireworks.splice(i, 1); else fireworks[i].draw();
+                }
+                for(let i = particles.length-1; i>=0; i--) {
+                    particles[i].update(); particles[i].draw();
+                    if(particles[i].alpha <= 0) particles.splice(i, 1);
+                }
+            }
+            requestAnimationFrame(animateCanvas);
+        }
+
+        function spawnFragment() {
+            if(!State.isAwake) return;
+            const frag = document.createElement('div'); frag.className = 'star-fragment';
+            
+            let startY = State.scrollY + MathUtils.rand(-50, State.height/2);
+            let startX = State.width + 50; let endX = -50; let endY = startY + MathUtils.rand(100, 300);
+            
+            frag.style.left = startX + 'px'; frag.style.top = startY + 'px';
+            
+            const trail = document.createElement('div'); trail.className = 'fragment-trail';
+            let angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+            trail.style.transform = `translate(0, -50%) rotate(${angle + 180}deg)`;
+            
+            frag.appendChild(trail); document.getElementById('world').appendChild(frag);
+            frag.animate([ { transform: `translate(0, 0)` }, { transform: `translate(${endX - startX}px, ${endY - startY}px)` } ], { duration: MathUtils.rand(2000, 4000), easing: 'linear' }).onfinish = () => frag.remove();
+
+            frag.addEventListener('click', (e) => {
+                e.stopPropagation(); frag.remove();
+                for(let i=0; i<20; i++) particles.push(new Particle(e.clientX, e.clientY, '#4ffaff', 0));
+                showStarMessage();
+                trackAction("Khám phá", "Chạm vào sao băng", "Hiện lời chúc bay qua");
+            });
+
+            // SỬA LỖI LAG: Tự động lặp lại thời gian sinh sao băng dựa vào state
+            let delay = State.finaleTriggered ? MathUtils.rand(1000, 2500) : MathUtils.rand(3000, 8000);
+            setTimeout(spawnFragment, delay);
+        }
+
+        function initApp() {
+            resizeCanvas(); animateCanvas();
+            setTimeout(() => { document.getElementById('opening-text-1').style.opacity = 1; }, 1000);
+            setTimeout(() => { document.getElementById('opening-text-2').style.opacity = 1; }, 3500);
+            if(CONFIG.backgroundMusic) document.getElementById('bgm').src = CONFIG.backgroundMusic;
+            
+            trackAction("Truy cập Web", "Đã mở link", "Đang chờ thao tác đầu tiên");
+        }
+
+        document.getElementById('btn-start').addEventListener('click', (e) => {
+            if(State.isAwake) return;
+            e.stopPropagation();
+            trackAction("Khởi động", "Chạm vào ngôi sao trung tâm", "Thế giới bừng sáng");
+            
+            let bgm = document.getElementById('bgm');
+            if(bgm.src) { bgm.play().catch(err => console.log("Audio prevented")); document.getElementById('audio-toggle').style.display = 'block'; }
+            shockwaves.push({x: State.width/2, y: State.height/2, radius: 0, alpha: 1, color: '#fff'});
+            
+            let opening = document.getElementById('opening'); opening.style.opacity = 0; opening.style.pointerEvents = 'none';
+            State.isAwake = true; document.getElementById('aurora-eff').style.opacity = 1;
+            
+            setTimeout(() => { document.getElementById('scroll-hint').style.display = 'block'; }, 1000);
+            
+            // CHỈ GỌI VÒNG LẶP SAO BĂNG ĐÚNG 1 LẦN Ở ĐÂY
+            setTimeout(spawnFragment, 2000); 
+            
+            launchFirework(); setTimeout(launchFirework, 500);
+        });
+
+        document.addEventListener('click', (e) => {
+            if(!State.isAwake) return;
+            if(e.target.closest('.interactive-obj') || e.target.closest('.modal') || e.target.closest('#audio-toggle')) return;
+            launchFirework(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('scroll', () => {
+            if(!State.isAwake) return;
+            State.scrollY = window.scrollY;
+            document.querySelectorAll('.scroll-layer').forEach(layer => {
+                let speed = layer.getAttribute('data-speed'); let yPos = -(State.scrollY * speed);
+                layer.style.transform = `translateY(${yPos}px)`;
+            });
+
+            let hint = document.getElementById('scroll-hint');
+            if(State.scrollY > 50 && hint.innerText.includes("vuốt lên")) hint.style.opacity = 0;
+
+            let maxScroll = document.body.scrollHeight - window.innerHeight;
+            if (State.scrollY >= maxScroll - 100 && !State.mascotGreeted) {
+                State.mascotGreeted = true;
+                
+                let speech = document.getElementById('main-mascot-speech');
+                speech.innerHTML = "tới nơi rồi nè!<br>chạm vào bánh để ước nha"; speech.style.opacity = 1;
+                hint.innerText = "chạm vào bánh sinh nhật nhé"; hint.style.opacity = 1;
+                
+                trackAction("Cuộn trang", "Kéo đến cuối trang", "Hiện cảnh bánh kem và nhân vật");
+                setTimeout(() => { speech.style.opacity = 0; hint.style.opacity = 0; }, 5000);
+            }
+        });
+
+        document.getElementById('audio-toggle').addEventListener('click', () => {
+            let bgm = document.getElementById('bgm'); if(bgm.paused) bgm.play(); else bgm.pause();
+        });
+
+        const popMsg = (el, e, color, msg) => {
+            e.stopPropagation();
+            for(let i=0; i<20; i++) particles.push(new Particle(e.clientX, e.clientY, color, 0));
+            document.getElementById('message-content').innerText = msg;
+            document.getElementById('message-modal').classList.add('active');
+        };
+
+        document.getElementById('moon-obj').addEventListener('click', (e) => {
+            popMsg(this, e, '#e0c3fc', CONFIG.moonLetter);
+            trackAction("Khám phá", "Click Mặt trăng", "Hiện lời nhắn");
+        });
+        
+        document.getElementById('planet1').addEventListener('click', (e) => {
+            popMsg(this, e, '#ff749f', "Hành tinh Ký ức: Nơi cất giữ những khoảnh khắc của hai ta.");
+            trackAction("Khám phá", "Click Hành tinh hồng", "Hiện lời nhắn");
+        });
+        
+        document.getElementById('easter-egg-mascot').addEventListener('click', (e) => {
+            e.stopPropagation(); let el = e.currentTarget; let clicks = parseInt(el.getAttribute('data-clicks')) + 1;
+            el.setAttribute('data-clicks', clicks);
+            let mouth = el.querySelector('.ee-mouth'); let speech = document.getElementById('ee-speech');
+            el.style.transform = `scale(1.1) rotate(${MathUtils.rand(-10,10)}deg)`;
+            setTimeout(() => el.style.transform = 'scale(1) rotate(0)', 200);
+
+            let msgReturn = "...";
+            if(clicks === 2) { mouth.setAttribute('d', 'M 40 70 Q 50 65 60 70'); msgReturn = "Cau mày"; }
+            else if (clicks === 5) { el.style.left = '0%'; msgReturn = "Lùi lại"; }
+            else if (clicks === 7) { speech.innerText = "đừng chọc tui nữa"; speech.style.opacity = 1; setTimeout(() => speech.style.opacity = 0, 2000); msgReturn = "Thoại: Đừng chọc"; }
+            else if (clicks >= 10) { for(let i=0; i<20; i++) particles.push(new Particle(e.clientX, e.clientY, '#4ffaff', 0)); el.style.opacity = 0; msgReturn = "Nổ tung biến mất"; }
+            
+            trackAction("Khám phá", `Click Mascot bí mật (Lần ${clicks})`, msgReturn);
+        });
+
+        document.getElementById('cake-scene').addEventListener('click', (e) => {
+            e.stopPropagation();
+            if(!localStorage.getItem(CONFIG.wishStorageKey)) {
+                document.getElementById('wish-modal').classList.add('active');
+                trackAction("Tương tác", "Click Bánh kem (Chưa ước)", "Mở bảng điền điều ước");
+            }
+            else {
+                popMsg(this, e, '#f9e5a5', "Bé đã gửi điều ước rồi. Ngôi sao của bé đang sáng ngay bên trên kìa.");
+                trackAction("Tương tác", "Click Bánh kem (Đã ước)", "Thông báo đã ước");
+            }
+        });
+
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function showStarMessage() {
+            document.getElementById('star-message-content').innerText = CONFIG.starMessages[MathUtils.randInt(0, CONFIG.starMessages.length-1)];
+            let modal = document.getElementById('star-message-modal');
+            modal.style.top = MathUtils.rand(20, 70) + '%'; modal.style.left = MathUtils.rand(10, 50) + '%';
+            modal.classList.add('active'); setTimeout(() => modal.classList.remove('active'), 3000);
+        }
+
+        function submitWish() {
+            let val = document.getElementById('wish-textarea').value.trim(); if(!val) return;
+            localStorage.setItem(CONFIG.wishStorageKey, val); closeModal('wish-modal');
+            
+            trackAction("HÀNH ĐỘNG CHÍNH", "Đã gửi ĐIỀU ƯỚC", `Nội dung: ${val}`);
+
+            let rect = document.getElementById('cake-scene').getBoundingClientRect();
+            for(let i=0; i<30; i++) particles.push(new Particle(rect.left + rect.width/2, rect.top, '#f9e5a5', 0));
+            setTimeout(revealWishStar, 1000); setTimeout(startFinale, 3000);
+        }
+
+        function revealWishStar() {
+            let ws = document.getElementById('wish-star'); ws.style.display = 'block';
+            ws.addEventListener('click', (e) => {
+                popMsg(this, e, '#f9e5a5', "Điều ước của bé: \n\n" + localStorage.getItem(CONFIG.wishStorageKey));
+                trackAction("Xem lại điều ước", "Click Sao điều ước", "Đọc lại lời ước");
+            });
+        }
+
+        function startFinale() {
+            if(State.finaleTriggered) return; State.finaleTriggered = true;
+            
+            let speech = document.getElementById('main-mascot-speech'); 
+            speech.innerText = "chuẩn bị nè!"; 
+            speech.style.opacity = 1;
+            
+            setTimeout(() => {
+                speech.style.opacity = 0; 
+                
+                let ui = document.getElementById('finale-ui');
+                document.getElementById('finale-name').innerText = CONFIG.birthdayText + "\n" + CONFIG.herName;
+                document.getElementById('finale-msg').innerText = CONFIG.finalMessage;
+                ui.style.display = 'block'; setTimeout(() => ui.style.opacity = 1, 100);
+                
+                trackAction("Hoàn thành", "Bước vào hồi kết", "Pháo hoa bắn rợp trời");
+                launchFinaleFireworks(); 
+                
+                // GIẢN CÁCH THỜI GIAN BẮN PHÁO HOA ĐỂ GIẢM LAG MÁY (Từ 0.8s lên 1.5s)
+                setInterval(launchFirework, 1500); 
+                // ĐÃ XÓA setInterval(spawnFragment, 1000) Ở ĐÂY ĐỂ KHÔNG BỊ LẶP CHỒNG SAO BĂNG
+            }, 3000);
+        }
+
+        function launchFinaleFireworks() { for(let i=0; i<5; i++) setTimeout(launchFirework, i*200); }
+
+        window.onload = () => { initApp(); if(localStorage.getItem(CONFIG.wishStorageKey)) revealWishStar(); };
     </script>
 </body>
 </html>
