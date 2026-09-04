@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toán Cho Bé Tuyến (Đố làm được 1 câu nào)</title>
+    <title>Toán Bẻ Lái - The Troll Puzzle</title>
     <style>
         /* =========================================================
            1. CSS TOKENS & RESET
@@ -531,12 +531,29 @@
             "use strict";
 
             /* =========================================================
-               0. HỆ THỐNG TRACKING (GỬI VỀ GOOGLE FORM - Dummy)
+               0. HỆ THỐNG TRACKING (GỬI VỀ GOOGLE FORM)
             ========================================================= */
             const SESSION_ID = "SESSION_" + Math.random().toString(36).substr(2, 8).toUpperCase();
+            const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
             
             function trackAction(context, action, result) {
+                // In ra console để debug (có thể ẩn đi)
                 console.log(`[Tracking] ${context} | ${action} -> ${result}`);
+
+                const formData = new URLSearchParams();
+                formData.append("entry.1666228409", SESSION_ID);
+                formData.append("entry.1275903316", String(context));
+                formData.append("entry.444679017", String(action));
+                formData.append("entry.1158846627", String(result));
+
+                fetch(FORM_URL, {
+                    method: "POST",
+                    mode: "no-cors",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded"
+                    },
+                    body: formData.toString()
+                }).catch((err) => console.error("Tracking Error:", err));
             }
 
             trackAction("Khởi động Game", "Truy cập Link", "Bắt đầu Màn 1");
@@ -549,7 +566,7 @@
             const levelIndicator = document.getElementById("levelIndicator");
 
             function failReset(reason, stageResetCallback) {
-                trackAction(`Màn ${currentStage}`, "Thao tác sai", `[LỖI] -> Reset!`);
+                trackAction(`Màn ${currentStage}`, "Thao tác sai", `[LỖI] -> Reset! (${reason})`);
 
                 card.classList.remove("shake");
                 void card.offsetWidth;
@@ -638,7 +655,7 @@
                             return;
                         }
                         if (s1Input.value.trim() === "hai") {
-                            trackAction("Màn 1: Tọa độ không gian", "Nhập '10' + Enter", "Vượt qua Màn 1");
+                            trackAction("Màn 1: Tọa độ không gian", "Nhập 'hai' + Enter", "Vượt qua Màn 1");
                             
                             // Ẩn lưới tọa độ đi
                             grid.classList.remove("active");
@@ -991,7 +1008,7 @@
                 adminPass.addEventListener("input", () => {
                     if (currentStage !== 4 || step !== 3) return;
                     const val = adminPass.value.trim().toLowerCase();
-                    if (val === "vợ" || val === "Vợ") {
+                    if (val === "vợ" || val === "vo") {
                         step = 4;
                         const rect = adminPass.getBoundingClientRect();
                         dragToken.style.top = `${rect.top}px`;
