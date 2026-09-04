@@ -3,1751 +3,1067 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Toán Cho Bé Tuyến</title>
-
+    <title>Toán Cho Bé Tuyến 2 (Đố làm được 1 câu)</title>
     <style>
         /* =========================================================
-           1. RESET + DESIGN TOKENS
+           1. CSS TOKENS & RESET
         ========================================================= */
         :root {
-            --bg: #0c0d10;
-            --panel: #15171c;
-            --panel-2: #1d2027;
-
-            --text: #f5f5f5;
-            --muted: #9ba0aa;
-
-            --border: rgba(255, 255, 255, 0.1);
-
-            --accent: #7c5cff;
-            --accent-hover: #927aff;
-
-            --danger: #ff4d67;
-            --success: #3ddc97;
-            --warning: #ffcc66;
-
-            --transition: 0.35s ease;
+            --bg: #090a0f;
+            --panel: #141721;
+            --panel-border: rgba(255, 255, 255, 0.08);
+            --accent: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.35);
+            --danger: #ef4444;
+            --danger-glow: rgba(239, 68, 68, 0.4);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
         }
 
         * {
             box-sizing: border-box;
-        }
-
-        html,
-        body {
-            margin: 0;
-            min-height: 100%;
-        }
-
-        body {
-            min-height: 100vh;
-            overflow-x: hidden;
-
-            background:
-                radial-gradient(
-                    circle at top,
-                    rgba(124, 92, 255, 0.10),
-                    transparent 35%
-                ),
-                var(--bg);
-
-            color: var(--text);
-
-            font-family:
-                Inter,
-                ui-sans-serif,
-                system-ui,
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                sans-serif;
-        }
-
-        button,
-        input {
-            font: inherit;
-        }
-
-        button {
             user-select: none;
+            -webkit-user-select: none;
         }
 
-        /* =========================================================
-           2. KHUNG GAME CHUNG
-        ========================================================= */
-        #game {
-            width: min(920px, calc(100% - 32px));
-            min-height: 100vh;
-
-            margin: 0 auto;
-            padding: 32px 0;
-
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .game-card {
-            position: relative;
-
+        html, body {
+            margin: 0;
+            padding: 0;
             width: 100%;
-            min-height: 570px;
-
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             overflow: hidden;
-
-            display: flex;
-            flex-direction: column;
-
-            padding: 28px;
-
-            background: rgba(21, 23, 28, 0.94);
-
-            border: 1px solid var(--border);
-            border-radius: 26px;
-
-            box-shadow:
-                0 30px 80px rgba(0, 0, 0, 0.35),
-                inset 0 1px rgba(255, 255, 255, 0.03);
-
-            backdrop-filter: blur(14px);
         }
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 20px;
-
-            padding-bottom: 20px;
-
-            border-bottom: 1px solid var(--border);
+        body.inverted {
+            transform: rotate(180deg);
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
         }
 
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-
-            font-weight: 800;
-        }
-
-        .brand-icon {
-            width: 36px;
-            height: 36px;
-
-            display: grid;
-            place-items: center;
-
-            border-radius: 11px;
-
-            background: var(--accent);
-
-            box-shadow:
-                0 8px 24px rgba(124, 92, 255, 0.28);
-        }
-
-        #levelCounter {
-            color: var(--muted);
-            font-size: 0.92rem;
-        }
-
-        .levels-wrapper {
-            position: relative;
-
-            flex: 1;
-            min-height: 450px;
-        }
-
-        .level {
-            position: absolute;
+        /* Lưới không gian ẩn ở Màn 1 */
+        #coordinateGrid {
+            position: fixed;
             inset: 0;
+            background-image: 
+                linear-gradient(to right, rgba(99, 102, 241, 0.12) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(99, 102, 241, 0.12) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.25s ease;
+            z-index: 1;
+        }
+        #coordinateGrid.active {
+            opacity: 1;
+        }
 
-            padding: 40px 8px 10px;
+        /* Điểm tọa độ (1,1) hiển thị ở góc */
+        #targetCoordPoint {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            width: 40px;
+            height: 40px;
+            border: 2px dashed var(--accent);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-family: var(--font-mono);
+            color: var(--accent);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            z-index: 5;
+        }
+        #targetCoordPoint.visible {
+            opacity: 0.8;
+            pointer-events: auto;
+            cursor: crosshair;
+        }
 
+        /* Khung chính */
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-
-            transform:
-                translateY(18px)
-                scale(0.985);
-
-            transition:
-                opacity var(--transition),
-                transform var(--transition),
-                visibility var(--transition);
-        }
-
-        .level.active {
-            opacity: 1;
-            visibility: visible;
-            pointer-events: auto;
-
-            transform:
-                translateY(0)
-                scale(1);
-        }
-
-        .level-label {
-            margin-bottom: 9px;
-
-            color: var(--accent-hover);
-
-            font-size: 0.8rem;
-            font-weight: 800;
-            text-transform: uppercase;
-
-            letter-spacing: 0.16em;
-        }
-
-        h1,
-        h2,
-        p {
-            margin-top: 0;
-        }
-
-        h1 {
-            margin-bottom: 10px;
-
-            font-size: clamp(2rem, 7vw, 4.3rem);
-            line-height: 1;
-
-            text-align: center;
-        }
-
-        h2 {
-            margin-bottom: 12px;
-
-            font-size: clamp(1.65rem, 4vw, 2.55rem);
-
-            text-align: center;
-        }
-
-        .subtitle {
-            max-width: 650px;
-
-            margin-bottom: 28px;
-
-            color: var(--muted);
-
-            line-height: 1.7;
-            text-align: center;
-        }
-
-        .math {
-            font-family:
-                "SFMono-Regular",
-                Consolas,
-                "Liberation Mono",
-                monospace;
-        }
-
-        /* =========================================================
-           3. BUTTON CHUNG
-        ========================================================= */
-        .btn {
-            min-width: 110px;
-
-            padding: 13px 20px;
-
-            color: var(--text);
-            background: var(--panel-2);
-
-            border: 1px solid var(--border);
-            border-radius: 13px;
-
-            cursor: pointer;
-
-            transition:
-                transform 0.18s ease,
-                background 0.18s ease,
-                border-color 0.18s ease,
-                box-shadow 0.18s ease;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-
-            background: #262a33;
-
-            border-color:
-                rgba(255, 255, 255, 0.2);
-        }
-
-        .btn:active {
-            transform:
-                translateY(0)
-                scale(0.97);
-        }
-
-        .btn:focus-visible {
-            outline:
-                3px solid
-                rgba(124, 92, 255, 0.45);
-
-            outline-offset: 4px;
-        }
-
-        .btn-primary {
-            background: var(--accent);
-            border-color: transparent;
-            font-weight: 700;
-        }
-
-        .btn-primary:hover {
-            background: var(--accent-hover);
-        }
-
-        /* =========================================================
-           4. MESSAGE
-        ========================================================= */
-        .message {
-            min-height: 26px;
-            margin-top: 20px;
-
-            font-weight: 700;
-            text-align: center;
-
-            opacity: 0;
-            transform: translateY(5px);
-
-            transition:
-                opacity 0.25s ease,
-                transform 0.25s ease;
-        }
-
-        .message.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .message.error {
-            color: var(--danger);
-        }
-
-        .message.success {
-            color: var(--success);
-        }
-
-        /* =========================================================
-           5. HIỆU ỨNG RUNG
-        ========================================================= */
-        @keyframes shake {
-            0%,
-            100% {
-                transform: translateX(0);
-            }
-
-            15% {
-                transform: translateX(-10px);
-            }
-
-            30% {
-                transform: translateX(9px);
-            }
-
-            45% {
-                transform: translateX(-7px);
-            }
-
-            60% {
-                transform: translateX(6px);
-            }
-
-            75% {
-                transform: translateX(-3px);
-            }
-        }
-
-        .shake {
-            animation: shake 0.42s ease;
-        }
-
-        /* =========================================================
-           6. LEVEL 1
-        ========================================================= */
-        #level1 {
-            cursor: default;
-        }
-
-        #binaryQuestion {
-            margin: 0;
-
-            color: var(--text);
-
-            font-size: clamp(3rem, 10vw, 7rem);
-            font-weight: 900;
-            letter-spacing: -0.06em;
-
-            transition:
-                color 0.3s ease,
-                text-shadow 0.3s ease,
-                transform 0.3s ease;
-        }
-
-        @keyframes binaryWrongFlash {
-            0%,
-            100% {
-                color: var(--text);
-                text-shadow: none;
-            }
-
-            20%,
-            60% {
-                color: var(--danger);
-
-                text-shadow:
-                    0 0 24px
-                    rgba(255, 77, 103, 0.4);
-            }
-
-            40%,
-            80% {
-                color: #ff9aaa;
-
-                text-shadow:
-                    0 0 8px
-                    rgba(255, 77, 103, 0.18);
-            }
-        }
-
-        #binaryQuestion.wrong {
-            animation:
-                binaryWrongFlash
-                0.65s ease;
-        }
-
-        #binaryQuestion.correct {
-            color: var(--success);
-
-            text-shadow:
-                0 0 30px
-                rgba(61, 220, 151, 0.16);
-
-            transform: scale(1.04);
-        }
-
-        #mouseHint {
-            position: fixed;
-
-            right: 24px;
-            bottom: 18px;
-
-            z-index: 30;
-
-            max-width: min(420px, calc(100vw - 40px));
-
-            margin: 0;
-
-            color: rgba(255, 255, 255, 0.32);
-
-            font-size: 0.78rem;
-            line-height: 1.5;
-            text-align: right;
-
-            opacity: 0;
-            transform: translateY(5px);
-
-            pointer-events: none;
-
-            transition:
-                opacity 0.35s ease,
-                transform 0.35s ease;
-        }
-
-        #mouseHint.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        #binaryMessage {
-            position: absolute;
-
-            left: 50%;
-            bottom: 38px;
-
-            width: min(600px, calc(100% - 30px));
-
-            margin: 0;
-
-            transform: translateX(-50%) translateY(5px);
-
-            text-align: center;
-        }
-
-        #binaryMessage.show {
-            transform: translateX(-50%) translateY(0);
-        }
-
-        /* =========================================================
-           7. LEVEL 2
-        ========================================================= */
-        #level2 {
-            justify-content: flex-start;
-        }
-
-        .escape-info {
-            flex-shrink: 0;
+            position: relative;
             z-index: 2;
         }
 
-        .escape-arena {
-            position: relative;
-
-            width: 100%;
-            flex: 1;
-            min-height: 300px;
-
-            overflow: hidden;
-
-            border:
-                1px dashed
-                rgba(255, 255, 255, 0.14);
-
-            border-radius: 18px;
-
-            background:
-                linear-gradient(
-                    rgba(255,255,255,0.015),
-                    rgba(255,255,255,0.015)
-                ),
-                repeating-linear-gradient(
-                    0deg,
-                    transparent,
-                    transparent 32px,
-                    rgba(255,255,255,0.025) 33px
-                ),
-                repeating-linear-gradient(
-                    90deg,
-                    transparent,
-                    transparent 32px,
-                    rgba(255,255,255,0.025) 33px
-                );
-        }
-
-        #runawayButton {
-            position: absolute;
-
-            top: 50%;
-            left: 50%;
-
-            min-width: 150px;
-
-            transform:
-                translate(-50%, -50%);
-
-            z-index: 5;
-        }
-
-        #runawayButton.moving {
-            transform: none;
-        }
-
-        .hint {
-            margin-top: 15px;
-
-            color: #777d89;
-
-            font-size: 0.86rem;
-            text-align: center;
-        }
-
-        kbd {
-            padding: 2px 7px;
-
-            color: #ddd;
-            background: #252830;
-
-            border: 1px solid #3c414d;
-            border-bottom-width: 2px;
-            border-radius: 6px;
-
-            font-family: inherit;
-            font-size: 0.82em;
-        }
-
-        /* =========================================================
-           8. LEVEL 3
-        ========================================================= */
-        #level3 {
-            overflow: visible;
-        }
-
-        .equation {
-            position: relative;
-
-            max-width: 100%;
-
-            margin: 8px 0 24px;
-            padding: 16px 20px;
-
-            overflow-x: auto;
-
-            color: var(--warning);
-            background: #101216;
-
-            border: 1px solid var(--border);
-            border-radius: 14px;
-
-            font-size:
-                clamp(1.05rem, 3.5vw, 1.7rem);
-
-            font-weight: 800;
-            white-space: nowrap;
-
-            transform-origin: center;
-
-            transition:
-                transform 0.7s
-                    cubic-bezier(.68, -.4, .32, 1.5),
-                opacity 0.7s ease,
-                filter 0.7s ease;
-        }
-
-        .equation.destroyed {
-            opacity: 0;
-
-            filter: blur(5px);
-
-            transform:
-                translateY(220px)
-                rotate(18deg)
-                scale(0.05);
-        }
-
-        .ai-area {
+        .card {
+            width: min(840px, 92vw);
+            min-height: 520px;
+            background: var(--panel);
+            border: 1px solid var(--panel-border);
+            border-radius: 24px;
+            padding: 36px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
             display: flex;
             flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: all 0.4s ease;
+        }
+
+        /* HIỆU ỨNG THÀNH CÔNG (CHUYỂN XANH LÁ) */
+        .card.success-flash {
+            border-color: var(--success) !important;
+            box-shadow: 0 0 80px rgba(16, 185, 129, 0.6) !important;
+            background: rgba(16, 185, 129, 0.08) !important;
+        }
+
+        /* Header bar */
+        .header {
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            gap: 13px;
+            border-bottom: 1px solid var(--panel-border);
+            padding-bottom: 16px;
+            margin-bottom: 24px;
+            transition: opacity 0.3s;
+        }
+        .header .title {
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: 0.05em;
+            color: var(--text);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .header .level-badge {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            border: 1px solid var(--panel-border);
+            font-family: var(--font-mono);
         }
 
-        #aiSolveButton {
-            min-width: 210px;
+        /* Màn chơi */
+        .stage {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .stage.active {
+            display: flex;
         }
 
-        #aiProgress {
-            min-height: 24px;
-
-            color: var(--muted);
-
-            font-family:
-                "SFMono-Regular",
-                Consolas,
-                monospace;
-
-            font-size: 0.92rem;
-
-            transition: color 0.25s ease;
+        /* Hiệu ứng Rung (Shake) */
+        @keyframes shakeAnim {
+            0%, 100% { transform: translate(0, 0); }
+            20% { transform: translate(-10px, 4px); }
+            40% { transform: translate(10px, -4px); }
+            60% { transform: translate(-8px, -2px); }
+            80% { transform: translate(8px, 2px); }
         }
-
-        #aiProgress.stuck {
-            color: var(--warning);
-        }
-
-        .ai-smallprint {
-            max-width: 500px;
-
-            margin: 0;
-
-            color: #707580;
-
-            font-size: 0.82rem;
-            text-align: center;
-            line-height: 1.6;
+        .shake {
+            animation: shakeAnim 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+            border-color: var(--danger) !important;
+            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4) !important;
         }
 
         /* =========================================================
-           9. CUSTOM CONTEXT MENU
+           STAGE 1 STYLES
         ========================================================= */
+        #s1-math {
+            font-size: clamp(3.5rem, 8vw, 6rem);
+            font-weight: 900;
+            font-family: var(--font-mono);
+            letter-spacing: -2px;
+            transition: color 0.3s;
+        }
+        #s1-input {
+            position: absolute;
+            width: 140px;
+            padding: 10px 14px;
+            background: #0f1117;
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            color: var(--text);
+            font-size: 1.2rem;
+            text-align: center;
+            outline: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: top 0.2s, left 0.2s, background-color 0.3s, border-color 0.3s;
+        }
+        #s1-input.visible {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* =========================================================
+           STAGE 2 STYLES
+        ========================================================= */
+        #bombButton {
+            padding: 24px 44px;
+            font-size: 1.4rem;
+            font-weight: 800;
+            border-radius: 18px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            background: var(--accent);
+            box-shadow: 0 10px 30px var(--accent-glow);
+            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+        }
+        #bombButton.ticking {
+            background: var(--danger);
+            box-shadow: 0 0 40px var(--danger-glow);
+            animation: pulseBomb 0.5s infinite alternate;
+        }
+        #bombButton.frozen {
+            background: #0284c7;
+            box-shadow: 0 0 30px rgba(2, 132, 199, 0.5);
+            animation: none;
+        }
+        @keyframes pulseBomb {
+            from { transform: scale(1); }
+            to { transform: scale(1.05); }
+        }
+
+        /* Custom Context Menu */
         #customContextMenu {
             position: fixed;
-
-            top: 0;
-            left: 0;
-
-            z-index: 10000;
-
-            width: 245px;
-
-            padding: 5px;
-
+            background: #1e2230;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
             display: none;
-
-            color: #1f1f1f;
-
-            background:
-                rgba(250, 250, 250, 0.98);
-
-            border:
-                1px solid
-                rgba(0, 0, 0, 0.16);
-
-            border-radius: 7px;
-
-            box-shadow:
-                0 12px 35px
-                rgba(0, 0, 0, 0.32),
-                0 2px 7px
-                rgba(0, 0, 0, 0.14);
-
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                Arial,
-                sans-serif;
-
-            font-size: 13px;
-
-            user-select: none;
-
-            backdrop-filter: blur(14px);
+            flex-direction: column;
+            padding: 6px;
+            z-index: 1000;
         }
-
-        #customContextMenu.show {
-            display: block;
-
-            animation:
-                contextAppear
-                0.08s ease-out;
+        #customContextMenu.active {
+            display: flex;
         }
-
-        @keyframes contextAppear {
-            from {
-                opacity: 0;
-
-                transform:
-                    scale(0.98)
-                    translateY(-2px);
-            }
-
-            to {
-                opacity: 1;
-
-                transform:
-                    scale(1)
-                    translateY(0);
-            }
-        }
-
-        .context-item {
-            width: 100%;
-
+        .context-opt {
+            padding: 8px 18px;
+            border: none;
+            background: transparent;
+            color: var(--text);
+            font-size: 0.9rem;
+            text-align: left;
+            border-radius: 6px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: space-between;
             gap: 16px;
-
-            padding: 7px 10px;
-
-            color: #202124;
-            background: transparent;
-
-            border: 0;
-            border-radius: 4px;
-
-            cursor: default;
-            text-align: left;
+        }
+        .context-opt:hover {
+            background: var(--accent);
         }
 
-        .context-item:hover {
-            color: #fff;
-            background: #3478f6;
-        }
-
-        .context-item-label {
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .context-shortcut {
-            flex-shrink: 0;
-            color: #777;
-            font-size: 11px;
-        }
-
-        .context-item:hover .context-shortcut {
-            color:
-                rgba(255, 255, 255, 0.82);
-        }
-
-        .context-divider {
-            height: 1px;
-
-            margin: 4px 5px;
-
-            background:
-                rgba(0, 0, 0, 0.12);
-        }
-
-        .context-item.delete {
-            color: #d93025;
-        }
-
-        .context-item.delete:hover {
-            color: #fff;
-            background: #d93025;
-        }
-
-        /* =========================================================
-           10. LEVEL 4
-        ========================================================= */
-        .network {
-            position: relative;
-
-            width: min(580px, 100%);
-            height: 145px;
-
-            margin-bottom: 22px;
-            overflow: hidden;
-
-            background:
-                radial-gradient(
-                    circle at 10% 50%,
-                    var(--accent) 0 4px,
-                    transparent 5px
-                ),
-                radial-gradient(
-                    circle at 30% 18%,
-                    var(--success) 0 4px,
-                    transparent 5px
-                ),
-                radial-gradient(
-                    circle at 34% 78%,
-                    var(--warning) 0 4px,
-                    transparent 5px
-                ),
-                radial-gradient(
-                    circle at 60% 28%,
-                    var(--danger) 0 4px,
-                    transparent 5px
-                ),
-                radial-gradient(
-                    circle at 66% 80%,
-                    var(--accent) 0 4px,
-                    transparent 5px
-                ),
-                radial-gradient(
-                    circle at 90% 50%,
-                    var(--success) 0 4px,
-                    transparent 5px
-                ),
-                #101216;
-
-            border: 1px solid var(--border);
-            border-radius: 18px;
-        }
-
-        .network-line {
-            position: absolute;
-
-            height: 1px;
-
-            background:
-                rgba(255, 255, 255, 0.16);
-
-            transform-origin: left center;
-        }
-
-        .flow-form {
-            width: min(520px, 100%);
-
-            display: flex;
-            gap: 10px;
-        }
-
-        #flowInput {
-            min-width: 0;
-            flex: 1;
-
-            padding: 14px 16px;
-
-            color: var(--text);
-            background: #0f1115;
-
-            border: 1px solid var(--border);
-            border-radius: 12px;
-
-            outline: none;
-
-            transition:
-                border-color 0.25s ease,
-                box-shadow 0.25s ease,
-                background 0.25s ease;
-        }
-
-        #flowInput:focus {
-            border-color: var(--accent);
-
-            box-shadow:
-                0 0 0 4px
-                rgba(124, 92, 255, 0.12);
-        }
-
-        #flowInput.infinity {
-            color: #092619;
-            background: var(--success);
-
-            border-color: var(--success);
-
-            box-shadow:
-                0 0 0 4px
-                rgba(61, 220, 151, 0.12),
-                0 0 36px
-                rgba(61, 220, 151, 0.16);
-
+        #safeButton {
+            display: none;
+            padding: 20px 40px;
             font-size: 1.25rem;
-            font-weight: 900;
+            font-weight: 800;
+            border-radius: 16px;
+            border: none;
+            cursor: pointer;
+            background: var(--success);
+            color: #fff;
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
         }
 
-        .victory {
-            margin-top: 18px;
+        /* =========================================================
+           STAGE 3 STYLES
+        ========================================================= */
+        #s3-equation {
+            font-size: 2.8rem;
+            font-weight: 800;
+            font-family: var(--font-mono);
+            padding: 16px 24px;
+            background: #0f121a;
+            border-radius: 16px;
+            border: 1px solid var(--panel-border);
+            margin-bottom: 30px;
+        }
+        #s3-x2 {
+            display: inline-block;
+            cursor: text;
+            user-select: text;
+            -webkit-user-select: text;
+            padding: 2px 4px;
+            border-radius: 4px;
+        }
+        #s3-x2.fall {
+            animation: fallAnimation 0.8s forwards cubic-bezier(0.55, 0.055, 0.675, 0.19);
+        }
+        @keyframes fallAnimation {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(320px) rotate(45deg); opacity: 0; }
+        }
 
+        .quantum-pool {
+            display: flex;
+            gap: 24px;
+            min-height: 80px;
+            align-items: center;
+        }
+        .quantum-pill {
+            padding: 14px 28px;
+            background: #1e2433;
+            border: 2px solid var(--panel-border);
+            border-radius: 14px;
+            font-size: 1.6rem;
+            font-family: var(--font-mono);
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.25s ease;
+        }
+        .quantum-pill.selected-quantum {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.15);
+            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+            transform: scale(1.05);
+        }
+
+        /* =========================================================
+           STAGE 4 STYLES
+        ========================================================= */
+        .admin-form {
+            width: min(420px, 100%);
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            background: #0f121a;
+            padding: 28px;
+            border-radius: 18px;
+            border: 1px solid var(--panel-border);
+            position: relative;
+            transition: transform 0.6s ease, opacity 0.6s ease;
+        }
+        .admin-form.shattered {
+            transform: scale(0.1) rotate(60deg);
             opacity: 0;
-            transform: scale(0.92);
-
-            color: var(--success);
-
-            font-size:
-                clamp(1.1rem, 3vw, 1.45rem);
-
-            font-weight: 900;
-            text-align: center;
-
-            transition:
-                opacity 0.45s ease,
-                transform 0.45s
-                    cubic-bezier(.2, .8, .2, 1.2);
-        }
-
-        .victory.show {
-            opacity: 1;
-            transform: scale(1);
-        }
-
-        /* =========================================================
-           11. CONFETTI
-        ========================================================= */
-        #confettiContainer {
-            position: fixed;
-            inset: 0;
-
-            overflow: hidden;
-
             pointer-events: none;
-
-            z-index: 9999;
         }
 
-        .confetti {
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        #adminPass {
+            width: 100%;
+            padding: 14px 16px;
+            background: #181d2a;
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            color: #fff;
+            font-size: 1.1rem;
+            outline: none;
+        }
+        #adminPass:disabled {
+            background: #10131c;
+            color: #475569;
+            cursor: not-allowed;
+        }
+
+        #lockTarget {
+            font-size: 2.2rem;
+            margin-left: 12px;
+            cursor: default;
+            transition: transform 0.2s, filter 0.3s;
+        }
+        #lockTarget.unlocked {
+            filter: drop-shadow(0 0 15px var(--success));
+        }
+
+        /* Nút gạt bí mật góc form */
+        #secretToggle {
             position: absolute;
-
-            top: -20px;
-
+            bottom: 12px;
+            right: 12px;
+            width: 28px;
+            height: 14px;
+            background: #334155;
+            border-radius: 10px;
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.4s, background 0.3s;
+        }
+        #secretToggle.visible {
+            opacity: 0.4;
+        }
+        #secretToggle.visible:hover {
+            opacity: 1;
+        }
+        #secretToggle::after {
+            content: "";
+            position: absolute;
             width: 10px;
-            height: 16px;
-
-            border-radius: 2px;
-
-            animation:
-                confettiFall
-                linear forwards;
+            height: 10px;
+            border-radius: 50%;
+            background: #fff;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.2s;
+        }
+        #secretToggle.on {
+            background: var(--accent);
+            opacity: 1;
+        }
+        #secretToggle.on::after {
+            transform: translateX(14px);
         }
 
-        @keyframes confettiFall {
-            0% {
-                opacity: 1;
-
-                transform:
-                    translateY(-20px)
-                    rotate(0deg);
-            }
-
-            100% {
-                opacity: 0.15;
-
-                transform:
-                    translateY(calc(100vh + 60px))
-                    rotate(900deg);
-            }
+        /* Token chữ 'vợ' có thể kéo */
+        #dragVoToken {
+            position: absolute;
+            display: none;
+            padding: 6px 14px;
+            background: var(--accent);
+            color: #fff;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: grab;
+            box-shadow: 0 4px 15px var(--accent-glow);
+            z-index: 100;
+        }
+        #dragVoToken:active {
+            cursor: grabbing;
         }
 
-        /* =========================================================
-           12. RESPONSIVE
-        ========================================================= */
-        @media (max-width: 650px) {
-            #game {
-                width: min(100% - 20px, 920px);
-                padding: 10px 0;
-            }
-
-            .game-card {
-                min-height: calc(100vh - 20px);
-
-                padding: 20px 16px;
-
-                border-radius: 20px;
-            }
-
-            .level {
-                padding-top: 28px;
-            }
-
-            .flow-form {
-                flex-direction: column;
-            }
-
-            .flow-form .btn {
-                width: 100%;
-            }
-
-            .escape-arena {
-                min-height: 330px;
-            }
-
-            #customContextMenu {
-                width: 220px;
-            }
-
-            #mouseHint {
-                right: 14px;
-                bottom: 12px;
-            }
+        /* Màn Victory */
+        #victoryScreen {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 16px;
         }
-
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                scroll-behavior: auto !important;
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-            }
+        #victoryScreen h1 {
+            font-size: 2.5rem;
+            color: var(--success);
+            margin: 0;
+            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
         }
     </style>
 </head>
-
 <body>
 
-    <div
-        id="confettiContainer"
-        aria-hidden="true"
-    ></div>
+    <div id="coordinateGrid"></div>
+    <div id="targetCoordPoint">(Gốc)</div>
 
-
-    <!-- =========================================================
-         CUSTOM CONTEXT MENU - DÙNG CHO LEVEL 3
-    ========================================================== -->
-    <div
-        id="customContextMenu"
-        role="menu"
-        aria-hidden="true"
-    >
-        <button
-            class="context-item"
-            type="button"
-            data-context-action="inspect"
-        >
-            <span class="context-item-label">
-                Inspect Element
-            </span>
-
-            <span class="context-shortcut">
-                F12
-            </span>
-        </button>
-
-        <button
-            class="context-item"
-            type="button"
-            data-context-action="copy"
-        >
-            <span class="context-item-label">
-                Copy đề bài
-            </span>
-
-            <span class="context-shortcut">
-                Ctrl+C
-            </span>
-        </button>
-
-        <div
-            class="context-divider"
-            aria-hidden="true"
-        ></div>
-
-        <button
-            class="context-item delete"
-            type="button"
-            data-context-action="delete"
-        >
-            <span class="context-item-label">
-                Xóa phương trình
-            </span>
-
-            <span class="context-shortcut">
-                Delete
-            </span>
+    <div id="customContextMenu">
+        <button class="context-opt" id="cutBtn">
+            <span>Cắt (Cut)</span>
+            <span style="color:#64748b; font-size: 0.75rem;">Ctrl+X</span>
         </button>
     </div>
 
+    <div id="dragVoToken">vợ</div>
 
-    <!-- Hint chuột của Level 1 -->
-    <p id="mouseHint">
-        
-    </p>
-
-
-    <main id="game">
-
-        <section
-            class="game-card"
-            id="gameCard"
-        >
-
-            <header class="topbar">
-
-                <div class="brand">
-                    <div class="brand-icon">
-                        ∑
-                    </div>
-
-                    <span>
-                        Toán Bịp Cho Bé Tuyến
-                    </span>
+    <main id="gameContainer">
+        <div class="card" id="gameCard">
+            <header class="header">
+                <div class="title">
+                    <span style="color:var(--accent);">∑</span> TOÁN BẺ LÁI
                 </div>
-
-                <div id="levelCounter">
-                    Màn 1 / 4
-                </div>
-
+                <div class="level-badge" id="levelIndicator">Màn 1 / 4</div>
             </header>
 
+            <!-- ================= STAGE 1 ================= -->
+            <section class="stage active" id="stage1">
+                <div id="s1-math">1 + 1 = ?</div>
+                <input type="text" id="s1-input" autocomplete="off">
+            </section>
 
-            <div class="levels-wrapper">
+            <!-- ================= STAGE 2 ================= -->
+            <section class="stage" id="stage2">
+                <button id="bombButton">Bấm vào để qua màn</button>
+                <button id="safeButton">Qua màn an toàn</button>
+            </section>
 
-                <!-- =================================================
-                     LEVEL 1
-                ================================================== -->
-                <div
-                    class="level active"
-                    id="level1"
-                >
+            <!-- ================= STAGE 3 ================= -->
+            <section class="stage" id="stage3">
+                <div id="s3-equation">
+                    Giải pt: <span id="s3-x2">x²</span> - 1 = 0
+                </div>
+                <div class="quantum-pool" id="quantumPool"></div>
+            </section>
 
-                    <h1
-                        class="math"
-                        id="binaryQuestion"
-                    >
-                        1 + 1 = ?
-                    </h1>
-
-                    <div
-                        class="message"
-                        id="binaryMessage"
-                        aria-live="polite"
-                    ></div>
-
+            <!-- ================= STAGE 4 ================= -->
+            <section class="stage" id="stage4">
+                <div class="admin-form" id="adminForm">
+                    <h3 style="margin:0 0 10px 0; font-size:1.1rem; color:var(--text-muted);">XÁC THỰC QUYỀN TRUY CẬP</h3>
+                    <div class="input-wrapper">
+                        <input type="password" id="adminPass" disabled>
+                        <div id="lockTarget">🔒</div>
+                    </div>
+                    <div id="secretToggle"></div>
                 </div>
 
-
-                <!-- =================================================
-                     LEVEL 2
-                ================================================== -->
-                <div
-                    class="level"
-                    id="level2"
-                >
-
-                    <div class="escape-info">
-
-                        <div class="level-label">
-                            Màn 02 • Nút bấm phản xạ
-                        </div>
-
-                        <h2>
-                            Hãy bấm vào đáp án đúng
-                            để đi tiếp
-                        </h2>
-
-                        <p class="subtitle">
-                            Không cần tính toán.
-                            Chỉ cần bấm đúng một cái nút thôi.
-                        </p>
-
-                    </div>
-
-                    <div
-                        class="escape-arena"
-                        id="escapeArena"
-                    >
-
-                        <button
-                            class="btn btn-primary"
-                            id="runawayButton"
-                            type="button"
-                        >
-                            Đáp án đúng
-                        </button>
-
-                    </div>
-
-                    <div class="hint">
-                        Gợi ý:
-                        Có những thứ chuột không bắt được,
-                        nhưng <kbd>Tab</kbd> thì có thể.
-                    </div>
-
-                </div>
-
-
-                <!-- =================================================
-                     LEVEL 3
-                ================================================== -->
-                <div
-                    class="level"
-                    id="level3"
-                >
-
-                    <div class="level-label">
-                        Màn 03 • Định lý Viète Vật lý
-                    </div>
-
-                    <h2>
-                        Giải phương trình tìm x₁, x₂
-                    </h2>
-
-                    <div
-                        class="equation math"
-                        id="equation"
-                    >
-                        2026x² - 9999x + 42 = 0
-                    </div>
-
-                    <p class="subtitle">
-                        Bài này hơi dài.
-                        May mà thời đại AI đã đến.
+                <div id="victoryScreen">
+                    <h1>🎉 PHÁ ĐẢO THÀNH CÔNG! 🎉</h1>
+                    <p style="color: var(--text-muted); font-size:1.1rem;">
+                        Hong có gợi ý làm được mới lạ
                     </p>
-
-                    <div class="ai-area">
-
-                        <button
-                            class="btn btn-primary"
-                            id="aiSolveButton"
-                            type="button"
-                        >
-                            Giải bằng AI
-                        </button>
-
-                        <div
-                            id="aiProgress"
-                            aria-live="polite"
-                        ></div>
-
-                        <p class="ai-smallprint">
-                            Hệ thống AI toán học siêu cấp
-                            có thể cần một khoảng thời gian
-                            hoàn toàn không đáng ngờ.
-                        </p>
-
-                    </div>
-
                 </div>
-
-
-                <!-- =================================================
-                     LEVEL 4
-                ================================================== -->
-                <div
-                    class="level"
-                    id="level4"
-                >
-
-                    <div class="level-label">
-                        Màn 04 • Biến số tình cảm của chồng
-                    </div>
-
-                    <h2>
-                        Trùm cuối: Tìm giá trị cực đại
-                    </h2>
-
-                    <div
-                        class="network"
-                        aria-hidden="true"
-                    >
-
-                        <span class="network-line" style="width: 30%; left: 10%; top: 50%; transform: rotate(-25deg);"></span>
-                        <span class="network-line" style="width: 30%; left: 10%; top: 50%; transform: rotate(27deg);"></span>
-                        <span class="network-line" style="width: 34%; left: 30%; top: 18%; transform: rotate(9deg);"></span>
-                        <span class="network-line" style="width: 39%; left: 30%; top: 18%; transform: rotate(59deg);"></span>
-                        <span class="network-line" style="width: 32%; left: 34%; top: 78%; transform: rotate(-56deg);"></span>
-                        <span class="network-line" style="width: 33%; left: 34%; top: 78%; transform: rotate(4deg);"></span>
-                        <span class="network-line" style="width: 31%; left: 60%; top: 28%; transform: rotate(28deg);"></span>
-                        <span class="network-line" style="width: 31%; left: 66%; top: 80%; transform: rotate(-36deg);"></span>
-
-                    </div>
-
-                    <p class="subtitle">
-                        Bài toán:
-                        Tìm giá trị cực đại của
-                        <strong>tình cảm</strong>
-                        cho chồng.
-                        Nhập giá trị cực đại:
-                    </p>
-
-                    <form
-                        class="flow-form"
-                        id="flowForm"
-                    >
-
-                        <input
-                            type="text"
-                            id="flowInput"
-                            placeholder="Nhập giá trị..."
-                            autocomplete="off"
-                            aria-label="Giá trị"
-                        >
-
-                        <button
-                            class="btn btn-primary"
-                            type="submit"
-                        >
-                            Xác nhận
-                        </button>
-
-                    </form>
-
-                    <div
-                        class="message"
-                        id="level4Message"
-                        aria-live="polite"
-                    ></div>
-
-                    <div
-                        class="victory"
-                        id="victoryMessage"
-                    >
-                        Đáp án đúng ròi
-                        Vợ đã phá đảo! 🎉
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
+            </section>
+        </div>
     </main>
-
 
     <script>
         (() => {
             "use strict";
 
-            /* =====================================================
-               0. HỆ THỐNG TRACKING (GỬI VỀ GOOGLE FORM)
-            ===================================================== */
-            const SESSION_ID = "VO_YEU_" + Math.random().toString(36).substr(2, 6).toUpperCase();
-            const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-
-            function trackAction(noiDung, luaChon, traLai) {
-                const formData = new URLSearchParams();
-                formData.append("entry.1666228409", SESSION_ID);
-                formData.append("entry.1275903316", noiDung);
-                formData.append("entry.444679017", luaChon);
-                formData.append("entry.1158846627", traLai);
-
-                fetch(FORM_URL, {
-                    method: "POST",
-                    mode: "no-cors", // Bắt buộc để vượt qua lỗi CORS của Google Form
-                    body: formData,
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    }
-                }).catch(err => console.error("Tracking Error:", err));
+            /* =========================================================
+               0. HỆ THỐNG TRACKING (GỬI VỀ GOOGLE FORM - Dummy)
+            ========================================================= */
+            const SESSION_ID = "SESSION_" + Math.random().toString(36).substr(2, 8).toUpperCase();
+            
+            function trackAction(context, action, result) {
+                console.log(`[Tracking] ${context} | ${action} -> ${result}`);
             }
 
-            // Ghi nhận ngay khi game vừa mở lên
-            trackAction("Bắt đầu game", "Mở Link", "Đang ở màn 1");
+            trackAction("Khởi động Game", "Truy cập Link", "Bắt đầu Màn 1");
 
-            /* =====================================================
-               1. TRẠNG THÁI GAME
-            ===================================================== */
-            const TOTAL_LEVELS = 4;
-            let currentLevel = 1;
+            /* =========================================================
+               CORE STATE & ENGINE
+            ========================================================= */
+            let currentStage = 1;
+            const card = document.getElementById("gameCard");
+            const levelIndicator = document.getElementById("levelIndicator");
 
-            const gameCard = document.getElementById("gameCard");
-            const levelCounter = document.getElementById("levelCounter");
+            function failReset(reason, stageResetCallback) {
+                trackAction(`Màn ${currentStage}`, "Thao tác sai", `[LỖI] -> Reset!`);
 
-            function goToLevel(levelNumber) {
-                if (levelNumber < 1 || levelNumber > TOTAL_LEVELS) return;
+                card.classList.remove("shake");
+                void card.offsetWidth;
+                card.classList.add("shake");
+                
+                if (typeof stageResetCallback === "function") {
+                    setTimeout(() => {
+                        card.classList.remove("shake");
+                        stageResetCallback();
+                    }, 800);
+                }
+            }
 
-                currentLevel = levelNumber;
+            function nextStage(stageNumber) {
+                trackAction("Chuyển Màn", `Hoàn thành Màn ${currentStage}`, `Sang Màn ${stageNumber}`);
+                document.querySelectorAll(".stage").forEach(s => s.classList.remove("active"));
+                document.getElementById(`stage${stageNumber}`).classList.add("active");
+                currentStage = stageNumber;
+                levelIndicator.textContent = `Màn ${stageNumber} / 4`;
+            }
 
-                hideContextMenu();
-                mouseHint.classList.remove("show");
+            // HÀM HIỆU ỨNG THÀNH CÔNG RỒI MỚI CHUYỂN MÀN
+            function triggerSuccessAndNextStage(nextStageNumber, initCallback) {
+                // Thêm class làm xanh giao diện
+                card.classList.add("success-flash");
+                
+                // Đợi 1.5 giây để người chơi nhìn thấy hiệu ứng rồi mới chuyển
+                setTimeout(() => {
+                    card.classList.remove("success-flash");
+                    nextStage(nextStageNumber);
+                    if (initCallback) initCallback();
+                }, 1500); 
+            }
 
-                document.querySelectorAll(".level").forEach((level) => {
-                    level.classList.remove("active");
+            /* =========================================================
+               MÀN 1: TỌA ĐỘ KHÔNG GIAN (1 + 1 = ?)
+            ========================================================= */
+            const Stage1 = (() => {
+                let step = 1;
+                let isShiftPressed = false;
+                const grid = document.getElementById("coordinateGrid");
+                const targetPoint = document.getElementById("targetCoordPoint");
+                const s1Input = document.getElementById("s1-input");
+                const s1Math = document.getElementById("s1-math");
+
+                function reset() {
+                    step = 1;
+                    isShiftPressed = false;
+                    grid.classList.remove("active");
+                    targetPoint.classList.remove("visible");
+                    s1Input.classList.remove("visible");
+                    s1Input.value = "";
+                    s1Input.style.backgroundColor = "";
+                    s1Input.style.borderColor = "";
+                    s1Math.style.color = "";
+                    s1Input.blur();
+                }
+
+                window.addEventListener("keydown", (e) => {
+                    if (currentStage !== 1) return;
+
+                    if (e.key === "Shift" && !isShiftPressed) {
+                        isShiftPressed = true;
+                        grid.classList.add("active");
+                        targetPoint.classList.add("visible");
+                        if (step === 1) {
+                            step = 2;
+                            trackAction("Màn 1: Tọa độ không gian", "Nhấn giữ Shift", "Hiện lưới tọa độ");
+                        }
+                    }
+
+                    if (e.key === "Tab") {
+                        if (step === 3 && isShiftPressed) {
+                            e.preventDefault();
+                            s1Input.focus();
+                            step = 4;
+                            trackAction("Màn 1: Tọa độ không gian", "Nhấn phím Tab", "Focus vào ô input");
+                        } else if (step === 3 && !isShiftPressed) {
+                            failReset("Bạn không giữ Shift khi chuyển Tab!", reset);
+                        }
+                    }
+
+                    if (e.key === "Enter" && step === 4) {
+                        if (!isShiftPressed) {
+                            failReset("Nhả Shift trước khi nhấn Enter!", reset);
+                            return;
+                        }
+                        if (s1Input.value.trim() === "hai") {
+                            trackAction("Màn 1: Tọa độ không gian", "Nhập '10' + Enter", "Vượt qua Màn 1");
+                            
+                            // Ẩn lưới tọa độ đi
+                            grid.classList.remove("active");
+                            targetPoint.classList.remove("visible");
+                            
+                            // Tạo hiệu ứng nhỏ cho input & chữ
+                            s1Input.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
+                            s1Input.style.borderColor = "var(--success)";
+                            s1Math.style.color = "var(--success)";
+                            s1Math.textContent = "1 + 1 = hai";
+
+                            // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
+                            triggerSuccessAndNextStage(2, Stage2.init);
+                        } else {
+                            failReset("Mã xác nhận bị từ chối! Nhị phân của 2 là gì?", reset);
+                        }
+                    }
                 });
 
-                const nextLevel = document.getElementById(`level${levelNumber}`);
-                nextLevel.classList.add("active");
+                window.addEventListener("keyup", (e) => {
+                    if (currentStage !== 1) return;
+                    if (e.key === "Shift") {
+                        isShiftPressed = false;
+                        grid.classList.remove("active");
+                        targetPoint.classList.remove("visible");
+                        if (step > 1 && step < 5) {
+                            failReset("Nhả phím Shift quá sớm!", reset);
+                        }
+                    }
+                });
 
-                levelCounter.textContent = `Màn ${levelNumber} / ${TOTAL_LEVELS}`;
-            }
+                window.addEventListener("mousedown", (e) => {
+                    if (currentStage !== 1) return;
 
-            /* =====================================================
-               2. UTILITIES
-            ===================================================== */
-            function shakeGame() {
-                gameCard.classList.remove("shake");
-                void gameCard.offsetWidth;
-                gameCard.classList.add("shake");
-            }
+                    if (step === 2) {
+                        if (isShiftPressed && e.clientX <= 60 && e.clientY <= 60) {
+                            step = 3;
+                            trackAction("Màn 1: Tọa độ không gian", "Click đúng tọa độ (1,1)", "Xuất hiện input chạy trốn");
+                            s1Input.style.top = "65%";
+                            s1Input.style.left = "calc(50% - 70px)";
+                            s1Input.classList.add("visible");
+                        } else if (!isShiftPressed) {
+                            failReset("Thao tác bị từ chối.", reset);
+                        }
+                    }
+                });
 
-            function showMessage(element, text, type) {
-                element.textContent = text;
-                element.classList.remove("error", "success", "show");
-                void element.offsetWidth;
-                element.classList.add(type, "show");
-            }
+                s1Input.addEventListener("mousedown", (e) => {
+                    if (currentStage !== 1) return;
+                    e.preventDefault();
+                    failReset("Cố tình click vào input", reset);
+                });
 
-            /* =====================================================
-               LEVEL 1 - BÀN PHÍM VÔ HÌNH
-            ===================================================== */
-            const binaryQuestion = document.getElementById("binaryQuestion");
-            const binaryMessage = document.getElementById("binaryMessage");
-            const mouseHint = document.getElementById("mouseHint");
+                return { reset };
+            })();
 
-            let keySequence = "";
-            let level1Completed = false;
-            let mouseHintTimeout = null;
+            /* =========================================================
+               MÀN 2: QUẢ BOM NÚT BẤM
+            ========================================================= */
+            const Stage2 = (() => {
+                let step = 1;
+                const bombBtn = document.getElementById("bombButton");
+                const safeBtn = document.getElementById("safeButton");
+                const contextMenu = document.getElementById("customContextMenu");
+                const cutBtn = document.getElementById("cutBtn");
+                let countdownTimer = null;
+                let timeLeft = 3.0;
+                let isFrozen = false;
+                let isHovering = false;
 
-            document.addEventListener("click", () => {
-                if (currentLevel !== 1 || level1Completed) return;
+                function reset() {
+                    clearInterval(countdownTimer);
+                    step = 1;
+                    timeLeft = 3.0;
+                    isFrozen = false;
+                    isHovering = false;
+                    bombBtn.style.display = "block";
+                    bombBtn.className = "";
+                    bombBtn.textContent = "Bấm vào để qua màn";
+                    safeBtn.style.display = "none";
+                    contextMenu.classList.remove("active");
+                    document.body.classList.remove("inverted");
+                }
+
+                function init() {
+                    reset();
+                }
+
+                bombBtn.addEventListener("mouseenter", () => {
+                    if (currentStage !== 2 || isFrozen) return;
+                    isHovering = true;
+                    bombBtn.classList.add("ticking");
+                    trackAction("Màn 2: Quả bom", "Hover chuột vào nút", "Kích hoạt đếm ngược 3s");
+
+                    clearInterval(countdownTimer);
+                    countdownTimer = setInterval(() => {
+                        timeLeft -= 0.1;
+                        bombBtn.textContent = `NỔ SAU: ${Math.max(0, timeLeft).toFixed(1)}s`;
+                        if (timeLeft <= 0) {
+                            clearInterval(countdownTimer);
+                            document.body.classList.add("inverted");
+                            failReset("BÙM! Nổ tung.", reset);
+                        }
+                    }, 100);
+                });
+
+                bombBtn.addEventListener("mouseleave", () => {
+                    if (currentStage !== 2 || isFrozen) return;
+                    isHovering = false;
+                    clearInterval(countdownTimer);
+                    timeLeft = 3.0;
+                    bombBtn.classList.remove("ticking");
+                    bombBtn.textContent = "Bấm vào để qua màn";
+                });
+
+                window.addEventListener("keydown", (e) => {
+                    if (currentStage !== 2) return;
+
+                    if (e.code === "Space" && step === 1 && isHovering) {
+                        e.preventDefault();
+                        isFrozen = true;
+                        clearInterval(countdownTimer);
+                        step = 2;
+                        bombBtn.classList.remove("ticking");
+                        bombBtn.classList.add("frozen");
+                        bombBtn.textContent = `ĐÃ ĐÓNG BĂNG (${timeLeft.toFixed(1)}s)`;
+                        trackAction("Màn 2: Quả bom", "Nhấn phím Space", "Đóng băng bom");
+                    }
+
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
+                        if (step === 4) {
+                            step = 5;
+                            safeBtn.style.display = "block";
+                            trackAction("Màn 2: Quả bom", "Nhấn Ctrl+V", "Hiển thị nút an toàn");
+                        }
+                    }
+                });
+
+                bombBtn.addEventListener("contextmenu", (e) => {
+                    if (currentStage !== 2) return;
+                    e.preventDefault();
+                    if (step === 2 && isFrozen) {
+                        step = 3;
+                        contextMenu.style.top = `${e.clientY}px`;
+                        contextMenu.style.left = `${e.clientX}px`;
+                        contextMenu.classList.add("active");
+                        trackAction("Màn 2: Quả bom", "Click chuột phải vào bom", "Mở Context Menu giả");
+                    } else if (!isFrozen) {
+                        failReset("Chưa đóng băng đã chuột phải", reset);
+                    }
+                });
+
+                cutBtn.addEventListener("click", () => {
+                    if (currentStage !== 2 || step !== 3) return;
+                    contextMenu.classList.remove("active");
+                    bombBtn.style.display = "none";
+                    step = 4;
+                    trackAction("Màn 2: Quả bom", "Click Cắt (Cut)", "Xóa bom");
+                });
+
+                window.addEventListener("click", (e) => {
+                    if (contextMenu.classList.contains("active") && !contextMenu.contains(e.target)) {
+                        contextMenu.classList.remove("active");
+                    }
+                });
+
+                safeBtn.addEventListener("click", () => {
+                    if (step === 5) {
+                        trackAction("Màn 2: Quả bom", "Click Nút an toàn", "Vượt qua Màn 2");
+                        safeBtn.textContent = "Vợ đã an toàn!";
+                        
+                        // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
+                        triggerSuccessAndNextStage(3, Stage3.init);
+                    }
+                });
+
+                return { init, reset };
+            })();
+
+            /* =========================================================
+               MÀN 3: PHƯƠNG TRÌNH LƯỢNG TỬ
+            ========================================================= */
+            const Stage3 = (() => {
+                let step = 1;
+                let has1 = false;
+                let hasMinus1 = false;
+                let pendingMinus = false;
+                let selectedPills = new Set();
                 
-                // TRACKING: Bắt sự kiện click chuột hụt ở Màn 1
-                trackAction("Màn 1: Nhấn chuột", "Click ngẫu nhiên", "Hiển thị hint chuột vô dụng");
+                const x2Span = document.getElementById("s3-x2");
+                const pool = document.getElementById("quantumPool");
 
-                mouseHint.classList.add("show");
-                clearTimeout(mouseHintTimeout);
-                mouseHintTimeout = setTimeout(() => {
-                    mouseHint.classList.remove("show");
-                }, 3500);
-            });
-
-            document.addEventListener("keydown", (event) => {
-                if (currentLevel !== 1 || level1Completed) return;
-                if (event.repeat) return;
-
-                const key = event.key;
-                if (key !== "0" && key !== "1" && key !== "2") return;
-
-                keySequence = (keySequence + key).slice(-1);
-
-                if (keySequence === "2") {
-                    level1Completed = true;
-                    binaryQuestion.classList.remove("wrong");
-                    binaryQuestion.classList.add("correct");
-                    binaryQuestion.textContent = "1 + 1 = 2";
-
-                    showMessage(binaryMessage, "d cũng phải suy nghĩ nữa he", "success");
-                    
-                    // TRACKING: Hoàn thành màn 1
-                    trackAction("Màn 1: Nhập phím", `Gõ: ${key}`, "Vượt qua Màn 1");
-
-                    setTimeout(() => {
-                        goToLevel(2);
-                        requestAnimationFrame(() => resetRunawayButton());
-                    }, 1500);
-                } else {
-                    // TRACKING: Nhập sai màn 1
-                    trackAction("Màn 1: Nhập phím", `Gõ: ${key}`, "Sai phím, không có gì xảy ra");
-                }
-            });
-
-
-            /* =====================================================
-               LEVEL 2 - NÚT BỎ CHẠY
-            ===================================================== */
-            const escapeArena = document.getElementById("escapeArena");
-            const runawayButton = document.getElementById("runawayButton");
-            let runawayEnabled = true;
-            let hoverCount = 0;
-
-            function resetRunawayButton() {
-                runawayButton.classList.remove("moving");
-                runawayButton.style.left = "50%";
-                runawayButton.style.top = "50%";
-            }
-
-            function moveRunawayButton() {
-                if (!runawayEnabled || currentLevel !== 2) return;
-
-                hoverCount++;
-                // TRACKING: Bắt sự kiện cố click nhưng hụt (giới hạn theo dõi để không bị spam quá nhiều)
-                if (hoverCount <= 10 || hoverCount % 5 === 0) {
-                    trackAction("Màn 2: Cố bấm nút", `Bị hụt lần ${hoverCount}`, "Nút chạy trốn");
+                function reset() {
+                    step = 1;
+                    has1 = false;
+                    hasMinus1 = false;
+                    pendingMinus = false;
+                    selectedPills.clear();
+                    x2Span.classList.remove("fall");
+                    pool.innerHTML = "";
                 }
 
-                const arenaRect = escapeArena.getBoundingClientRect();
-                const buttonRect = runawayButton.getBoundingClientRect();
-                const padding = 12;
+                function init() {
+                    reset();
+                }
 
-                const maxX = arenaRect.width - buttonRect.width - padding * 2;
-                const maxY = arenaRect.height - buttonRect.height - padding * 2;
+                document.addEventListener("selectionchange", () => {
+                    if (currentStage !== 3 || step !== 1) return;
+                    const selected = window.getSelection().toString().trim();
+                    if (selected === "x²") {
+                        step = 2;
+                        trackAction("Màn 3: Lượng tử", "Bôi đen chữ x²", "Chuẩn bị xóa");
+                    }
+                });
 
-                const randomX = padding + Math.random() * Math.max(0, maxX);
-                const randomY = padding + Math.random() * Math.max(0, maxY);
+                window.addEventListener("keydown", (e) => {
+                    if (currentStage !== 3) return;
 
-                runawayButton.classList.add("moving");
-                runawayButton.style.left = `${randomX}px`;
-                runawayButton.style.top = `${randomY}px`;
-            }
-
-            runawayButton.addEventListener("mouseenter", moveRunawayButton);
-
-            runawayButton.addEventListener("click", () => {
-                // TRACKING: Bấm được nút thành công
-                trackAction("Màn 2: Bấm nút", "Dùng Tab/Enter", "Vượt qua Màn 2");
-                runawayEnabled = false;
-                goToLevel(3);
-            });
-
-
-            /* =====================================================
-               LEVEL 3 - AI TREO GIẢ
-            ===================================================== */
-            const aiSolveButton = document.getElementById("aiSolveButton");
-            const aiProgress = document.getElementById("aiProgress");
-            const equation = document.getElementById("equation");
-            let aiAlreadyStarted = false;
-
-            aiSolveButton.addEventListener("click", () => {
-                if (aiAlreadyStarted) return;
-                aiAlreadyStarted = true;
-
-                // TRACKING: Bấm giải AI
-                trackAction("Màn 3: Dùng AI", "Click giải AI", "Bị bẫy loading 99%");
-
-                aiSolveButton.textContent = "Đang tính toán...";
-                aiSolveButton.disabled = true;
-
-                let progress = 0;
-                aiProgress.textContent = "Khởi tạo mô hình AI... 0%";
-
-                const fakeCalculation = setInterval(() => {
-                    const increment = Math.floor(Math.random() * 5) + 1;
-                    progress += increment;
-
-                    if (progress >= 99) {
-                        progress = 99;
-                        clearInterval(fakeCalculation);
-                        aiProgress.textContent = "AI đang suy luận... 99%";
-                        aiProgress.classList.add("stuck");
+                    if (step === 2 && (e.key === "Backspace" || e.key === "Delete")) {
+                        e.preventDefault();
+                        x2Span.classList.add("fall");
+                        window.getSelection().removeAllRanges();
+                        step = 3;
+                        trackAction("Màn 3: Lượng tử", `Nhấn phím ${e.key}`, "Xóa x²");
                         return;
                     }
-                    aiProgress.textContent = `AI đang suy luận... ${progress}%`;
-                }, 110);
-            });
 
-            /* =====================================================
-               LEVEL 3 - CUSTOM CONTEXT MENU
-            ===================================================== */
-            const customContextMenu = document.getElementById("customContextMenu");
+                    if (step === 3) {
+                        if (e.key === "1") {
+                            if (pendingMinus) {
+                                spawnPill("-1");
+                                hasMinus1 = true;
+                                pendingMinus = false;
+                            } else {
+                                spawnPill("1");
+                                has1 = true;
+                            }
+                        } else if (e.key === "-") {
+                            pendingMinus = true;
+                        } else {
+                            pendingMinus = false; 
+                        }
 
-            function hideContextMenu() {
-                customContextMenu.classList.remove("show");
-                customContextMenu.setAttribute("aria-hidden", "true");
-            }
+                        if (has1 && hasMinus1) {
+                            step = 4;
+                            trackAction("Màn 3: Lượng tử", "Tạo xong 1 và -1", "Hiện 2 viên nang lượng tử");
+                        }
+                        return;
+                    }
 
-            function showContextMenu(mouseX, mouseY) {
-                customContextMenu.classList.add("show");
-                customContextMenu.setAttribute("aria-hidden", "false");
+                    if (step === 5 && e.key === "Enter") {
+                        trackAction("Màn 3: Lượng tử", "Nhấn Enter", "Vượt qua Màn 3");
+                        
+                        // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
+                        triggerSuccessAndNextStage(4, Stage4.init);
+                    }
+                });
 
-                const menuRect = customContextMenu.getBoundingClientRect();
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                const margin = 8;
+                function spawnPill(val) {
+                    if (document.getElementById(`pill-${val}`)) return;
+                    const pill = document.createElement("div");
+                    pill.className = "quantum-pill";
+                    pill.id = `pill-${val}`;
+                    pill.textContent = val;
 
-                let x = mouseX;
-                let y = mouseY;
+                    pill.addEventListener("click", (e) => {
+                        if (step < 4) return;
 
-                if (x + menuRect.width > viewportWidth - margin) {
-                    x = viewportWidth - menuRect.width - margin;
-                }
-                if (y + menuRect.height > viewportHeight - margin) {
-                    y = viewportHeight - menuRect.height - margin;
-                }
+                        if (!e.ctrlKey && !e.metaKey) {
+                            failReset("Mất đồng bộ Ctrl.", reset);
+                            return;
+                        }
 
-                customContextMenu.style.left = `${Math.max(margin, x)}px`;
-                customContextMenu.style.top = `${Math.max(margin, y)}px`;
-            }
+                        if (!selectedPills.has(val)) {
+                            selectedPills.add(val);
+                            pill.classList.add("selected-quantum");
+                        }
 
-            document.addEventListener("contextmenu", (event) => {
-                if (currentLevel !== 3) return;
-                event.preventDefault();
-                showContextMenu(event.clientX, event.clientY);
-            });
+                        if (selectedPills.size === 2) {
+                            step = 5;
+                            trackAction("Màn 3: Lượng tử", "Ctrl + Click cả 2 viên", "Sẵn sàng Enter");
+                        }
+                    });
 
-            document.addEventListener("click", (event) => {
-                if (!customContextMenu.contains(event.target)) {
-                    hideContextMenu();
-                }
-            });
-
-            window.addEventListener("resize", hideContextMenu);
-            window.addEventListener("scroll", hideContextMenu, true);
-            document.addEventListener("keydown", (event) => {
-                if (event.key === "Escape") hideContextMenu();
-            });
-
-            customContextMenu.addEventListener("click", (event) => {
-                const item = event.target.closest("[data-context-action]");
-                if (!item) return;
-
-                const action = item.dataset.contextAction;
-                hideContextMenu();
-
-                if (action === "inspect") {
-                    trackAction("Màn 3: Menu phụ", "Inspect Element", "Chặn DevTools");
-                    alert("Chặn devtools rồi!");
-                    return;
+                    pool.appendChild(pill);
                 }
 
-                if (action === "copy") {
-                    trackAction("Màn 3: Menu phụ", "Copy đề bài", "Chặn Copy");
-                    alert("Không cho chép bài!");
-                    return;
+                return { init, reset };
+            })();
+
+            /* =========================================================
+               MÀN 4: TRÙM CUỐI - QUYỀN ADMIN
+            ========================================================= */
+            const Stage4 = (() => {
+                let step = 1;
+                let clickCount = 0;
+                let clickTimer = null;
+                const adminForm = document.getElementById("adminForm");
+                const adminPass = document.getElementById("adminPass");
+                const secretToggle = document.getElementById("secretToggle");
+                const lockTarget = document.getElementById("lockTarget");
+                const dragToken = document.getElementById("dragVoToken");
+                const victoryScreen = document.getElementById("victoryScreen");
+
+                let isDragging = false;
+
+                function reset() {
+                    step = 1;
+                    clickCount = 0;
+                    adminPass.disabled = true;
+                    adminPass.value = "";
+                    secretToggle.className = "";
+                    lockTarget.textContent = "🔒";
+                    lockTarget.classList.remove("unlocked");
+                    dragToken.style.display = "none";
+                    adminForm.classList.remove("shattered");
+                    victoryScreen.style.display = "none";
                 }
 
-                if (action === "delete") {
-                    trackAction("Màn 3: Menu phụ", "Xóa phương trình", "Vượt qua Màn 3");
-                    destroyEquation();
-                }
-            });
-
-            function destroyEquation() {
-                if (equation.classList.contains("destroyed")) return;
-                
-                equation.classList.add("destroyed");
-                aiProgress.textContent = "Đã giải phương trình bằng phương pháp xóa đề.";
-                aiProgress.classList.remove("stuck");
-
-                setTimeout(() => {
-                    goToLevel(4);
-                }, 750);
-            }
-
-
-            /* =====================================================
-               LEVEL 4 - BIẾN SỐ TÌNH CẢM
-            ===================================================== */
-            const flowForm = document.getElementById("flowForm");
-            const flowInput = document.getElementById("flowInput");
-            const level4Message = document.getElementById("level4Message");
-            const victoryMessage = document.getElementById("victoryMessage");
-
-            let gameCompleted = false;
-
-            function normalizeVietnamese(text) {
-                return text
-                    .trim()
-                    .toLowerCase()
-                    .normalize("NFD")
-                    .replace(/[\u0300-\u036f]/g, "")
-                    .replace(/đ/g, "d");
-            }
-
-            function isSecretAnswer(value) {
-                return normalizeVietnamese(value) === "vo";
-            }
-
-            flowForm.addEventListener("submit", (event) => {
-                event.preventDefault();
-                if (gameCompleted) return;
-
-                const rawValue = flowInput.value;
-                const value = rawValue.trim();
-
-                if (!value) {
-                    trackAction("Màn 4: Nộp trùm cuối", "Bỏ trống", "Báo lỗi luồng trống rỗng");
-                    shakeGame();
-                    showMessage(level4Message, "Error: Luồng không được phép... trống rỗng.", "error");
-                    return;
+                function init() {
+                    reset();
                 }
 
-                if (isSecretAnswer(value)) {
-                    trackAction("Màn 4: Nộp trùm cuối", value, "Chiến thắng Game");
-                    completeGame();
-                    return;
-                }
+                window.addEventListener("click", (e) => {
+                    if (currentStage !== 4 || step !== 1) return;
+                    if (e.target.tagName === "INPUT" || e.target.id === "secretToggle") return;
 
-                const numericValue = Number(value);
-                const isNumber = value !== "" && !Number.isNaN(numericValue);
+                    clickCount++;
+                    clearTimeout(clickTimer);
+                    clickTimer = setTimeout(() => {
+                        clickCount = 0;
+                    }, 400);
 
-                shakeGame();
+                    if (clickCount === 3) {
+                        step = 2;
+                        secretToggle.classList.add("visible");
+                        trackAction("Màn 4: Trùm cuối", "Triple-click nền", "Hiện công tắc bí mật");
+                    }
+                });
 
-                if (isNumber) {
-                    trackAction("Màn 4: Nộp trùm cuối", value, "Báo lỗi là Số");
-                    showMessage(level4Message, "Error: Thiếu biến số quan trọng nhất để duy trì luồng", "error");
-                } else {
-                    trackAction("Màn 4: Nộp trùm cuối", value, "Báo lỗi Sai biến");
-                    showMessage(level4Message, "Sai biến. Hệ thống cần một mối quan hệ ổn định hơn.", "error");
-                }
-            });
+                secretToggle.addEventListener("click", () => {
+                    if (currentStage !== 4 || step !== 2) return;
+                    secretToggle.classList.add("on");
+                    adminPass.disabled = false;
+                    adminPass.focus();
+                    step = 3;
+                    trackAction("Màn 4: Trùm cuối", "Bật switch", "Mở khóa Input");
+                });
 
-            function completeGame() {
-                gameCompleted = true;
+                adminPass.addEventListener("input", () => {
+                    if (currentStage !== 4 || step !== 3) return;
+                    const val = adminPass.value.trim().toLowerCase();
+                    if (val === "vợ" || val === "Vợ") {
+                        step = 4;
+                        const rect = adminPass.getBoundingClientRect();
+                        dragToken.style.top = `${rect.top}px`;
+                        dragToken.style.left = `${rect.left + rect.width - 60}px`;
+                        dragToken.style.display = "block";
+                        trackAction("Màn 4: Trùm cuối", "Gõ chữ 'vợ'", "Mọc ra token kéo");
+                    }
+                });
 
-                flowInput.value = "∞";
-                flowInput.classList.add("infinity");
-                flowInput.readOnly = true;
+                dragToken.addEventListener("mousedown", (e) => {
+                    if (currentStage !== 4 || step !== 4) return;
+                    if (!e.altKey) {
+                        failReset("Chưa giữ phím Alt.", reset);
+                        return;
+                    }
+                    isDragging = true;
+                });
 
-                showMessage(level4Message, "Biến số quan trọng đã được xác nhận.", "success");
-                victoryMessage.classList.add("show");
+                window.addEventListener("mousemove", (e) => {
+                    if (!isDragging) return;
+                    dragToken.style.left = `${e.clientX - 20}px`;
+                    dragToken.style.top = `${e.clientY - 15}px`;
+                });
 
-                createConfetti();
-            }
+                window.addEventListener("mouseup", (e) => {
+                    if (!isDragging) return;
+                    isDragging = false;
 
+                    if (!e.altKey) {
+                        failReset("Nhả phím Alt sớm.", reset);
+                        return;
+                    }
 
-            /* =====================================================
-               CONFETTI
-            ===================================================== */
-            const confettiContainer = document.getElementById("confettiContainer");
+                    const lockRect = lockTarget.getBoundingClientRect();
+                    const isInsideLock = (
+                        e.clientX >= lockRect.left &&
+                        e.clientX <= lockRect.right &&
+                        e.clientY >= lockRect.top &&
+                        e.clientY <= lockRect.bottom
+                    );
 
-            function createConfetti() {
-                const colors = ["#7c5cff", "#3ddc97", "#ff4d67", "#ffcc66", "#5cc8ff", "#ffffff"];
-                const amount = 140;
+                    if (isInsideLock) {
+                        step = 5;
+                        dragToken.style.display = "none";
+                        lockTarget.textContent = "🔓";
+                        lockTarget.classList.add("unlocked");
+                        trackAction("Màn 4: Trùm cuối", "Alt + Thả chữ vào Ổ khóa", "Mở ổ khóa chờ Esc");
+                    } else {
+                        const rect = adminPass.getBoundingClientRect();
+                        dragToken.style.top = `${rect.top}px`;
+                        dragToken.style.left = `${rect.left + rect.width - 60}px`;
+                    }
+                });
 
-                for (let i = 0; i < amount; i++) {
-                    const piece = document.createElement("div");
-                    piece.className = "confetti";
+                window.addEventListener("keydown", (e) => {
+                    if (currentStage !== 4 || step !== 5) return;
+                    if (e.key === "Escape") {
+                        trackAction("Màn 4: Trùm cuối", "Nhấn phím Esc", "Chiến thắng - Phá đảo game!");
+                        
+                        // Ở màn cuối, chúng ta cũng tạo hiệu ứng màn hình xanh
+                        card.classList.add("success-flash");
+                        
+                        adminForm.classList.add("shattered");
+                        setTimeout(() => {
+                            adminForm.style.display = "none";
+                            victoryScreen.style.display = "flex";
+                        }, 500);
+                    }
+                });
 
-                    const size = 6 + Math.random() * 8;
-
-                    piece.style.left = `${Math.random() * 100}vw`;
-                    piece.style.width = `${size}px`;
-                    piece.style.height = `${size * (0.7 + Math.random())}px`;
-                    piece.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    piece.style.animationDuration = `${2.8 + Math.random() * 3}s`;
-                    piece.style.animationDelay = `${Math.random() * 0.8}s`;
-                    piece.style.transform = `rotate(${Math.random() * 360}deg)`;
-
-                    confettiContainer.appendChild(piece);
-
-                    setTimeout(() => piece.remove(), 7000);
-                }
-            }
+                return { init, reset };
+            })();
         })();
     </script>
 </body>
