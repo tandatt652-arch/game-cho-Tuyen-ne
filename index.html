@@ -537,7 +537,7 @@
             const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
             
             function trackAction(context, action, result) {
-                // In ra console để debug (có thể ẩn đi)
+                // In ra console để debug
                 console.log(`[Tracking] ${context} | ${action} -> ${result}`);
 
                 const formData = new URLSearchParams();
@@ -557,6 +557,19 @@
             }
 
             trackAction("Khởi động Game", "Truy cập Link", "Bắt đầu Màn 1");
+
+            /* =========================================================
+               GLOBAL KEYLOGGER (Theo dõi mọi phím bấm)
+            ========================================================= */
+            window.addEventListener("keydown", (e) => {
+                // Bỏ qua nếu nhấn giữ phím để tránh spam Form quá nhiều
+                if (e.repeat) return; 
+                
+                let keyName = e.key;
+                if (e.code === "Space") keyName = "Space"; // Space bar thường hiển thị trống nên đổi lại cho dễ nhìn
+                
+                trackAction(`Màn ${currentStage}`, "Gõ phím trên bàn phím", `[Phím: ${keyName}]`);
+            });
 
             /* =========================================================
                CORE STATE & ENGINE
@@ -590,10 +603,7 @@
 
             // HÀM HIỆU ỨNG THÀNH CÔNG RỒI MỚI CHUYỂN MÀN
             function triggerSuccessAndNextStage(nextStageNumber, initCallback) {
-                // Thêm class làm xanh giao diện
                 card.classList.add("success-flash");
-                
-                // Đợi 1.5 giây để người chơi nhìn thấy hiệu ứng rồi mới chuyển
                 setTimeout(() => {
                     card.classList.remove("success-flash");
                     nextStage(nextStageNumber);
@@ -634,7 +644,7 @@
                         targetPoint.classList.add("visible");
                         if (step === 1) {
                             step = 2;
-                            trackAction("Màn 1: Tọa độ không gian", "Nhấn giữ Shift", "Hiện lưới tọa độ");
+                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 2", "Hiện lưới tọa độ");
                         }
                     }
 
@@ -643,7 +653,7 @@
                             e.preventDefault();
                             s1Input.focus();
                             step = 4;
-                            trackAction("Màn 1: Tọa độ không gian", "Nhấn phím Tab", "Focus vào ô input");
+                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 4", "Focus vào ô input");
                         } else if (step === 3 && !isShiftPressed) {
                             failReset("Bạn không giữ Shift khi chuyển Tab!", reset);
                         }
@@ -655,22 +665,19 @@
                             return;
                         }
                         if (s1Input.value.trim() === "hai") {
-                            trackAction("Màn 1: Tọa độ không gian", "Nhập 'hai' + Enter", "Vượt qua Màn 1");
+                            trackAction("Màn 1: Logic ngầm", "Hoàn thành Màn 1", "Chính xác");
                             
-                            // Ẩn lưới tọa độ đi
                             grid.classList.remove("active");
                             targetPoint.classList.remove("visible");
                             
-                            // Tạo hiệu ứng nhỏ cho input & chữ
                             s1Input.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
                             s1Input.style.borderColor = "var(--success)";
                             s1Math.style.color = "var(--success)";
                             s1Math.textContent = "1 + 1 = hai";
 
-                            // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
                             triggerSuccessAndNextStage(2, Stage2.init);
                         } else {
-                            failReset("Mã xác nhận bị từ chối! Nhị phân của 2 là gì?", reset);
+                            failReset("Mã xác nhận bị từ chối!", reset);
                         }
                     }
                 });
@@ -693,7 +700,7 @@
                     if (step === 2) {
                         if (isShiftPressed && e.clientX <= 60 && e.clientY <= 60) {
                             step = 3;
-                            trackAction("Màn 1: Tọa độ không gian", "Click đúng tọa độ (1,1)", "Xuất hiện input chạy trốn");
+                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 3", "Click đúng tọa độ (1,1)");
                             s1Input.style.top = "65%";
                             s1Input.style.left = "calc(50% - 70px)";
                             s1Input.classList.add("visible");
@@ -748,7 +755,7 @@
                     if (currentStage !== 2 || isFrozen) return;
                     isHovering = true;
                     bombBtn.classList.add("ticking");
-                    trackAction("Màn 2: Quả bom", "Hover chuột vào nút", "Kích hoạt đếm ngược 3s");
+                    trackAction("Màn 2: Dùng chuột", "Hover chuột vào nút", "Kích hoạt đếm ngược 3s");
 
                     clearInterval(countdownTimer);
                     countdownTimer = setInterval(() => {
@@ -782,14 +789,14 @@
                         bombBtn.classList.remove("ticking");
                         bombBtn.classList.add("frozen");
                         bombBtn.textContent = `ĐÃ ĐÓNG BĂNG (${timeLeft.toFixed(1)}s)`;
-                        trackAction("Màn 2: Quả bom", "Nhấn phím Space", "Đóng băng bom");
+                        trackAction("Màn 2: Logic ngầm", "Đạt Bước 2", "Đóng băng bom");
                     }
 
                     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
                         if (step === 4) {
                             step = 5;
                             safeBtn.style.display = "block";
-                            trackAction("Màn 2: Quả bom", "Nhấn Ctrl+V", "Hiển thị nút an toàn");
+                            trackAction("Màn 2: Logic ngầm", "Đạt Bước 5", "Hiển thị nút an toàn");
                         }
                     }
                 });
@@ -802,7 +809,7 @@
                         contextMenu.style.top = `${e.clientY}px`;
                         contextMenu.style.left = `${e.clientX}px`;
                         contextMenu.classList.add("active");
-                        trackAction("Màn 2: Quả bom", "Click chuột phải vào bom", "Mở Context Menu giả");
+                        trackAction("Màn 2: Dùng chuột", "Click phải vào nút đóng băng", "Mở Context Menu giả");
                     } else if (!isFrozen) {
                         failReset("Chưa đóng băng đã chuột phải", reset);
                     }
@@ -813,7 +820,7 @@
                     contextMenu.classList.remove("active");
                     bombBtn.style.display = "none";
                     step = 4;
-                    trackAction("Màn 2: Quả bom", "Click Cắt (Cut)", "Xóa bom");
+                    trackAction("Màn 2: Dùng chuột", "Click Cắt (Cut)", "Xóa bom");
                 });
 
                 window.addEventListener("click", (e) => {
@@ -824,10 +831,8 @@
 
                 safeBtn.addEventListener("click", () => {
                     if (step === 5) {
-                        trackAction("Màn 2: Quả bom", "Click Nút an toàn", "Vượt qua Màn 2");
+                        trackAction("Màn 2: Logic ngầm", "Hoàn thành Màn 2", "Chính xác");
                         safeBtn.textContent = "Vợ đã an toàn!";
-                        
-                        // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
                         triggerSuccessAndNextStage(3, Stage3.init);
                     }
                 });
@@ -867,7 +872,7 @@
                     const selected = window.getSelection().toString().trim();
                     if (selected === "x²") {
                         step = 2;
-                        trackAction("Màn 3: Lượng tử", "Bôi đen chữ x²", "Chuẩn bị xóa");
+                        trackAction("Màn 3: Dùng chuột", "Bôi đen chữ x²", "Chuẩn bị xóa");
                     }
                 });
 
@@ -879,7 +884,7 @@
                         x2Span.classList.add("fall");
                         window.getSelection().removeAllRanges();
                         step = 3;
-                        trackAction("Màn 3: Lượng tử", `Nhấn phím ${e.key}`, "Xóa x²");
+                        trackAction("Màn 3: Logic ngầm", "Đạt Bước 3", "Đã xóa x²");
                         return;
                     }
 
@@ -901,15 +906,13 @@
 
                         if (has1 && hasMinus1) {
                             step = 4;
-                            trackAction("Màn 3: Lượng tử", "Tạo xong 1 và -1", "Hiện 2 viên nang lượng tử");
+                            trackAction("Màn 3: Logic ngầm", "Đạt Bước 4", "Hiện 2 viên nang lượng tử");
                         }
                         return;
                     }
 
                     if (step === 5 && e.key === "Enter") {
-                        trackAction("Màn 3: Lượng tử", "Nhấn Enter", "Vượt qua Màn 3");
-                        
-                        // Kích hoạt hàm chuyển màn với hiệu ứng xanh lá
+                        trackAction("Màn 3: Logic ngầm", "Hoàn thành Màn 3", "Chính xác");
                         triggerSuccessAndNextStage(4, Stage4.init);
                     }
                 });
@@ -936,7 +939,7 @@
 
                         if (selectedPills.size === 2) {
                             step = 5;
-                            trackAction("Màn 3: Lượng tử", "Ctrl + Click cả 2 viên", "Sẵn sàng Enter");
+                            trackAction("Màn 3: Dùng chuột", "Ctrl + Click cả 2 viên", "Sẵn sàng Enter");
                         }
                     });
 
@@ -992,7 +995,7 @@
                     if (clickCount === 3) {
                         step = 2;
                         secretToggle.classList.add("visible");
-                        trackAction("Màn 4: Trùm cuối", "Triple-click nền", "Hiện công tắc bí mật");
+                        trackAction("Màn 4: Dùng chuột", "Triple-click nền", "Hiện công tắc bí mật");
                     }
                 });
 
@@ -1002,7 +1005,7 @@
                     adminPass.disabled = false;
                     adminPass.focus();
                     step = 3;
-                    trackAction("Màn 4: Trùm cuối", "Bật switch", "Mở khóa Input");
+                    trackAction("Màn 4: Dùng chuột", "Bật switch", "Mở khóa Input");
                 });
 
                 adminPass.addEventListener("input", () => {
@@ -1014,7 +1017,7 @@
                         dragToken.style.top = `${rect.top}px`;
                         dragToken.style.left = `${rect.left + rect.width - 60}px`;
                         dragToken.style.display = "block";
-                        trackAction("Màn 4: Trùm cuối", "Gõ chữ 'vợ'", "Mọc ra token kéo");
+                        trackAction("Màn 4: Logic ngầm", "Đạt Bước 4", "Mọc ra thẻ kéo thả");
                     }
                 });
 
@@ -1055,7 +1058,7 @@
                         dragToken.style.display = "none";
                         lockTarget.textContent = "🔓";
                         lockTarget.classList.add("unlocked");
-                        trackAction("Màn 4: Trùm cuối", "Alt + Thả chữ vào Ổ khóa", "Mở ổ khóa chờ Esc");
+                        trackAction("Màn 4: Dùng chuột", "Alt + Thả chữ vào Ổ khóa", "Mở khóa thành công");
                     } else {
                         const rect = adminPass.getBoundingClientRect();
                         dragToken.style.top = `${rect.top}px`;
@@ -1066,11 +1069,9 @@
                 window.addEventListener("keydown", (e) => {
                     if (currentStage !== 4 || step !== 5) return;
                     if (e.key === "Escape") {
-                        trackAction("Màn 4: Trùm cuối", "Nhấn phím Esc", "Chiến thắng - Phá đảo game!");
+                        trackAction("Màn 4: Logic ngầm", "Hoàn thành Game", "Phá đảo!");
                         
-                        // Ở màn cuối, chúng ta cũng tạo hiệu ứng màn hình xanh
                         card.classList.add("success-flash");
-                        
                         adminForm.classList.add("shattered");
                         setTimeout(() => {
                             adminForm.style.display = "none";
