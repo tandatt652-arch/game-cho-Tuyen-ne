@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LOGIC BẺ LÁI</title>
+    <title>LOGIC BẺ LÁI - HARDCORE EDITION</title>
     <style>
         /* ================= CSS ================= */
         :root {
@@ -11,13 +11,16 @@
             --text-color: #e0e0e0;
             --accent-color: #ff4757;
             --success-color: #2ed573;
+            --warning-color: #ffa502;
         }
 
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            user-select: none; /* Tránh bôi đen text khi chạm giữ */
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: none; /* Cấm mọi thao tác zoom/scroll mặc định của trình duyệt */
         }
 
         body, html {
@@ -26,7 +29,7 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden; /* Cấm cuộn */
+            overflow: hidden;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -55,91 +58,103 @@
             color: var(--bg-color);
             border: none;
             padding: 20px 40px;
-            font-size: 24px;
+            font-size: 20px;
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
             transition: transform 0.1s;
         }
-        #btn-start:active {
-            transform: scale(0.95);
-        }
+        #btn-start:active { transform: scale(0.95); }
 
         /* Elements hiển thị toán học */
         .equation {
-            font-size: 4rem;
+            font-size: 3.5rem;
             font-weight: bold;
             margin-bottom: 20px;
             transition: all 0.5s ease;
+            position: relative;
         }
 
         .hint {
             font-size: 1rem;
             color: #888;
             font-style: italic;
-            max-width: 80%;
+            max-width: 90%;
             margin-top: 30px;
+            line-height: 1.5;
         }
 
-        /* Màn 1: Shake Animation */
+        /* Màn 1 & Màn 4: Shake Animation */
         @keyframes shakeAnim {
-            0% { transform: translate(1px, 1px) rotate(0deg); }
-            10% { transform: translate(-1px, -2px) rotate(-1deg); }
-            20% { transform: translate(-3px, 0px) rotate(1deg); }
-            30% { transform: translate(3px, 2px) rotate(0deg); }
-            40% { transform: translate(1px, -1px) rotate(1deg); }
-            50% { transform: translate(-1px, 2px) rotate(-1deg); }
-            60% { transform: translate(-3px, 1px) rotate(0deg); }
-            70% { transform: translate(3px, 1px) rotate(-1deg); }
-            80% { transform: translate(-1px, -1px) rotate(1deg); }
-            90% { transform: translate(1px, 2px) rotate(0deg); }
-            100% { transform: translate(1px, -2px) rotate(-1deg); }
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(-3px, 2px) rotate(-2deg); }
+            50% { transform: translate(3px, -2px) rotate(2deg); }
+            75% { transform: translate(-3px, -2px) rotate(-1deg); }
         }
         .shake-active {
-            animation: shakeAnim 0.5s infinite;
+            animation: shakeAnim 0.3s infinite;
             color: var(--accent-color);
         }
-
-        /* Màn 2: Đảo ngược */
-        #number-9 {
-            display: inline-block;
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        .shake-light {
+            animation: shakeAnim 2s infinite ease-in-out;
         }
-        .flipped {
-            transform: rotate(180deg);
+
+        /* Màn 2: Cân Bằng */
+        .error-text { 
+            color: var(--accent-color); 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        .progress-container {
+            width: 80%;
+            height: 12px;
+            background: #333;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background: var(--success-color);
+        }
+        .infinity {
+            font-size: 5rem;
             color: var(--success-color);
         }
 
-        /* Màn 4: Multi-touch */
-        .fingerprint {
-            position: absolute;
-            width: 60px;
-            height: 60px;
-            border: 2px dashed #555;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            opacity: 0.5;
-            transition: all 0.3s ease;
+        /* Màn 3: Bụi mù */
+        #m3-content {
+            opacity: 0.2;
+            filter: blur(5px);
+            transition: opacity 1.5s ease, filter 1.5s ease;
         }
-        .fp-top-left { top: 10%; left: 10%; }
-        .fp-bottom-right { bottom: 10%; right: 10%; }
-        .fingerprint.active {
-            border-color: var(--accent-color);
-            background-color: rgba(255, 71, 87, 0.2);
+        #m3-content.clear {
             opacity: 1;
+            filter: blur(0px);
         }
+        #m3-zeros {
+            display: inline-block;
+            transition: all 1s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        #m3-zeros.blown {
+            transform: translate(150px, -150px) rotate(45deg) scale(1.5);
+            opacity: 0;
+        }
+
+        /* Màn 4 & 5: Trái tim */
         .heart {
             color: var(--accent-color);
             font-size: 5rem;
             animation: pulse 1s infinite;
         }
-
         @keyframes pulse {
             0% { transform: scale(1); }
-            50% { transform: scale(1.1); }
+            50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
 
@@ -148,10 +163,10 @@
             to { opacity: 1; }
         }
 
-        /* Thông báo nhỏ */
+        /* Toast thông báo */
         #toast {
             position: absolute;
-            top: 20%;
+            top: 15%;
             background: var(--success-color);
             color: #fff;
             padding: 10px 20px;
@@ -160,44 +175,51 @@
             opacity: 0;
             transition: opacity 0.5s;
             pointer-events: none;
+            z-index: 100;
         }
     </style>
 </head>
 <body>
 
-    <audio id="silent-audio" loop playsinline>
-        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
-    </audio>
-
     <div id="toast"></div>
 
+    <!-- MÀN 0: XIN QUYỀN -->
     <div id="screen-0" class="screen active">
         <button id="btn-start">[ CHẠM ĐỂ BẮT ĐẦU ]</button>
-        <div class="hint" style="margin-top: 20px;">Vui lòng cấp quyền cảm biến nếu thiết bị yêu cầu để chơi game.</div>
+        <div class="hint" style="margin-top: 20px;">Game yêu cầu cấp quyền Cảm biến (Motion) & Microphone (Audio) để giải đố. Vui lòng chọn "Cho phép" khi được hỏi.</div>
     </div>
 
+    <!-- MÀN 1: LẮC -->
     <div id="screen-1" class="screen">
         <div id="eq-1" class="equation">5 + 5 = ?</div>
-        <div class="hint"></div>
+        <div class="hint">Chai nước ép toán học này hơi đóng cặn. Nhớ cầm lên và xóc đều trước khi dùng.</div>
     </div>
 
+    <!-- MÀN 2: CÂN BẰNG -->
     <div id="screen-2" class="screen">
-        <div id="eq-2" class="equation"><span id="number-9">9</span> - 3 = ?</div>
-        <div class="hint"></div>
+        <div id="m2-error" class="error-text">ERROR: DỮ LIỆU ĐANG BẤT ỔN</div>
+        <div id="eq-2" class="equation">8 / 0 = ?</div>
+        <div class="progress-container" id="m2-progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <div class="hint">Đừng cố bấm hay lắc nữa. Đôi khi cách giải quyết tốt nhất là buông tay và để mọi thứ tĩnh lặng. (Gợi ý: Đặt thiết bị nằm phẳng trên bàn).</div>
     </div>
 
+    <!-- MÀN 3: SÓNG ÂM -->
     <div id="screen-3" class="screen">
-        <div id="eq-3" class="equation">100 - <span id="var-x">X</span> = 0</div>
-        <div class="hint"></div>
+        <div id="m3-content">
+            <div id="eq-3" class="equation">1<span id="m3-zeros">000</span> - 999 = ?</div>
+            <div class="hint">Phủ bụi dày quá không thấy nút bấm đâu. Thử đưa miệng sát mic và thổi bay lớp bụi này xem? (Hoặc hét lớn lên).</div>
+        </div>
     </div>
 
+    <!-- MÀN 4: MULTI-TOUCH + MOTION -->
     <div id="screen-4" class="screen">
-        <div class="fingerprint fp-top-left" id="fp-1">👆</div>
-        <div id="eq-4" class="equation">1 + 1 = ?</div>
-        <div class="fingerprint fp-bottom-right" id="fp-2">👆</div>
-        <div class="hint"></div>
+        <div id="eq-4" class="equation shake-light">1 + 1 = ?</div>
+        <div class="hint">Vợ chồng đồng lòng. Hãy cùng nhau GIỮ CHẶT (2 ngón tay chạm màn hình) và vượt qua GIÔNG BÃO (lắc mạnh thiết bị).</div>
     </div>
 
+    <!-- MÀN 5: WIN -->
     <div id="screen-5" class="screen">
         <div class="heart">❤️</div>
         <div class="equation" style="font-size: 2rem; margin-top: 20px;">1 + 1 = CHÚNG TA</div>
@@ -205,164 +227,199 @@
     </div>
 
     <script>
+        // Các biến trạng thái toàn cục
         let currentLevel = 0;
-        const audio = document.getElementById('silent-audio');
         const toast = document.getElementById('toast');
+        let animationFrameId;
+        let lastTime = performance.now();
 
-        // Hàm chuyển màn
+        // Biến Audio (Màn 3)
+        let audioContext, analyser, dataArray;
+        let m3Passed = false;
+
+        // Biến Cảm biến & Cân bằng (Màn 2)
+        let currentBeta = 90, currentGamma = 0;
+        let balanceTimer = 0;
+
+        // Biến Lắc & Multi-touch (Màn 1 & 4)
+        let shakeForce = 0;
+        let shakeCountM1 = 0;
+        let lastShakeTimeM1 = 0;
+        let isHolding = false;
+        let m4Passed = false;
+
         function showScreen(level) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(`screen-${level}`).classList.add('active');
             currentLevel = level;
         }
 
-        // Hàm hiển thị thông báo popup
-        function showToast(msg, callback) {
+        function showToast(msg, callback, delay = 1500) {
             toast.innerText = msg;
             toast.style.opacity = 1;
             setTimeout(() => {
                 toast.style.opacity = 0;
-                if(callback) callback();
-            }, 1500);
+                if(callback) setTimeout(callback, 300);
+            }, delay);
         }
 
-        // ================= XỬ LÝ QUYỀN (MÀN 0) =================
+        // ================= KHỞI TẠO QUYỀN (MÀN 0) =================
         document.getElementById('btn-start').addEventListener('click', async () => {
-            // 1. Xin quyền Sensor cho iOS 13+
-            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
-                try {
+            try {
+                // 1. Xin quyền Sensor (iOS 13+)
+                if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     const permissionState = await DeviceMotionEvent.requestPermission();
                     if (permissionState !== 'granted') {
-                        alert('Cần cấp quyền cảm biến để chơi game!');
+                        alert('Bạn cần cấp quyền Cảm biến để chơi game!');
                         return;
                     }
-                } catch (console) {
-                    alert('Lỗi xin quyền cảm biến.');
                 }
-            }
 
-            // 2. Kích hoạt Audio (Bắt buộc phải qua user gesture)
-            try {
-                audio.play();
-            } catch (e) {
-                console.log("Audio autoplay bị chặn, không sao.");
-            }
+                // 2. Xin quyền Microphone & Khởi tạo Audio API 1 lần duy nhất
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                const microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 256;
+                microphone.connect(analyser);
+                dataArray = new Uint8Array(analyser.frequencyBinCount);
+                
+                // Khởi động Main Game Loop
+                requestAnimationFrame(gameLoop);
+                showScreen(1);
 
-            // Vào màn 1
-            showScreen(1);
+            } catch (err) {
+                console.error(err);
+                alert('Lỗi truy cập thiết bị. Vui lòng cho phép quyền Microphone và Cảm biến.');
+            }
         });
 
-        // ================= MÀN 1: LẮC =================
-        /* Cách test trên PC: Mở Chrome DevTools (F12) -> Nhấn Ctrl+Shift+P -> gõ "Sensors".
-           Ở mục Orientation/Device-based, thay đổi các giá trị để giả lập gia tốc.
-        */
-        let shakeCount = 0;
-        let lastUpdate = 0;
+        // ================= LẮNG NGHE SỰ KIỆN PHẦN CỨNG =================
+        
+        // Theo dõi góc nghiêng (Màn 2)
+        window.addEventListener('deviceorientation', (e) => {
+            currentBeta = e.beta || 0;
+            currentGamma = e.gamma || 0;
+        });
+
+        // Theo dõi gia tốc lắc (Màn 1 & 4)
         window.addEventListener('devicemotion', (e) => {
-            if (currentLevel !== 1) return;
-            
             const acc = e.accelerationIncludingGravity;
             if (!acc) return;
-
             // Tính tổng lực gia tốc
-            const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
-            
-            // Gia tốc trọng trường bình thường là ~9.8. Lắc mạnh sẽ vượt qua 20.
-            if (force > 25) {
+            shakeForce = Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
+
+            // Xử lý tức thời cho Màn 1
+            if (currentLevel === 1 && shakeForce > 25) {
                 const now = Date.now();
-                if (now - lastUpdate > 100) { // debounce
-                    shakeCount++;
-                    lastUpdate = now;
+                if (now - lastShakeTimeM1 > 150) { // debounce
+                    shakeCountM1++;
+                    lastShakeTimeM1 = now;
                     document.getElementById('eq-1').classList.add('shake-active');
+                    setTimeout(() => document.getElementById('eq-1').classList.remove('shake-active'), 100);
                     
-                    if (shakeCount >= 10) {
+                    if (shakeCountM1 >= 10) {
+                        currentLevel = -1; // Khóa màn
                         document.getElementById('eq-1').innerText = "10";
-                        document.getElementById('eq-1').classList.remove('shake-active');
                         document.getElementById('eq-1').style.color = "var(--success-color)";
-                        setTimeout(() => showToast("Đã trộn đều!", () => showScreen(2)), 1000);
-                        shakeCount = 0; // reset
+                        showToast("Đã trộn đều!", () => showScreen(2));
                     }
                 }
-            } else {
-                document.getElementById('eq-1').classList.remove('shake-active');
             }
         });
 
-        // ================= MÀN 2: LỘN NGƯỢC =================
-        /* Cách test trên PC: Dùng tab Sensors của DevTools, chỉnh Beta thành 180 hoặc -180
-        */
-        window.addEventListener('deviceorientation', (e) => {
-            if (currentLevel !== 2) return;
-            
-            const beta = e.beta; // Góc gập (trước/sau): -180 đến 180
-            
-            // Lộn ngược điện thoại (Portrait) thì beta sẽ vượt quá 140 hoặc dưới -140 tùy dòng máy
-            if (beta > 150 || beta < -150) {
-                const num9 = document.getElementById('number-9');
-                num9.classList.add('flipped');
-                document.getElementById('eq-2').innerHTML = `<span class="flipped">9</span> - 3 = 3`;
+        // Theo dõi Multi-touch (Màn 4)
+        function checkTouches(e) {
+            isHolding = (e.touches.length === 2);
+        }
+        window.addEventListener('touchstart', checkTouches);
+        window.addEventListener('touchend', checkTouches);
+        window.addEventListener('touchcancel', checkTouches);
+
+
+        // ================= VÒNG LẶP GAME CHÍNH (GAME LOOP) =================
+        function gameLoop(time) {
+            const dt = time - lastTime;
+            lastTime = time;
+
+            // --- LOGIC MÀN 2: CÂN BẰNG TUYỆT ĐỐI ---
+            if (currentLevel === 2) {
+                const isFlat = Math.abs(currentBeta) <= 2 && Math.abs(currentGamma) <= 2;
+                const progressContainer = document.getElementById('m2-progress-container');
+                const progressBar = document.getElementById('progress-bar');
+                const errorText = document.getElementById('m2-error');
                 
-                setTimeout(() => showToast("Hợp lý!", () => showScreen(3)), 1500);
+                if (isFlat) {
+                    progressContainer.style.display = 'block';
+                    errorText.innerText = "ĐANG ĐỒNG BỘ DỮ LIỆU...";
+                    errorText.style.color = "var(--warning-color)";
+                    
+                    balanceTimer += dt;
+                    const percent = (balanceTimer / 3000) * 100;
+                    progressBar.style.width = Math.min(percent, 100) + '%';
+                    
+                    if (balanceTimer >= 3000) {
+                        currentLevel = -1; // Khóa màn
+                        errorText.innerText = "ĐÃ BÌNH ỔN";
+                        errorText.style.color = "var(--success-color)";
+                        document.getElementById('eq-2').innerHTML = `<span class="infinity">&infin;</span>`;
+                        showToast("Tĩnh lặng tuyệt đối!", () => showScreen(3), 2000);
+                    }
+                } else {
+                    // Nếu lệch khỏi -2 đến 2 độ, reset thanh tiến trình ngay lập tức
+                    balanceTimer = 0;
+                    progressBar.style.width = '0%';
+                    progressContainer.style.display = 'none';
+                    errorText.innerText = "ERROR: DỮ LIỆU ĐANG BẤT ỔN";
+                    errorText.style.color = "var(--accent-color)";
+                }
             }
-        });
 
-        // ================= MÀN 3: ÂM LƯỢNG =================
-        /* Lưu ý về Web API: Bắt phím cứng volume trên Mobile browser rất khó khăn vì OS thường chặn.
-           Cách hoạt động tốt nhất là dựa vào event 'volumechange' của thẻ <audio> đang play.
-           Cách test trên PC: Mở console gõ `document.getElementById('silent-audio').volume = 0;`
-        */
-        audio.addEventListener('volumechange', () => {
-            if (currentLevel !== 3) return;
-            
-            if (audio.volume === 0 || audio.muted) {
-                document.getElementById('var-x').innerText = "100";
-                document.getElementById('var-x').style.color = "var(--success-color)";
-                document.getElementById('eq-3').innerText = "100 - 100 = 0";
-                setTimeout(() => showToast("Tuyệt vời sự tĩnh lặng!", () => showScreen(4)), 1500);
+            // --- LOGIC MÀN 3: SÓNG ÂM (MICROPHONE) ---
+            if (currentLevel === 3 && !m3Passed) {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                const avgVolume = sum / dataArray.length;
+                const volumePercent = (avgVolume / 255) * 100;
+
+                // Cần thổi mạnh hoặc hét to (ngưỡng > 70%)
+                if (volumePercent > 70) {
+                    m3Passed = true;
+                    currentLevel = -1; // Khóa màn
+                    
+                    // CSS Visual: Tan lớp bụi mờ, thổi bay 3 số 0
+                    document.getElementById('m3-content').classList.add('clear');
+                    document.getElementById('m3-zeros').classList.add('blown');
+                    document.getElementById('eq-3').style.color = "var(--success-color)";
+                    
+                    showToast("Bụi đã tan!", () => showScreen(4), 2500);
+                }
             }
-        });
 
-        // Hỗ trợ Fallback (Dành cho iOS Safari chặn volumechange qua phím cứng quá gắt):
-        // Cho phép user tap 3 lần vào phương trình để qua màn nếu không thể dùng phím cứng.
-        let fallbackClicks = 0;
-        document.getElementById('eq-3').addEventListener('click', () => {
-            if(currentLevel !== 3) return;
-            fallbackClicks++;
-            if(fallbackClicks >= 3) {
-                audio.volume = 0; // Trigger logic
-            }
-        });
-
-        // ================= MÀN 4: MULTI-TOUCH =================
-        /* Cách test trên điện thoại: Dùng 2 ngón tay chạm cùng lúc lên màn hình.
-           Cách test trên PC (Chrome DevTools): F12 -> Bật Device Toolbar (Ctrl+Shift+M) -> Giữ phím Shift và kéo chuột để giả lập Multi-touch.
-        */
-        window.addEventListener('touchstart', (e) => {
-            if (currentLevel !== 4) return;
-            
-            if (e.touches.length >= 2) {
-                // Đổi màu 2 dấu vân tay
-                document.getElementById('fp-1').classList.add('active');
-                document.getElementById('fp-2').classList.add('active');
+            // --- LOGIC MÀN 4: MULTI-TOUCH + MOTION COMBO ---
+            if (currentLevel === 4 && !m4Passed) {
+                // Kiểm tra đồng thời: Đang giữ đúng 2 ngón tay VÀ Đang lắc mạnh
+                const isShaking = shakeForce > 25;
                 
-                // Đổi phương trình
-                document.getElementById('eq-4').innerHTML = `<div class="heart">❤️</div>`;
-                
-                setTimeout(() => {
-                    showScreen(5);
-                }, 1500);
+                if (isHolding && isShaking) {
+                    m4Passed = true;
+                    currentLevel = -1; // Khóa màn
+                    
+                    const eq4 = document.getElementById('eq-4');
+                    eq4.classList.remove('shake-light');
+                    eq4.innerHTML = `<div class="heart">❤️</div>`;
+                    
+                    showToast("Gắn kết tuyệt đối! Bạn đã phá đảo!", () => showScreen(5), 2000);
+                }
             }
-        });
-        
-        // Bỏ active nếu buông tay trước khi chuyển màn (Polish nhẹ)
-        window.addEventListener('touchend', (e) => {
-            if (currentLevel !== 4) return;
-            if (e.touches.length < 2) {
-                document.getElementById('fp-1').classList.remove('active');
-                document.getElementById('fp-2').classList.remove('active');
-            }
-        });
 
+            // Tiếp tục vòng lặp
+            animationFrameId = requestAnimationFrame(gameLoop);
+        }
     </script>
 </body>
 </html>
