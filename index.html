@@ -125,7 +125,7 @@
         <div id="m4-error" class="error-text" style="opacity: 0;">Quá rung lắc! Hãy tĩnh tâm!</div>
         <div id="crystal" class="crystal-ball"><div id="eq-4" class="equation">1 + 1 = ?</div></div>
         <div class="progress-container" style="display: block; margin-top: 40px;"><div id="m4-progress-bar"></div></div>
-        <div class="hint">Vợ chồng hãy cùng chạm tay giữ chặt và bảo vệ quả cầu này khỏi mọi rung lắc trong 5 giây.</div>
+        <div class="hint"></div>
     </div>
 
     <div id="screen-5" class="screen">
@@ -286,7 +286,7 @@
                     errText.style.color = "var(--warning-color)";
                     
                     balanceTimer += dt;
-                    progBar.style.width = Math.min((balanceTimer / 3000) * 100, 100) + '%';
+                    progBar.style.width = Math.min((balanceTimer / 8000) * 100, 100) + '%';
                     
                     if (balanceTimer >= 8000) {
                         currentLevel = -1;
