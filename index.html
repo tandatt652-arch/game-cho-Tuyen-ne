@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>LOGIC BẺ LÁI - HARDCORE EDITION</title>
+    <title>LOGIC BẺ LÁI - NÂNG NIU EDITION</title>
     <style>
-        /* ================= CSS ================= */
+        /* ================= CSS (Giữ nguyên) ================= */
         :root {
             --bg-color: #121212;
             --text-color: #e0e0e0;
@@ -15,74 +15,36 @@
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-            touch-action: none;
+            margin: 0; padding: 0; box-sizing: border-box;
+            user-select: none; -webkit-user-select: none; touch-action: none;
         }
 
         body, html {
-            width: 100vw;
-            height: 100vh;
-            background-color: var(--bg-color);
-            color: var(--text-color);
+            width: 100vw; height: 100vh;
+            background-color: var(--bg-color); color: var(--text-color);
             font-family: 'Courier New', Courier, monospace;
-            overflow: hidden;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            overflow: hidden; display: flex; justify-content: center; align-items: center;
         }
 
         .screen {
-            display: none;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            height: 100%;
-            padding: 20px;
-            text-align: center;
-            position: relative;
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            width: 100%; height: 100%; padding: 20px; text-align: center; position: relative;
             animation: fadeIn 0.5s ease-in-out;
         }
-
-        .screen.active {
-            display: flex;
-        }
+        .screen.active { display: flex; }
 
         #btn-start {
-            background-color: var(--text-color);
-            color: var(--bg-color);
-            border: none;
-            padding: 20px 40px;
-            font-size: 20px;
-            font-weight: bold;
-            border-radius: 50px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+            background-color: var(--text-color); color: var(--bg-color);
+            border: none; padding: 20px 40px; font-size: 20px; font-weight: bold;
+            border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
             transition: transform 0.1s;
         }
         #btn-start:active { transform: scale(0.95); }
 
-        .equation {
-            font-size: 3.5rem;
-            font-weight: bold;
-            margin-bottom: 20px;
-            transition: all 0.5s ease;
-            position: relative;
-        }
+        .equation { font-size: 3.5rem; font-weight: bold; transition: all 0.5s ease; position: relative; }
+        .hint { font-size: 1rem; color: #888; font-style: italic; max-width: 90%; margin-top: 30px; line-height: 1.5; }
+        .win-msg { font-size: 1.2rem; color: var(--success-color); max-width: 90%; margin-top: 30px; line-height: 1.5; }
 
-        .win-msg {
-            font-size: 1.2rem;
-            color: var(--success-color);
-            max-width: 90%;
-            margin-top: 30px;
-            line-height: 1.5;
-        }
-
-        /* Màn 1 & Màn 4 */
         @keyframes shakeAnim {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
             25% { transform: translate(-3px, 2px) rotate(-2deg); }
@@ -90,130 +52,138 @@
             75% { transform: translate(-3px, -2px) rotate(-1deg); }
         }
         .shake-active { animation: shakeAnim 0.3s infinite; color: var(--accent-color); }
-        .shake-light { animation: shakeAnim 2s infinite ease-in-out; }
 
-        /* Màn 2 */
-        .error-text { 
-            color: var(--accent-color); 
-            font-size: 1.2rem; 
-            font-weight: bold; 
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-        .progress-container {
-            width: 80%;
-            height: 12px;
-            background: #333;
-            border-radius: 10px;
-            margin-top: 20px;
-            overflow: hidden;
-            display: none;
-        }
-        #progress-bar { width: 0%; height: 100%; background: var(--success-color); }
+        .error-text { color: var(--accent-color); font-size: 1.2rem; font-weight: bold; margin-bottom: 10px; letter-spacing: 1px; transition: opacity 0.3s; }
+        .progress-container { width: 80%; height: 12px; background: #333; border-radius: 10px; margin-top: 20px; overflow: hidden; display: none; }
+        #progress-bar, #m4-progress-bar { width: 0%; height: 100%; }
+        #progress-bar { background: var(--success-color); }
+        #m4-progress-bar { background: var(--accent-color); transition: width 0.1s linear; }
         
         .infinity { font-size: 5rem; color: var(--success-color); }
 
-        /* Màn 3: Lỗi hệ thống (Glitch) */
         .glitch {
-            animation: glitchAnim 0.15s infinite;
-            color: var(--warning-color);
+            animation: glitchAnim 0.15s infinite; color: var(--warning-color);
             text-shadow: 2px 0 var(--accent-color), -2px 0 cyan;
         }
         @keyframes glitchAnim {
-            0% { transform: translate(0) }
+            0%, 100% { transform: translate(0) }
             20% { transform: translate(-2px, 2px) }
             40% { transform: translate(-2px, -2px) }
             60% { transform: translate(2px, 2px) }
             80% { transform: translate(2px, -2px) }
-            100% { transform: translate(0) }
         }
 
-        /* Màn 4 & 5 */
-        .heart {
-            color: var(--accent-color);
-            font-size: 5rem;
-            animation: pulse 1s infinite;
+        .crystal-ball {
+            width: 220px; height: 220px; border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.4), rgba(255, 255, 255, 0.05) 60%);
+            box-shadow: 0 0 25px rgba(255, 255, 255, 0.15), inset 0 0 35px rgba(255, 255, 255, 0.3);
+            display: flex; justify-content: center; align-items: center; transition: all 0.3s ease; position: relative; backdrop-filter: blur(5px);
         }
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-            100% { transform: scale(1); }
+        .crystal-ball .equation { font-size: 2.5rem; color: #fff; text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); }
+        .crystal-ball.error-flash {
+            background: radial-gradient(circle at 35% 35%, rgba(255, 71, 87, 0.4), rgba(255, 71, 87, 0.1) 60%);
+            box-shadow: 0 0 30px rgba(255, 71, 87, 0.5), inset 0 0 40px rgba(255, 71, 87, 0.4); transform: scale(0.95);
         }
+        .crystal-ball.broken-heart {
+            background: transparent; box-shadow: none; backdrop-filter: none; font-size: 6rem;
+            animation: pulse 1s infinite; text-shadow: 0 0 30px var(--accent-color);
+        }
+
+        .heart { color: var(--accent-color); font-size: 5rem; animation: pulse 1s infinite; }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.15); } }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* Toast thông báo */
         #toast {
-            position: absolute;
-            top: 15%;
-            background: var(--success-color);
-            color: #fff;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            opacity: 0;
-            transition: opacity 0.5s;
-            pointer-events: none;
-            z-index: 100;
+            position: absolute; top: 15%; background: var(--success-color); color: #fff; padding: 10px 20px;
+            border-radius: 20px; font-weight: bold; opacity: 0; transition: opacity 0.5s; pointer-events: none; z-index: 100;
         }
     </style>
 </head>
 <body>
     <div id="toast"></div>
 
-    <!-- MÀN 0: XIN QUYỀN -->
     <div id="screen-0" class="screen active">
         <button id="btn-start">[ CHẠM ĐỂ BẮT ĐẦU ]</button>
     </div>
 
-    <!-- MÀN 1: LẮC -->
     <div id="screen-1" class="screen">
         <div id="eq-1" class="equation">5 + 5 = ?</div>
     </div>
 
-    <!-- MÀN 2: CÂN BẰNG -->
     <div id="screen-2" class="screen">
         <div id="m2-error" class="error-text">ERROR: DỮ LIỆU ĐANG BẤT ỔN</div>
         <div id="eq-2" class="equation">8 / 0 = ?</div>
-        <div class="progress-container" id="m2-progress-container">
-            <div id="progress-bar"></div>
-        </div>
+        <div class="progress-container" id="m2-progress-container"><div id="progress-bar"></div></div>
     </div>
 
-    <!-- MÀN 3: THOÁT RA VÀO LẠI (VISIBILITY) -->
     <div id="screen-3" class="screen">
         <div id="eq-3" class="equation glitch">1 / 0 = ?</div>
     </div>
 
-    <!-- MÀN 4: MULTI-TOUCH + MOTION -->
     <div id="screen-4" class="screen">
-        <div id="eq-4" class="equation shake-light">1 + 1 = ?</div>
+        <div id="m4-error" class="error-text" style="opacity: 0;">Quá rung lắc! Hãy tĩnh tâm!</div>
+        <div id="crystal" class="crystal-ball"><div id="eq-4" class="equation">1 + 1 = ?</div></div>
+        <div class="progress-container" style="display: block; margin-top: 40px;"><div id="m4-progress-bar"></div></div>
+        <div class="hint">Vợ chồng hãy cùng chạm tay giữ chặt và bảo vệ quả cầu này khỏi mọi rung lắc trong 5 giây.</div>
     </div>
 
-    <!-- MÀN 5: WIN -->
     <div id="screen-5" class="screen">
         <div class="heart">❤️</div>
         <div class="equation" style="font-size: 2rem; margin-top: 20px;">1 + 1 = CHÚNG TA</div>
-        <div class="win-msg">Đồng vợ đồng chồng, tát biển Đông cũng cạn! Bạn đã phá đảo!</div>
+        <div class="win-msg">Bạn đã phá đảo! Dữ liệu đã được lưu lại mãi mãi.</div>
     </div>
 
     <script>
+        // ================= HỆ THỐNG TRACKER (GOOGLE FORM) =================
+        const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+        
+        // Tạo một ID định danh duy nhất mỗi khi cô ấy mở link (VD: USER_xyz123)
+        const USER_ID = "USER_" + Math.random().toString(36).substr(2, 6).toUpperCase();
+
+        function sendTrackingData(action, level, details) {
+            const formData = new URLSearchParams();
+            formData.append('entry.1666228409', USER_ID);      // id
+            formData.append('entry.1275903316', action);       // Hành động
+            formData.append('entry.444679017', level);         // Câu hỏi / Màn
+            formData.append('entry.1158846627', details);      // Câu trả lời / Chi tiết
+
+            // Gửi ngầm không làm mới trang, bỏ qua lỗi CORS
+            fetch(FORM_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: formData
+            }).catch(e => console.log('Tracker silent error')); // Ẩn lỗi nếu mạng yếu
+        }
+        // Ghi nhận ngay khi vừa load web
+        sendTrackingData("Truy cập", "Màn 0", "Vừa mở trình duyệt vào link game");
+
+
+        // ================= GAME LOGIC =================
         let currentLevel = 0;
         const toast = document.getElementById('toast');
         let animationFrameId, lastTime = performance.now();
 
-        // Biến Cảm biến
         let currentBeta = 90, currentGamma = 0;
         let balanceTimer = 0;
         let shakeForce = 0, shakeCountM1 = 0, lastShakeTimeM1 = 0;
-        let isHolding = false;
+        let m3LeftPage = false, m3Passed = false;
+        let isHolding = false, m4Timer = 0, m4Passed = false;
+        let lastAcc = { x: null, y: null, z: null }, m4Movement = 0; 
         
-        let m3LeftPage = false; // Cờ đánh dấu người chơi đã ẩn trình duyệt
-        let m3Passed = false, m4Passed = false;
+        const SHAKE_THRESHOLD_M4 = 2.5; 
+
+        // Biến delay để không bị spam Google Form khi thua liên tục (Debounce)
+        let lastReportM2Fail = 0;
+        let lastReportM4Fail = 0;
 
         function showScreen(level) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(`screen-${level}`).classList.add('active');
             currentLevel = level;
+            
+            // Theo dõi hành động tới màn mới
+            sendTrackingData("Chuyển màn", `Màn ${level}`, `Giao diện Màn ${level} đã hiển thị`);
         }
 
         function showToast(msg, callback, delay = 1500) {
@@ -225,19 +195,22 @@
             }, delay);
         }
 
-        // Xin quyền & Start
         document.getElementById('btn-start').addEventListener('click', async () => {
             try {
+                sendTrackingData("Tương tác", "Màn 0", "Cô ấy vừa bấm nút [CHẠM ĐỂ BẮT ĐẦU]");
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     const permissionState = await DeviceMotionEvent.requestPermission();
-                    if (permissionState !== 'granted') return alert('Cần cấp quyền cảm biến!');
+                    if (permissionState !== 'granted') {
+                        sendTrackingData("Từ chối quyền", "Màn 0", "Cô ấy không cấp quyền Cảm biến!");
+                        return alert('Cần cấp quyền cảm biến!');
+                    }
                 }
+                sendTrackingData("Thành công", "Màn 0", "Đã lấy được quyền Cảm biến");
                 requestAnimationFrame(gameLoop);
                 showScreen(1);
             } catch (err) { alert('Lỗi truy cập cảm biến.'); }
         });
 
-        // ================= CẢM BIẾN =================
         window.addEventListener('deviceorientation', (e) => {
             currentBeta = e.beta || 0;
             currentGamma = e.gamma || 0;
@@ -247,6 +220,11 @@
             const acc = e.accelerationIncludingGravity;
             if (!acc) return;
             shakeForce = Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
+
+            if (lastAcc.x !== null) {
+                m4Movement = Math.abs((acc.x || 0) - lastAcc.x) + Math.abs((acc.y || 0) - lastAcc.y) + Math.abs((acc.z || 0) - lastAcc.z);
+            }
+            lastAcc = { x: acc.x || 0, y: acc.y || 0, z: acc.z || 0 };
 
             if (currentLevel === 1 && shakeForce > 25) {
                 const now = Date.now();
@@ -260,45 +238,41 @@
                         currentLevel = -1;
                         document.getElementById('eq-1').innerText = "10";
                         document.getElementById('eq-1').style.color = "var(--success-color)";
+                        sendTrackingData("Qua màn", "Màn 1: Lắc", "Lắc đủ 10 lần thành công");
                         showToast("Đã trộn đều!", () => showScreen(2));
                     }
                 }
             }
         });
 
-        // Đa điểm chạm
         function checkTouches(e) { isHolding = (e.touches.length === 2); }
         window.addEventListener('touchstart', checkTouches);
         window.addEventListener('touchend', checkTouches);
         window.addEventListener('touchcancel', checkTouches);
 
-        // ================= LOGIC MÀN 3: VISIBILITY EVENT =================
         document.addEventListener('visibilitychange', () => {
             if (currentLevel === 3 && !m3Passed) {
                 if (document.hidden) {
-                    // Người chơi đã vuốt về Home hoặc tắt màn hình điện thoại
-                    m3LeftPage = true; 
-                } else if (m3LeftPage) {
-                    // Người chơi vừa mở lại trình duyệt
+                    m3LeftPage = true;
+                    sendTrackingData("Tương tác", "Màn 3: Lỗi hệ thống", "Cô ấy vừa thoát ẩn trình duyệt (Vuốt ra Home/Tắt màn hình)");
+                } 
+                else if (m3LeftPage) {
                     m3Passed = true;
-                    currentLevel = -1; // Khóa màn
-                    
+                    currentLevel = -1; 
                     const eq3 = document.getElementById('eq-3');
                     eq3.classList.remove('glitch');
                     eq3.innerHTML = `<span class="infinity">&infin;</span>`;
-                    
-                    // Lời nhắn vinh danh quy tắc số 1 của IT
+                    sendTrackingData("Qua màn", "Màn 3: Lỗi hệ thống", "Cô ấy vừa quay lại trình duyệt -> Qua màn!");
                     showToast("Quy tắc vàng IT: Lỗi thì Restart!", () => showScreen(4), 2500);
                 }
             }
         });
 
-        // ================= VÒNG LẶP GAME =================
         function gameLoop(time) {
             const dt = time - lastTime;
             lastTime = time;
 
-            // Màn 2: Cân bằng
+            // MÀN 2
             if (currentLevel === 2) {
                 const isFlat = Math.abs(currentBeta) <= 2 && Math.abs(currentGamma) <= 2;
                 const progContainer = document.getElementById('m2-progress-container');
@@ -313,11 +287,12 @@
                     balanceTimer += dt;
                     progBar.style.width = Math.min((balanceTimer / 3000) * 100, 100) + '%';
                     
-                    if (balanceTimer >= 3000) {
+                    if (balanceTimer >= 8000) {
                         currentLevel = -1;
-                        errText.innerText = "ĐÃ BÌNH ỔN";
+                        errText.innerText = "ĐÃ CÂN BẰNG";
                         errText.style.color = "var(--success-color)";
                         document.getElementById('eq-2').innerHTML = `<span class="infinity">&infin;</span>`;
+                        sendTrackingData("Qua màn", "Màn 2: Cân bằng", "Giữ thăng bằng mặt phẳng đủ 3 giây!");
                         showToast("Tĩnh lặng tuyệt đối!", () => showScreen(3), 2000);
                     }
                 } else {
@@ -326,18 +301,52 @@
                     progContainer.style.display = 'none';
                     errText.innerText = "ERROR: DỮ LIỆU ĐANG BẤT ỔN";
                     errText.style.color = "var(--accent-color)";
+                    
+                    // Tracker: Báo cáo cô ấy cầm lệch (chỉ báo cáo 1 lần mỗi 3 giây để tránh spam form)
+                    if (time - lastReportM2Fail > 3000) {
+                        sendTrackingData("Thất bại", "Màn 2: Cân bằng", `Điện thoại đang bị nghiêng (Beta: ${Math.round(currentBeta)}, Gamma: ${Math.round(currentGamma)})`);
+                        lastReportM2Fail = time;
+                    }
                 }
             }
 
-            // Màn 4: Multi-touch + Shake
+            // MÀN 4
             if (currentLevel === 4 && !m4Passed) {
-                if (isHolding && shakeForce > 25) {
+                const progBarM4 = document.getElementById('m4-progress-bar');
+                const errTextM4 = document.getElementById('m4-error');
+                const crystal = document.getElementById('crystal');
+
+                if (isHolding) {
+                    if (m4Movement > SHAKE_THRESHOLD_M4) {
+                        m4Timer = 0; 
+                        errTextM4.style.opacity = 1;
+                        crystal.classList.add('error-flash');
+                        setTimeout(() => crystal.classList.remove('error-flash'), 300);
+
+                        // Tracker: Báo cáo khi tay rung làm rớt (giới hạn spam mỗi 2 giây)
+                        if (time - lastReportM4Fail > 2000) {
+                            sendTrackingData("Thất bại", "Màn 4: Nâng niu", "Chạm 2 ngón nhưng bị rung lắc quá ngưỡng!");
+                            lastReportM4Fail = time;
+                        }
+                    } else {
+                        m4Timer += dt;
+                        errTextM4.style.opacity = 0;
+                    }
+                } else {
+                    m4Timer = 0;
+                    errTextM4.style.opacity = 0;
+                }
+                
+                progBarM4.style.width = Math.min((m4Timer / 5000) * 100, 100) + '%';
+                
+                if (m4Timer >= 5000) {
                     m4Passed = true;
-                    currentLevel = -1;
-                    const eq4 = document.getElementById('eq-4');
-                    eq4.classList.remove('shake-light');
-                    eq4.innerHTML = `<div class="heart">❤️</div>`;
-                    showToast("Gắn kết tuyệt đối! Bạn đã phá đảo!", () => showScreen(5), 2000);
+                    currentLevel = -1; 
+                    crystal.innerHTML = `❤️`;
+                    crystal.className = 'crystal-ball broken-heart';
+                    
+                    sendTrackingData("PHÁ ĐẢO", "Màn 4 (Trùm Cuối)", "Đã giữ tĩnh lặng 5 giây. Phá đảo thành công toàn bộ game!");
+                    showToast("Cục dàng đã phá đảo!", () => showScreen(5), 2500);
                 }
             }
 
