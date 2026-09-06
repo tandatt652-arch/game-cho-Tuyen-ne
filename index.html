@@ -76,10 +76,10 @@
             position: relative;
         }
 
-        .hint {
-            font-size: 1rem;
-            color: #888;
-            font-style: italic;
+        /* Lời nhắn chiến thắng */
+        .win-msg {
+            font-size: 1.2rem;
+            color: var(--success-color);
             max-width: 90%;
             margin-top: 30px;
             line-height: 1.5;
@@ -186,13 +186,11 @@
     <!-- MÀN 0: XIN QUYỀN -->
     <div id="screen-0" class="screen active">
         <button id="btn-start">[ CHẠM ĐỂ BẮT ĐẦU ]</button>
-        <div class="hint" style="margin-top: 20px;">Game yêu cầu cấp quyền Cảm biến (Motion) & Microphone (Audio) để giải đố. Vui lòng chọn "Cho phép" khi được hỏi.</div>
     </div>
 
     <!-- MÀN 1: LẮC -->
     <div id="screen-1" class="screen">
         <div id="eq-1" class="equation">5 + 5 = ?</div>
-        <div class="hint">Chai nước ép toán học này hơi đóng cặn. Nhớ cầm lên và xóc đều trước khi dùng.</div>
     </div>
 
     <!-- MÀN 2: CÂN BẰNG -->
@@ -202,28 +200,25 @@
         <div class="progress-container" id="m2-progress-container">
             <div id="progress-bar"></div>
         </div>
-        <div class="hint">Đừng cố bấm hay lắc nữa. Đôi khi cách giải quyết tốt nhất là buông tay và để mọi thứ tĩnh lặng. (Gợi ý: Đặt thiết bị nằm phẳng trên bàn).</div>
     </div>
 
     <!-- MÀN 3: SÓNG ÂM -->
     <div id="screen-3" class="screen">
         <div id="m3-content">
             <div id="eq-3" class="equation">1<span id="m3-zeros">000</span> - 999 = ?</div>
-            <div class="hint">Phủ bụi dày quá không thấy nút bấm đâu. Thử đưa miệng sát mic và thổi bay lớp bụi này xem? (Hoặc hét lớn lên).</div>
         </div>
     </div>
 
     <!-- MÀN 4: MULTI-TOUCH + MOTION -->
     <div id="screen-4" class="screen">
         <div id="eq-4" class="equation shake-light">1 + 1 = ?</div>
-        <div class="hint">Vợ chồng đồng lòng. Hãy cùng nhau GIỮ CHẶT (2 ngón tay chạm màn hình) và vượt qua GIÔNG BÃO (lắc mạnh thiết bị).</div>
     </div>
 
     <!-- MÀN 5: WIN -->
     <div id="screen-5" class="screen">
         <div class="heart">❤️</div>
         <div class="equation" style="font-size: 2rem; margin-top: 20px;">1 + 1 = CHÚNG TA</div>
-        <div class="hint" style="color: var(--success-color);">Đồng vợ đồng chồng, tát biển Đông cũng cạn! Bạn đã phá đảo!</div>
+        <div class="win-msg">Đồng vợ đồng chồng, tát biển Đông cũng cạn! Bạn đã phá đảo!</div>
     </div>
 
     <script>
@@ -376,18 +371,22 @@
                 }
             }
 
-            // --- LOGIC MÀN 3: SÓNG ÂM (MICROPHONE) ---
+            // --- LOGIC MÀN 3: SÓNG ÂM (MICROPHONE) - ĐÃ FIX ---
             if (currentLevel === 3 && !m3Passed) {
                 analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
+                
+                let maxVolume = 0;
+                // Tìm giá trị âm thanh ĐỈNH thay vì lấy trung bình
                 for (let i = 0; i < dataArray.length; i++) {
-                    sum += dataArray[i];
+                    if (dataArray[i] > maxVolume) {
+                        maxVolume = dataArray[i];
+                    }
                 }
-                const avgVolume = sum / dataArray.length;
-                const volumePercent = (avgVolume / 255) * 100;
+                
+                const volumePercent = (maxVolume / 255) * 100;
 
-                // Cần thổi mạnh hoặc hét to (ngưỡng > 70%)
-                if (volumePercent > 70) {
+                // Chỉ cần 1 tần số đạt đỉnh 60% âm lượng là qua màn (Thổi hoặc hét lớn là được)
+                if (volumePercent > 60) {
                     m3Passed = true;
                     currentLevel = -1; // Khóa màn
                     
