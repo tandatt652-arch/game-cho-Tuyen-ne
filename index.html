@@ -2,1088 +2,367 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Toán Bẻ Lái - The Troll Puzzle</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LOGIC BẺ LÁI</title>
     <style>
-        /* =========================================================
-           1. CSS TOKENS & RESET
-        
-        ========================================================= */
+        /* ================= CSS ================= */
         :root {
-            --bg: #090a0f;
-            --panel: #141721;
-            --panel-border: rgba(255, 255, 255, 0.08);
-            --accent: #6366f1;
-            --accent-glow: rgba(99, 102, 241, 0.35);
-            --danger: #ef4444;
-            --danger-glow: rgba(239, 68, 68, 0.4);
-            --success: #10b981;
-            --warning: #f59e0b;
-            --text: #f8fafc;
-            --text-muted: #94a3b8;
-            --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --accent-color: #ff4757;
+            --success-color: #2ed573;
         }
 
         * {
-            box-sizing: border-box;
-            user-select: none;
-            -webkit-user-select: none;
-        }
-
-        html, body {
             margin: 0;
             padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            overflow: hidden;
+            box-sizing: border-box;
+            user-select: none; /* Tránh bôi đen text khi chạm giữ */
         }
 
-        body.inverted {
-            transform: rotate(180deg);
-            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55);
-        }
-
-        /* Lưới không gian ẩn ở Màn 1 */
-        #coordinateGrid {
-            position: fixed;
-            inset: 0;
-            background-image: 
-                linear-gradient(to right, rgba(99, 102, 241, 0.12) 1px, transparent 1px),
-                linear-gradient(to bottom, rgba(99, 102, 241, 0.12) 1px, transparent 1px);
-            background-size: 50px 50px;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.25s ease;
-            z-index: 1;
-        }
-        #coordinateGrid.active {
-            opacity: 1;
-        }
-
-        /* Điểm tọa độ (1,1) hiển thị ở góc */
-        #targetCoordPoint {
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            width: 40px;
-            height: 40px;
-            border: 2px dashed var(--accent);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 11px;
-            font-family: var(--font-mono);
-            color: var(--accent);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.2s;
-            z-index: 5;
-        }
-        #targetCoordPoint.visible {
-            opacity: 0.8;
-            pointer-events: auto;
-            cursor: crosshair;
-        }
-
-        /* Khung chính */
-        #gameContainer {
+        body, html {
             width: 100vw;
             height: 100vh;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; /* Cấm cuộn */
             display: flex;
-            flex-direction: column;
-            align-items: center;
             justify-content: center;
-            position: relative;
-            z-index: 2;
-        }
-
-        .card {
-            width: min(840px, 92vw);
-            min-height: 520px;
-            background: var(--panel);
-            border: 1px solid var(--panel-border);
-            border-radius: 24px;
-            padding: 36px;
-            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            overflow: hidden;
-            backdrop-filter: blur(20px);
-            transition: all 0.4s ease;
-        }
-
-        /* HIỆU ỨNG THÀNH CÔNG (CHUYỂN XANH LÁ) */
-        .card.success-flash {
-            border-color: var(--success) !important;
-            box-shadow: 0 0 80px rgba(16, 185, 129, 0.6) !important;
-            background: rgba(16, 185, 129, 0.08) !important;
-        }
-
-        /* Header bar */
-        .header {
-            display: flex;
-            justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 16px;
-            margin-bottom: 24px;
-            transition: opacity 0.3s;
-        }
-        .header .title {
-            font-weight: 800;
-            font-size: 1.1rem;
-            letter-spacing: 0.05em;
-            color: var(--text);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .header .level-badge {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            color: var(--text-muted);
-            border: 1px solid var(--panel-border);
-            font-family: var(--font-mono);
         }
 
-        /* Màn chơi */
-        .stage {
+        .screen {
             display: none;
-            flex: 1;
             flex-direction: column;
-            align-items: center;
             justify-content: center;
-            position: relative;
-        }
-        .stage.active {
-            display: flex;
-        }
-
-        /* Hiệu ứng Rung (Shake) */
-        @keyframes shakeAnim {
-            0%, 100% { transform: translate(0, 0); }
-            20% { transform: translate(-10px, 4px); }
-            40% { transform: translate(10px, -4px); }
-            60% { transform: translate(-8px, -2px); }
-            80% { transform: translate(8px, 2px); }
-        }
-        .shake {
-            animation: shakeAnim 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-            border-color: var(--danger) !important;
-            box-shadow: 0 0 30px rgba(239, 68, 68, 0.4) !important;
-        }
-
-        /* =========================================================
-           STAGE 1 STYLES
-        ========================================================= */
-        #s1-math {
-            font-size: clamp(3.5rem, 8vw, 6rem);
-            font-weight: 900;
-            font-family: var(--font-mono);
-            letter-spacing: -2px;
-            transition: color 0.3s;
-        }
-        #s1-input {
-            position: absolute;
-            width: 140px;
-            padding: 10px 14px;
-            background: #0f1117;
-            border: 2px solid var(--accent);
-            border-radius: 10px;
-            color: var(--text);
-            font-size: 1.2rem;
-            text-align: center;
-            outline: none;
-            opacity: 0;
-            pointer-events: none;
-            transition: top 0.2s, left 0.2s, background-color 0.3s, border-color 0.3s;
-        }
-        #s1-input.visible {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        /* =========================================================
-           STAGE 2 STYLES
-        ========================================================= */
-        #bombButton {
-            padding: 24px 44px;
-            font-size: 1.4rem;
-            font-weight: 800;
-            border-radius: 18px;
-            border: none;
-            cursor: pointer;
-            color: #fff;
-            background: var(--accent);
-            box-shadow: 0 10px 30px var(--accent-glow);
-            transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
-        }
-        #bombButton.ticking {
-            background: var(--danger);
-            box-shadow: 0 0 40px var(--danger-glow);
-            animation: pulseBomb 0.5s infinite alternate;
-        }
-        #bombButton.frozen {
-            background: #0284c7;
-            box-shadow: 0 0 30px rgba(2, 132, 199, 0.5);
-            animation: none;
-        }
-        @keyframes pulseBomb {
-            from { transform: scale(1); }
-            to { transform: scale(1.05); }
-        }
-
-        /* Custom Context Menu */
-        #customContextMenu {
-            position: fixed;
-            background: #1e2230;
-            border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            display: none;
-            flex-direction: column;
-            padding: 6px;
-            z-index: 1000;
-        }
-        #customContextMenu.active {
-            display: flex;
-        }
-        .context-opt {
-            padding: 8px 18px;
-            border: none;
-            background: transparent;
-            color: var(--text);
-            font-size: 0.9rem;
-            text-align: left;
-            border-radius: 6px;
-            cursor: pointer;
-            display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 16px;
-        }
-        .context-opt:hover {
-            background: var(--accent);
-        }
-
-        #safeButton {
-            display: none;
-            padding: 20px 40px;
-            font-size: 1.25rem;
-            font-weight: 800;
-            border-radius: 16px;
-            border: none;
-            cursor: pointer;
-            background: var(--success);
-            color: #fff;
-            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
-        }
-
-        /* =========================================================
-           STAGE 3 STYLES
-        ========================================================= */
-        #s3-equation {
-            font-size: 2.8rem;
-            font-weight: 800;
-            font-family: var(--font-mono);
-            padding: 16px 24px;
-            background: #0f121a;
-            border-radius: 16px;
-            border: 1px solid var(--panel-border);
-            margin-bottom: 30px;
-        }
-        #s3-x2 {
-            display: inline-block;
-            cursor: text;
-            user-select: text;
-            -webkit-user-select: text;
-            padding: 2px 4px;
-            border-radius: 4px;
-        }
-        #s3-x2.fall {
-            animation: fallAnimation 0.8s forwards cubic-bezier(0.55, 0.055, 0.675, 0.19);
-        }
-        @keyframes fallAnimation {
-            0% { transform: translateY(0); opacity: 1; }
-            100% { transform: translateY(320px) rotate(45deg); opacity: 0; }
-        }
-
-        .quantum-pool {
-            display: flex;
-            gap: 24px;
-            min-height: 80px;
-            align-items: center;
-        }
-        .quantum-pill {
-            padding: 14px 28px;
-            background: #1e2433;
-            border: 2px solid var(--panel-border);
-            border-radius: 14px;
-            font-size: 1.6rem;
-            font-family: var(--font-mono);
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.25s ease;
-        }
-        .quantum-pill.selected-quantum {
-            border-color: var(--success);
-            background: rgba(16, 185, 129, 0.15);
-            box-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
-            transform: scale(1.05);
-        }
-
-        /* =========================================================
-           STAGE 4 STYLES
-        ========================================================= */
-        .admin-form {
-            width: min(420px, 100%);
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            background: #0f121a;
-            padding: 28px;
-            border-radius: 18px;
-            border: 1px solid var(--panel-border);
-            position: relative;
-            transition: transform 0.6s ease, opacity 0.6s ease;
-        }
-        .admin-form.shattered {
-            transform: scale(0.1) rotate(60deg);
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .input-wrapper {
-            position: relative;
-            display: flex;
-            align-items: center;
-        }
-        #adminPass {
             width: 100%;
-            padding: 14px 16px;
-            background: #181d2a;
-            border: 1px solid var(--panel-border);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 1.1rem;
-            outline: none;
-        }
-        #adminPass:disabled {
-            background: #10131c;
-            color: #475569;
-            cursor: not-allowed;
-        }
-
-        #lockTarget {
-            font-size: 2.2rem;
-            margin-left: 12px;
-            cursor: default;
-            transition: transform 0.2s, filter 0.3s;
-        }
-        #lockTarget.unlocked {
-            filter: drop-shadow(0 0 15px var(--success));
-        }
-
-        /* Nút gạt bí mật góc form */
-        #secretToggle {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            width: 28px;
-            height: 14px;
-            background: #334155;
-            border-radius: 10px;
-            cursor: pointer;
-            opacity: 0;
-            transition: opacity 0.4s, background 0.3s;
-        }
-        #secretToggle.visible {
-            opacity: 0.4;
-        }
-        #secretToggle.visible:hover {
-            opacity: 1;
-        }
-        #secretToggle::after {
-            content: "";
-            position: absolute;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #fff;
-            top: 2px;
-            left: 2px;
-            transition: transform 0.2s;
-        }
-        #secretToggle.on {
-            background: var(--accent);
-            opacity: 1;
-        }
-        #secretToggle.on::after {
-            transform: translateX(14px);
-        }
-
-        /* Token chữ 'vợ' có thể kéo */
-        #dragVoToken {
-            position: absolute;
-            display: none;
-            padding: 6px 14px;
-            background: var(--accent);
-            color: #fff;
-            font-weight: bold;
-            border-radius: 8px;
-            cursor: grab;
-            box-shadow: 0 4px 15px var(--accent-glow);
-            z-index: 100;
-        }
-        #dragVoToken:active {
-            cursor: grabbing;
-        }
-
-        /* Màn Victory */
-        #victoryScreen {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            height: 100%;
+            padding: 20px;
             text-align: center;
-            gap: 16px;
+            position: relative;
+            animation: fadeIn 0.5s ease-in-out;
         }
-        #victoryScreen h1 {
-            font-size: 2.5rem;
-            color: var(--success);
-            margin: 0;
-            text-shadow: 0 0 20px rgba(16, 185, 129, 0.4);
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Nút Bắt Đầu */
+        #btn-start {
+            background-color: var(--text-color);
+            color: var(--bg-color);
+            border: none;
+            padding: 20px 40px;
+            font-size: 24px;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+            transition: transform 0.1s;
+        }
+        #btn-start:active {
+            transform: scale(0.95);
+        }
+
+        /* Elements hiển thị toán học */
+        .equation {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            transition: all 0.5s ease;
+        }
+
+        .hint {
+            font-size: 1rem;
+            color: #888;
+            font-style: italic;
+            max-width: 80%;
+            margin-top: 30px;
+        }
+
+        /* Màn 1: Shake Animation */
+        @keyframes shakeAnim {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(3px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(3px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(1px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        .shake-active {
+            animation: shakeAnim 0.5s infinite;
+            color: var(--accent-color);
+        }
+
+        /* Màn 2: Đảo ngược */
+        #number-9 {
+            display: inline-block;
+            transition: transform 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+        .flipped {
+            transform: rotate(180deg);
+            color: var(--success-color);
+        }
+
+        /* Màn 4: Multi-touch */
+        .fingerprint {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border: 2px dashed #555;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0.5;
+            transition: all 0.3s ease;
+        }
+        .fp-top-left { top: 10%; left: 10%; }
+        .fp-bottom-right { bottom: 10%; right: 10%; }
+        .fingerprint.active {
+            border-color: var(--accent-color);
+            background-color: rgba(255, 71, 87, 0.2);
+            opacity: 1;
+        }
+        .heart {
+            color: var(--accent-color);
+            font-size: 5rem;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Thông báo nhỏ */
+        #toast {
+            position: absolute;
+            top: 20%;
+            background: var(--success-color);
+            color: #fff;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-weight: bold;
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
 
-    <div id="coordinateGrid"></div>
-    <div id="targetCoordPoint">(Gốc)</div>
+    <audio id="silent-audio" loop playsinline>
+        <source src="data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA" type="audio/wav">
+    </audio>
 
-    <div id="customContextMenu">
-        <button class="context-opt" id="cutBtn">
-            <span>Cắt (Cut)</span>
-            <span style="color:#64748b; font-size: 0.75rem;">Ctrl+X</span>
-        </button>
+    <div id="toast"></div>
+
+    <div id="screen-0" class="screen active">
+        <button id="btn-start">[ CHẠM ĐỂ BẮT ĐẦU ]</button>
+        <div class="hint" style="margin-top: 20px;">Vui lòng cấp quyền cảm biến nếu thiết bị yêu cầu để chơi game.</div>
     </div>
 
-    <div id="dragVoToken">vợ</div>
+    <div id="screen-1" class="screen">
+        <div id="eq-1" class="equation">5 + 5 = ?</div>
+        <div class="hint"></div>
+    </div>
 
-    <main id="gameContainer">
-        <div class="card" id="gameCard">
-            <header class="header">
-                <div class="title">
-                    <span style="color:var(--accent);">∑</span>  Toán bịp hơn hôm qua
-                </div>
-                <div class="level-badge" id="levelIndicator">Màn 1 / 4</div>
-            </header>
+    <div id="screen-2" class="screen">
+        <div id="eq-2" class="equation"><span id="number-9">9</span> - 3 = ?</div>
+        <div class="hint"></div>
+    </div>
 
-            <!-- ================= STAGE 1 ================= -->
-            <section class="stage active" id="stage1">
-                <div id="s1-math">1 + 1 = ?</div>
-                <input type="text" id="s1-input" autocomplete="off">
-            </section>
+    <div id="screen-3" class="screen">
+        <div id="eq-3" class="equation">100 - <span id="var-x">X</span> = 0</div>
+        <div class="hint"></div>
+    </div>
 
-            <!-- ================= STAGE 2 ================= -->
-            <section class="stage" id="stage2">
-                <button id="bombButton">Bấm vào để qua màn</button>
-                <button id="safeButton">Qua màn an toàn</button>
-            </section>
+    <div id="screen-4" class="screen">
+        <div class="fingerprint fp-top-left" id="fp-1">👆</div>
+        <div id="eq-4" class="equation">1 + 1 = ?</div>
+        <div class="fingerprint fp-bottom-right" id="fp-2">👆</div>
+        <div class="hint"></div>
+    </div>
 
-            <!-- ================= STAGE 3 ================= -->
-            <section class="stage" id="stage3">
-                <div id="s3-equation">
-                    Giải pt: <span id="s3-x2">x²</span> - 1 = 0
-                </div>
-                <div class="quantum-pool" id="quantumPool"></div>
-            </section>
-
-            <!-- ================= STAGE 4 ================= -->
-            <section class="stage" id="stage4">
-                <div class="admin-form" id="adminForm">
-                    <h3 style="margin:0 0 10px 0; font-size:1.1rem; color:var(--text-muted);">XÁC THỰC QUYỀN TRUY CẬP</h3>
-                    <div class="input-wrapper">
-                        <input type="password" id="adminPass" disabled>
-                        <div id="lockTarget">🔒</div>
-                    </div>
-                    <div id="secretToggle"></div>
-                </div>
-
-                <div id="victoryScreen">
-                    <h1>🎉 PHÁ ĐẢO THÀNH CÔNG! 🎉</h1>
-                    <p style="color: var(--text-muted); font-size:1.1rem;">
-                        Hong có gợi ý làm được mới lạ
-                    </p>
-                </div>
-            </section>
-        </div>
-    </main>
+    <div id="screen-5" class="screen">
+        <div class="heart">❤️</div>
+        <div class="equation" style="font-size: 2rem; margin-top: 20px;">1 + 1 = CHÚNG TA</div>
+        <div class="hint" style="color: var(--success-color);">Đồng vợ đồng chồng, tát biển Đông cũng cạn! Bạn đã phá đảo!</div>
+    </div>
 
     <script>
-        (() => {
-            "use strict";
+        let currentLevel = 0;
+        const audio = document.getElementById('silent-audio');
+        const toast = document.getElementById('toast');
 
-            /* =========================================================
-               0. HỆ THỐNG TRACKING (GỬI VỀ GOOGLE FORM)
-            ========================================================= */
-            const SESSION_ID = "SESSION_" + Math.random().toString(36).substr(2, 8).toUpperCase();
-            const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+        // Hàm chuyển màn
+        function showScreen(level) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(`screen-${level}`).classList.add('active');
+            currentLevel = level;
+        }
+
+        // Hàm hiển thị thông báo popup
+        function showToast(msg, callback) {
+            toast.innerText = msg;
+            toast.style.opacity = 1;
+            setTimeout(() => {
+                toast.style.opacity = 0;
+                if(callback) callback();
+            }, 1500);
+        }
+
+        // ================= XỬ LÝ QUYỀN (MÀN 0) =================
+        document.getElementById('btn-start').addEventListener('click', async () => {
+            // 1. Xin quyền Sensor cho iOS 13+
+            if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
+                try {
+                    const permissionState = await DeviceMotionEvent.requestPermission();
+                    if (permissionState !== 'granted') {
+                        alert('Cần cấp quyền cảm biến để chơi game!');
+                        return;
+                    }
+                } catch (console) {
+                    alert('Lỗi xin quyền cảm biến.');
+                }
+            }
+
+            // 2. Kích hoạt Audio (Bắt buộc phải qua user gesture)
+            try {
+                audio.play();
+            } catch (e) {
+                console.log("Audio autoplay bị chặn, không sao.");
+            }
+
+            // Vào màn 1
+            showScreen(1);
+        });
+
+        // ================= MÀN 1: LẮC =================
+        /* Cách test trên PC: Mở Chrome DevTools (F12) -> Nhấn Ctrl+Shift+P -> gõ "Sensors".
+           Ở mục Orientation/Device-based, thay đổi các giá trị để giả lập gia tốc.
+        */
+        let shakeCount = 0;
+        let lastUpdate = 0;
+        window.addEventListener('devicemotion', (e) => {
+            if (currentLevel !== 1) return;
             
-            function trackAction(context, action, result) {
-                // In ra console để debug
-                console.log(`[Tracking] ${context} | ${action} -> ${result}`);
+            const acc = e.accelerationIncludingGravity;
+            if (!acc) return;
 
-                const formData = new URLSearchParams();
-                formData.append("entry.1666228409", SESSION_ID);
-                formData.append("entry.1275903316", String(context));
-                formData.append("entry.444679017", String(action));
-                formData.append("entry.1158846627", String(result));
-
-                fetch(FORM_URL, {
-                    method: "POST",
-                    mode: "no-cors",
-                    headers: {
-                        "Content-Type": "application/x-www-form-urlencoded"
-                    },
-                    body: formData.toString()
-                }).catch((err) => console.error("Tracking Error:", err));
-            }
-
-            trackAction("Khởi động Game", "Truy cập Link", "Bắt đầu Màn 1");
-
-            /* =========================================================
-               GLOBAL KEYLOGGER (Theo dõi mọi phím bấm)
-            ========================================================= */
-            window.addEventListener("keydown", (e) => {
-                // Bỏ qua nếu nhấn giữ phím để tránh spam Form quá nhiều
-                if (e.repeat) return; 
-                
-                let keyName = e.key;
-                if (e.code === "Space") keyName = "Space"; // Space bar thường hiển thị trống nên đổi lại cho dễ nhìn
-                
-                trackAction(`Màn ${currentStage}`, "Gõ phím trên bàn phím", `[Phím: ${keyName}]`);
-            });
-
-            /* =========================================================
-               CORE STATE & ENGINE
-            ========================================================= */
-            let currentStage = 1;
-            const card = document.getElementById("gameCard");
-            const levelIndicator = document.getElementById("levelIndicator");
-
-            function failReset(reason, stageResetCallback) {
-                trackAction(`Màn ${currentStage}`, "Thao tác sai", `[LỖI] -> Reset! (${reason})`);
-
-                card.classList.remove("shake");
-                void card.offsetWidth;
-                card.classList.add("shake");
-                
-                if (typeof stageResetCallback === "function") {
-                    setTimeout(() => {
-                        card.classList.remove("shake");
-                        stageResetCallback();
-                    }, 800);
+            // Tính tổng lực gia tốc
+            const force = Math.abs(acc.x) + Math.abs(acc.y) + Math.abs(acc.z);
+            
+            // Gia tốc trọng trường bình thường là ~9.8. Lắc mạnh sẽ vượt qua 20.
+            if (force > 25) {
+                const now = Date.now();
+                if (now - lastUpdate > 100) { // debounce
+                    shakeCount++;
+                    lastUpdate = now;
+                    document.getElementById('eq-1').classList.add('shake-active');
+                    
+                    if (shakeCount >= 10) {
+                        document.getElementById('eq-1').innerText = "10";
+                        document.getElementById('eq-1').classList.remove('shake-active');
+                        document.getElementById('eq-1').style.color = "var(--success-color)";
+                        setTimeout(() => showToast("Đã trộn đều!", () => showScreen(2)), 1000);
+                        shakeCount = 0; // reset
+                    }
                 }
+            } else {
+                document.getElementById('eq-1').classList.remove('shake-active');
             }
+        });
 
-            function nextStage(stageNumber) {
-                trackAction("Chuyển Màn", `Hoàn thành Màn ${currentStage}`, `Sang Màn ${stageNumber}`);
-                document.querySelectorAll(".stage").forEach(s => s.classList.remove("active"));
-                document.getElementById(`stage${stageNumber}`).classList.add("active");
-                currentStage = stageNumber;
-                levelIndicator.textContent = `Màn ${stageNumber} / 4`;
+        // ================= MÀN 2: LỘN NGƯỢC =================
+        /* Cách test trên PC: Dùng tab Sensors của DevTools, chỉnh Beta thành 180 hoặc -180
+        */
+        window.addEventListener('deviceorientation', (e) => {
+            if (currentLevel !== 2) return;
+            
+            const beta = e.beta; // Góc gập (trước/sau): -180 đến 180
+            
+            // Lộn ngược điện thoại (Portrait) thì beta sẽ vượt quá 140 hoặc dưới -140 tùy dòng máy
+            if (beta > 150 || beta < -150) {
+                const num9 = document.getElementById('number-9');
+                num9.classList.add('flipped');
+                document.getElementById('eq-2').innerHTML = `<span class="flipped">9</span> - 3 = 3`;
+                
+                setTimeout(() => showToast("Hợp lý!", () => showScreen(3)), 1500);
             }
+        });
 
-            // HÀM HIỆU ỨNG THÀNH CÔNG RỒI MỚI CHUYỂN MÀN
-            function triggerSuccessAndNextStage(nextStageNumber, initCallback) {
-                card.classList.add("success-flash");
+        // ================= MÀN 3: ÂM LƯỢNG =================
+        /* Lưu ý về Web API: Bắt phím cứng volume trên Mobile browser rất khó khăn vì OS thường chặn.
+           Cách hoạt động tốt nhất là dựa vào event 'volumechange' của thẻ <audio> đang play.
+           Cách test trên PC: Mở console gõ `document.getElementById('silent-audio').volume = 0;`
+        */
+        audio.addEventListener('volumechange', () => {
+            if (currentLevel !== 3) return;
+            
+            if (audio.volume === 0 || audio.muted) {
+                document.getElementById('var-x').innerText = "100";
+                document.getElementById('var-x').style.color = "var(--success-color)";
+                document.getElementById('eq-3').innerText = "100 - 100 = 0";
+                setTimeout(() => showToast("Tuyệt vời sự tĩnh lặng!", () => showScreen(4)), 1500);
+            }
+        });
+
+        // Hỗ trợ Fallback (Dành cho iOS Safari chặn volumechange qua phím cứng quá gắt):
+        // Cho phép user tap 3 lần vào phương trình để qua màn nếu không thể dùng phím cứng.
+        let fallbackClicks = 0;
+        document.getElementById('eq-3').addEventListener('click', () => {
+            if(currentLevel !== 3) return;
+            fallbackClicks++;
+            if(fallbackClicks >= 3) {
+                audio.volume = 0; // Trigger logic
+            }
+        });
+
+        // ================= MÀN 4: MULTI-TOUCH =================
+        /* Cách test trên điện thoại: Dùng 2 ngón tay chạm cùng lúc lên màn hình.
+           Cách test trên PC (Chrome DevTools): F12 -> Bật Device Toolbar (Ctrl+Shift+M) -> Giữ phím Shift và kéo chuột để giả lập Multi-touch.
+        */
+        window.addEventListener('touchstart', (e) => {
+            if (currentLevel !== 4) return;
+            
+            if (e.touches.length >= 2) {
+                // Đổi màu 2 dấu vân tay
+                document.getElementById('fp-1').classList.add('active');
+                document.getElementById('fp-2').classList.add('active');
+                
+                // Đổi phương trình
+                document.getElementById('eq-4').innerHTML = `<div class="heart">❤️</div>`;
+                
                 setTimeout(() => {
-                    card.classList.remove("success-flash");
-                    nextStage(nextStageNumber);
-                    if (initCallback) initCallback();
-                }, 1500); 
+                    showScreen(5);
+                }, 1500);
             }
+        });
+        
+        // Bỏ active nếu buông tay trước khi chuyển màn (Polish nhẹ)
+        window.addEventListener('touchend', (e) => {
+            if (currentLevel !== 4) return;
+            if (e.touches.length < 2) {
+                document.getElementById('fp-1').classList.remove('active');
+                document.getElementById('fp-2').classList.remove('active');
+            }
+        });
 
-            /* =========================================================
-               MÀN 1: TỌA ĐỘ KHÔNG GIAN (1 + 1 = ?)
-            ========================================================= */
-            const Stage1 = (() => {
-                let step = 1;
-                let isShiftPressed = false;
-                const grid = document.getElementById("coordinateGrid");
-                const targetPoint = document.getElementById("targetCoordPoint");
-                const s1Input = document.getElementById("s1-input");
-                const s1Math = document.getElementById("s1-math");
-
-                function reset() {
-                    step = 1;
-                    isShiftPressed = false;
-                    grid.classList.remove("active");
-                    targetPoint.classList.remove("visible");
-                    s1Input.classList.remove("visible");
-                    s1Input.value = "";
-                    s1Input.style.backgroundColor = "";
-                    s1Input.style.borderColor = "";
-                    s1Math.style.color = "";
-                    s1Input.blur();
-                }
-
-                window.addEventListener("keydown", (e) => {
-                    if (currentStage !== 1) return;
-
-                    if (e.key === "Shift" && !isShiftPressed) {
-                        isShiftPressed = true;
-                        grid.classList.add("active");
-                        targetPoint.classList.add("visible");
-                        if (step === 1) {
-                            step = 2;
-                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 2", "Hiện lưới tọa độ");
-                        }
-                    }
-
-                    if (e.key === "Tab") {
-                        if (step === 3 && isShiftPressed) {
-                            e.preventDefault();
-                            s1Input.focus();
-                            step = 4;
-                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 4", "Focus vào ô input");
-                        } else if (step === 3 && !isShiftPressed) {
-                            failReset("Bạn không giữ Shift khi chuyển Tab!", reset);
-                        }
-                    }
-
-                    if (e.key === "Enter" && step === 4) {
-                        if (!isShiftPressed) {
-                            failReset("Nhả Shift trước khi nhấn Enter!", reset);
-                            return;
-                        }
-                        if (s1Input.value.trim() === "hai") {
-                            trackAction("Màn 1: Logic ngầm", "Hoàn thành Màn 1", "Chính xác");
-                            
-                            grid.classList.remove("active");
-                            targetPoint.classList.remove("visible");
-                            
-                            s1Input.style.backgroundColor = "rgba(16, 185, 129, 0.2)";
-                            s1Input.style.borderColor = "var(--success)";
-                            s1Math.style.color = "var(--success)";
-                            s1Math.textContent = "1 + 1 = hai";
-
-                            triggerSuccessAndNextStage(2, Stage2.init);
-                        } else {
-                            failReset("Mã xác nhận bị từ chối!", reset);
-                        }
-                    }
-                });
-
-                window.addEventListener("keyup", (e) => {
-                    if (currentStage !== 1) return;
-                    if (e.key === "Shift") {
-                        isShiftPressed = false;
-                        grid.classList.remove("active");
-                        targetPoint.classList.remove("visible");
-                        if (step > 1 && step < 5) {
-                            failReset("Nhả phím Shift quá sớm!", reset);
-                        }
-                    }
-                });
-
-                window.addEventListener("mousedown", (e) => {
-                    if (currentStage !== 1) return;
-
-                    if (step === 2) {
-                        if (isShiftPressed && e.clientX <= 60 && e.clientY <= 60) {
-                            step = 3;
-                            trackAction("Màn 1: Logic ngầm", "Đạt Bước 3", "Click đúng tọa độ (1,1)");
-                            s1Input.style.top = "65%";
-                            s1Input.style.left = "calc(50% - 70px)";
-                            s1Input.classList.add("visible");
-                        } else if (!isShiftPressed) {
-                            failReset("Thao tác bị từ chối.", reset);
-                        }
-                    }
-                });
-
-                s1Input.addEventListener("mousedown", (e) => {
-                    if (currentStage !== 1) return;
-                    e.preventDefault();
-                    failReset("Cố tình click vào input", reset);
-                });
-
-                return { reset };
-            })();
-
-            /* =========================================================
-               MÀN 2: QUẢ BOM NÚT BẤM
-            ========================================================= */
-            const Stage2 = (() => {
-                let step = 1;
-                const bombBtn = document.getElementById("bombButton");
-                const safeBtn = document.getElementById("safeButton");
-                const contextMenu = document.getElementById("customContextMenu");
-                const cutBtn = document.getElementById("cutBtn");
-                let countdownTimer = null;
-                let timeLeft = 3.0;
-                let isFrozen = false;
-                let isHovering = false;
-
-                function reset() {
-                    clearInterval(countdownTimer);
-                    step = 1;
-                    timeLeft = 3.0;
-                    isFrozen = false;
-                    isHovering = false;
-                    bombBtn.style.display = "block";
-                    bombBtn.className = "";
-                    bombBtn.textContent = "Bấm vào để qua màn";
-                    safeBtn.style.display = "none";
-                    contextMenu.classList.remove("active");
-                    document.body.classList.remove("inverted");
-                }
-
-                function init() {
-                    reset();
-                }
-
-                bombBtn.addEventListener("mouseenter", () => {
-                    if (currentStage !== 2 || isFrozen) return;
-                    isHovering = true;
-                    bombBtn.classList.add("ticking");
-                    trackAction("Màn 2: Dùng chuột", "Hover chuột vào nút", "Kích hoạt đếm ngược 3s");
-
-                    clearInterval(countdownTimer);
-                    countdownTimer = setInterval(() => {
-                        timeLeft -= 0.1;
-                        bombBtn.textContent = `NỔ SAU: ${Math.max(0, timeLeft).toFixed(1)}s`;
-                        if (timeLeft <= 0) {
-                            clearInterval(countdownTimer);
-                            document.body.classList.add("inverted");
-                            failReset("BÙM! Nổ tung.", reset);
-                        }
-                    }, 100);
-                });
-
-                bombBtn.addEventListener("mouseleave", () => {
-                    if (currentStage !== 2 || isFrozen) return;
-                    isHovering = false;
-                    clearInterval(countdownTimer);
-                    timeLeft = 3.0;
-                    bombBtn.classList.remove("ticking");
-                    bombBtn.textContent = "Bấm vào để qua màn";
-                });
-
-                window.addEventListener("keydown", (e) => {
-                    if (currentStage !== 2) return;
-
-                    if (e.code === "Space" && step === 1 && isHovering) {
-                        e.preventDefault();
-                        isFrozen = true;
-                        clearInterval(countdownTimer);
-                        step = 2;
-                        bombBtn.classList.remove("ticking");
-                        bombBtn.classList.add("frozen");
-                        bombBtn.textContent = `ĐÃ ĐÓNG BĂNG (${timeLeft.toFixed(1)}s)`;
-                        trackAction("Màn 2: Logic ngầm", "Đạt Bước 2", "Đóng băng bom");
-                    }
-
-                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "v") {
-                        if (step === 4) {
-                            step = 5;
-                            safeBtn.style.display = "block";
-                            trackAction("Màn 2: Logic ngầm", "Đạt Bước 5", "Hiển thị nút an toàn");
-                        }
-                    }
-                });
-
-                bombBtn.addEventListener("contextmenu", (e) => {
-                    if (currentStage !== 2) return;
-                    e.preventDefault();
-                    if (step === 2 && isFrozen) {
-                        step = 3;
-                        contextMenu.style.top = `${e.clientY}px`;
-                        contextMenu.style.left = `${e.clientX}px`;
-                        contextMenu.classList.add("active");
-                        trackAction("Màn 2: Dùng chuột", "Click phải vào nút đóng băng", "Mở Context Menu giả");
-                    } else if (!isFrozen) {
-                        failReset("Chưa đóng băng đã chuột phải", reset);
-                    }
-                });
-
-                cutBtn.addEventListener("click", () => {
-                    if (currentStage !== 2 || step !== 3) return;
-                    contextMenu.classList.remove("active");
-                    bombBtn.style.display = "none";
-                    step = 4;
-                    trackAction("Màn 2: Dùng chuột", "Click Cắt (Cut)", "Xóa bom");
-                });
-
-                window.addEventListener("click", (e) => {
-                    if (contextMenu.classList.contains("active") && !contextMenu.contains(e.target)) {
-                        contextMenu.classList.remove("active");
-                    }
-                });
-
-                safeBtn.addEventListener("click", () => {
-                    if (step === 5) {
-                        trackAction("Màn 2: Logic ngầm", "Hoàn thành Màn 2", "Chính xác");
-                        safeBtn.textContent = "Vợ đã an toàn!";
-                        triggerSuccessAndNextStage(3, Stage3.init);
-                    }
-                });
-
-                return { init, reset };
-            })();
-
-            /* =========================================================
-               MÀN 3: PHƯƠNG TRÌNH LƯỢNG TỬ
-            ========================================================= */
-            const Stage3 = (() => {
-                let step = 1;
-                let has1 = false;
-                let hasMinus1 = false;
-                let pendingMinus = false;
-                let selectedPills = new Set();
-                
-                const x2Span = document.getElementById("s3-x2");
-                const pool = document.getElementById("quantumPool");
-
-                function reset() {
-                    step = 1;
-                    has1 = false;
-                    hasMinus1 = false;
-                    pendingMinus = false;
-                    selectedPills.clear();
-                    x2Span.classList.remove("fall");
-                    pool.innerHTML = "";
-                }
-
-                function init() {
-                    reset();
-                }
-
-                document.addEventListener("selectionchange", () => {
-                    if (currentStage !== 3 || step !== 1) return;
-                    const selected = window.getSelection().toString().trim();
-                    if (selected === "x²") {
-                        step = 2;
-                        trackAction("Màn 3: Dùng chuột", "Bôi đen chữ x²", "Chuẩn bị xóa");
-                    }
-                });
-
-                window.addEventListener("keydown", (e) => {
-                    if (currentStage !== 3) return;
-
-                    if (step === 2 && (e.key === "Backspace" || e.key === "Delete")) {
-                        e.preventDefault();
-                        x2Span.classList.add("fall");
-                        window.getSelection().removeAllRanges();
-                        step = 3;
-                        trackAction("Màn 3: Logic ngầm", "Đạt Bước 3", "Đã xóa x²");
-                        return;
-                    }
-
-                    if (step === 3) {
-                        if (e.key === "1") {
-                            if (pendingMinus) {
-                                spawnPill("-1");
-                                hasMinus1 = true;
-                                pendingMinus = false;
-                            } else {
-                                spawnPill("1");
-                                has1 = true;
-                            }
-                        } else if (e.key === "-") {
-                            pendingMinus = true;
-                        } else {
-                            pendingMinus = false; 
-                        }
-
-                        if (has1 && hasMinus1) {
-                            step = 4;
-                            trackAction("Màn 3: Logic ngầm", "Đạt Bước 4", "Hiện 2 viên nang lượng tử");
-                        }
-                        return;
-                    }
-
-                    if (step === 5 && e.key === "Enter") {
-                        trackAction("Màn 3: Logic ngầm", "Hoàn thành Màn 3", "Chính xác");
-                        triggerSuccessAndNextStage(4, Stage4.init);
-                    }
-                });
-
-                function spawnPill(val) {
-                    if (document.getElementById(`pill-${val}`)) return;
-                    const pill = document.createElement("div");
-                    pill.className = "quantum-pill";
-                    pill.id = `pill-${val}`;
-                    pill.textContent = val;
-
-                    pill.addEventListener("click", (e) => {
-                        if (step < 4) return;
-
-                        if (!e.ctrlKey && !e.metaKey) {
-                            failReset("Mất đồng bộ Ctrl.", reset);
-                            return;
-                        }
-
-                        if (!selectedPills.has(val)) {
-                            selectedPills.add(val);
-                            pill.classList.add("selected-quantum");
-                        }
-
-                        if (selectedPills.size === 2) {
-                            step = 5;
-                            trackAction("Màn 3: Dùng chuột", "Ctrl + Click cả 2 viên", "Sẵn sàng Enter");
-                        }
-                    });
-
-                    pool.appendChild(pill);
-                }
-
-                return { init, reset };
-            })();
-
-            /* =========================================================
-               MÀN 4: TRÙM CUỐI - QUYỀN ADMIN
-            ========================================================= */
-            const Stage4 = (() => {
-                let step = 1;
-                let clickCount = 0;
-                let clickTimer = null;
-                const adminForm = document.getElementById("adminForm");
-                const adminPass = document.getElementById("adminPass");
-                const secretToggle = document.getElementById("secretToggle");
-                const lockTarget = document.getElementById("lockTarget");
-                const dragToken = document.getElementById("dragVoToken");
-                const victoryScreen = document.getElementById("victoryScreen");
-
-                let isDragging = false;
-
-                function reset() {
-                    step = 1;
-                    clickCount = 0;
-                    adminPass.disabled = true;
-                    adminPass.value = "";
-                    secretToggle.className = "";
-                    lockTarget.textContent = "🔒";
-                    lockTarget.classList.remove("unlocked");
-                    dragToken.style.display = "none";
-                    adminForm.classList.remove("shattered");
-                    victoryScreen.style.display = "none";
-                }
-
-                function init() {
-                    reset();
-                }
-
-                window.addEventListener("click", (e) => {
-                    if (currentStage !== 4 || step !== 1) return;
-                    if (e.target.tagName === "INPUT" || e.target.id === "secretToggle") return;
-
-                    clickCount++;
-                    clearTimeout(clickTimer);
-                    clickTimer = setTimeout(() => {
-                        clickCount = 0;
-                    }, 400);
-
-                    if (clickCount === 3) {
-                        step = 2;
-                        secretToggle.classList.add("visible");
-                        trackAction("Màn 4: Dùng chuột", "Triple-click nền", "Hiện công tắc bí mật");
-                    }
-                });
-
-                secretToggle.addEventListener("click", () => {
-                    if (currentStage !== 4 || step !== 2) return;
-                    secretToggle.classList.add("on");
-                    adminPass.disabled = false;
-                    adminPass.focus();
-                    step = 3;
-                    trackAction("Màn 4: Dùng chuột", "Bật switch", "Mở khóa Input");
-                });
-
-                adminPass.addEventListener("input", () => {
-                    if (currentStage !== 4 || step !== 3) return;
-                    const val = adminPass.value.trim().toLowerCase();
-                    if (val === "vợ" || val === "vo") {
-                        step = 4;
-                        const rect = adminPass.getBoundingClientRect();
-                        dragToken.style.top = `${rect.top}px`;
-                        dragToken.style.left = `${rect.left + rect.width - 60}px`;
-                        dragToken.style.display = "block";
-                        trackAction("Màn 4: Logic ngầm", "Đạt Bước 4", "Mọc ra thẻ kéo thả");
-                    }
-                });
-
-                dragToken.addEventListener("mousedown", (e) => {
-                    if (currentStage !== 4 || step !== 4) return;
-                    if (!e.altKey) {
-                        failReset("Chưa giữ phím Alt.", reset);
-                        return;
-                    }
-                    isDragging = true;
-                });
-
-                window.addEventListener("mousemove", (e) => {
-                    if (!isDragging) return;
-                    dragToken.style.left = `${e.clientX - 20}px`;
-                    dragToken.style.top = `${e.clientY - 15}px`;
-                });
-
-                window.addEventListener("mouseup", (e) => {
-                    if (!isDragging) return;
-                    isDragging = false;
-
-                    if (!e.altKey) {
-                        failReset("Nhả phím Alt sớm.", reset);
-                        return;
-                    }
-
-                    const lockRect = lockTarget.getBoundingClientRect();
-                    const isInsideLock = (
-                        e.clientX >= lockRect.left &&
-                        e.clientX <= lockRect.right &&
-                        e.clientY >= lockRect.top &&
-                        e.clientY <= lockRect.bottom
-                    );
-
-                    if (isInsideLock) {
-                        step = 5;
-                        dragToken.style.display = "none";
-                        lockTarget.textContent = "🔓";
-                        lockTarget.classList.add("unlocked");
-                        trackAction("Màn 4: Dùng chuột", "Alt + Thả chữ vào Ổ khóa", "Mở khóa thành công");
-                    } else {
-                        const rect = adminPass.getBoundingClientRect();
-                        dragToken.style.top = `${rect.top}px`;
-                        dragToken.style.left = `${rect.left + rect.width - 60}px`;
-                    }
-                });
-
-                window.addEventListener("keydown", (e) => {
-                    if (currentStage !== 4 || step !== 5) return;
-                    if (e.key === "Escape") {
-                        trackAction("Màn 4: Logic ngầm", "Hoàn thành Game", "Phá đảo!");
-                        
-                        card.classList.add("success-flash");
-                        adminForm.classList.add("shattered");
-                        setTimeout(() => {
-                            adminForm.style.display = "none";
-                            victoryScreen.style.display = "flex";
-                        }, 500);
-                    }
-                });
-
-                return { init, reset };
-            })();
-        })();
     </script>
 </body>
 </html>
