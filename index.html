@@ -20,7 +20,7 @@
             box-sizing: border-box;
             user-select: none;
             -webkit-user-select: none;
-            touch-action: none; /* Cấm mọi thao tác zoom/scroll mặc định của trình duyệt */
+            touch-action: none;
         }
 
         body, html {
@@ -52,7 +52,6 @@
             display: flex;
         }
 
-        /* Nút Bắt Đầu */
         #btn-start {
             background-color: var(--text-color);
             color: var(--bg-color);
@@ -67,7 +66,6 @@
         }
         #btn-start:active { transform: scale(0.95); }
 
-        /* Elements hiển thị toán học */
         .equation {
             font-size: 3.5rem;
             font-weight: bold;
@@ -76,7 +74,6 @@
             position: relative;
         }
 
-        /* Lời nhắn chiến thắng */
         .win-msg {
             font-size: 1.2rem;
             color: var(--success-color);
@@ -85,22 +82,17 @@
             line-height: 1.5;
         }
 
-        /* Màn 1 & Màn 4: Shake Animation */
+        /* Màn 1 & Màn 4 */
         @keyframes shakeAnim {
             0%, 100% { transform: translate(0, 0) rotate(0deg); }
             25% { transform: translate(-3px, 2px) rotate(-2deg); }
             50% { transform: translate(3px, -2px) rotate(2deg); }
             75% { transform: translate(-3px, -2px) rotate(-1deg); }
         }
-        .shake-active {
-            animation: shakeAnim 0.3s infinite;
-            color: var(--accent-color);
-        }
-        .shake-light {
-            animation: shakeAnim 2s infinite ease-in-out;
-        }
+        .shake-active { animation: shakeAnim 0.3s infinite; color: var(--accent-color); }
+        .shake-light { animation: shakeAnim 2s infinite ease-in-out; }
 
-        /* Màn 2: Cân Bằng */
+        /* Màn 2 */
         .error-text { 
             color: var(--accent-color); 
             font-size: 1.2rem; 
@@ -117,36 +109,26 @@
             overflow: hidden;
             display: none;
         }
-        #progress-bar {
-            width: 0%;
-            height: 100%;
-            background: var(--success-color);
+        #progress-bar { width: 0%; height: 100%; background: var(--success-color); }
+        
+        .infinity { font-size: 5rem; color: var(--success-color); }
+
+        /* Màn 3: Lỗi hệ thống (Glitch) */
+        .glitch {
+            animation: glitchAnim 0.15s infinite;
+            color: var(--warning-color);
+            text-shadow: 2px 0 var(--accent-color), -2px 0 cyan;
         }
-        .infinity {
-            font-size: 5rem;
-            color: var(--success-color);
+        @keyframes glitchAnim {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
         }
 
-        /* Màn 3: Bụi mù */
-        #m3-content {
-            opacity: 0.2;
-            filter: blur(5px);
-            transition: opacity 1.5s ease, filter 1.5s ease;
-        }
-        #m3-content.clear {
-            opacity: 1;
-            filter: blur(0px);
-        }
-        #m3-zeros {
-            display: inline-block;
-            transition: all 1s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        #m3-zeros.blown {
-            transform: translate(150px, -150px) rotate(45deg) scale(1.5);
-            opacity: 0;
-        }
-
-        /* Màn 4 & 5: Trái tim */
+        /* Màn 4 & 5 */
         .heart {
             color: var(--accent-color);
             font-size: 5rem;
@@ -157,11 +139,7 @@
             50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
         /* Toast thông báo */
         #toast {
@@ -180,7 +158,6 @@
     </style>
 </head>
 <body>
-
     <div id="toast"></div>
 
     <!-- MÀN 0: XIN QUYỀN -->
@@ -202,11 +179,9 @@
         </div>
     </div>
 
-    <!-- MÀN 3: SÓNG ÂM -->
+    <!-- MÀN 3: THOÁT RA VÀO LẠI (VISIBILITY) -->
     <div id="screen-3" class="screen">
-        <div id="m3-content">
-            <div id="eq-3" class="equation">1<span id="m3-zeros">000</span> - 999 = ?</div>
-        </div>
+        <div id="eq-3" class="equation glitch">1 / 0 = ?</div>
     </div>
 
     <!-- MÀN 4: MULTI-TOUCH + MOTION -->
@@ -222,26 +197,18 @@
     </div>
 
     <script>
-        // Các biến trạng thái toàn cục
         let currentLevel = 0;
         const toast = document.getElementById('toast');
-        let animationFrameId;
-        let lastTime = performance.now();
+        let animationFrameId, lastTime = performance.now();
 
-        // Biến Audio (Màn 3)
-        let audioContext, analyser, dataArray;
-        let m3Passed = false;
-
-        // Biến Cảm biến & Cân bằng (Màn 2)
+        // Biến Cảm biến
         let currentBeta = 90, currentGamma = 0;
         let balanceTimer = 0;
-
-        // Biến Lắc & Multi-touch (Màn 1 & 4)
-        let shakeForce = 0;
-        let shakeCountM1 = 0;
-        let lastShakeTimeM1 = 0;
+        let shakeForce = 0, shakeCountM1 = 0, lastShakeTimeM1 = 0;
         let isHolding = false;
-        let m4Passed = false;
+        
+        let m3LeftPage = false; // Cờ đánh dấu người chơi đã ẩn trình duyệt
+        let m3Passed = false, m4Passed = false;
 
         function showScreen(level) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -258,64 +225,39 @@
             }, delay);
         }
 
-        // ================= KHỞI TẠO QUYỀN (MÀN 0) =================
+        // Xin quyền & Start
         document.getElementById('btn-start').addEventListener('click', async () => {
             try {
-                // 1. Xin quyền Sensor (iOS 13+)
                 if (typeof DeviceMotionEvent !== 'undefined' && typeof DeviceMotionEvent.requestPermission === 'function') {
                     const permissionState = await DeviceMotionEvent.requestPermission();
-                    if (permissionState !== 'granted') {
-                        alert('Bạn cần cấp quyền Cảm biến để chơi game!');
-                        return;
-                    }
+                    if (permissionState !== 'granted') return alert('Cần cấp quyền cảm biến!');
                 }
-
-                // 2. Xin quyền Microphone & Khởi tạo Audio API 1 lần duy nhất
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                const microphone = audioContext.createMediaStreamSource(stream);
-                
-                analyser.fftSize = 256;
-                microphone.connect(analyser);
-                dataArray = new Uint8Array(analyser.frequencyBinCount);
-                
-                // Khởi động Main Game Loop
                 requestAnimationFrame(gameLoop);
                 showScreen(1);
-
-            } catch (err) {
-                console.error(err);
-                alert('Lỗi truy cập thiết bị. Vui lòng cho phép quyền Microphone và Cảm biến.');
-            }
+            } catch (err) { alert('Lỗi truy cập cảm biến.'); }
         });
 
-        // ================= LẮNG NGHE SỰ KIỆN PHẦN CỨNG =================
-        
-        // Theo dõi góc nghiêng (Màn 2)
+        // ================= CẢM BIẾN =================
         window.addEventListener('deviceorientation', (e) => {
             currentBeta = e.beta || 0;
             currentGamma = e.gamma || 0;
         });
 
-        // Theo dõi gia tốc lắc (Màn 1 & 4)
         window.addEventListener('devicemotion', (e) => {
             const acc = e.accelerationIncludingGravity;
             if (!acc) return;
-            // Tính tổng lực gia tốc
             shakeForce = Math.abs(acc.x || 0) + Math.abs(acc.y || 0) + Math.abs(acc.z || 0);
 
-            // Xử lý tức thời cho Màn 1
             if (currentLevel === 1 && shakeForce > 25) {
                 const now = Date.now();
-                if (now - lastShakeTimeM1 > 150) { // debounce
+                if (now - lastShakeTimeM1 > 150) {
                     shakeCountM1++;
                     lastShakeTimeM1 = now;
                     document.getElementById('eq-1').classList.add('shake-active');
                     setTimeout(() => document.getElementById('eq-1').classList.remove('shake-active'), 100);
                     
                     if (shakeCountM1 >= 10) {
-                        currentLevel = -1; // Khóa màn
+                        currentLevel = -1;
                         document.getElementById('eq-1').innerText = "10";
                         document.getElementById('eq-1').style.color = "var(--success-color)";
                         showToast("Đã trộn đều!", () => showScreen(2));
@@ -324,99 +266,81 @@
             }
         });
 
-        // Theo dõi Multi-touch (Màn 4)
-        function checkTouches(e) {
-            isHolding = (e.touches.length === 2);
-        }
+        // Đa điểm chạm
+        function checkTouches(e) { isHolding = (e.touches.length === 2); }
         window.addEventListener('touchstart', checkTouches);
         window.addEventListener('touchend', checkTouches);
         window.addEventListener('touchcancel', checkTouches);
 
+        // ================= LOGIC MÀN 3: VISIBILITY EVENT =================
+        document.addEventListener('visibilitychange', () => {
+            if (currentLevel === 3 && !m3Passed) {
+                if (document.hidden) {
+                    // Người chơi đã vuốt về Home hoặc tắt màn hình điện thoại
+                    m3LeftPage = true; 
+                } else if (m3LeftPage) {
+                    // Người chơi vừa mở lại trình duyệt
+                    m3Passed = true;
+                    currentLevel = -1; // Khóa màn
+                    
+                    const eq3 = document.getElementById('eq-3');
+                    eq3.classList.remove('glitch');
+                    eq3.innerHTML = `<span class="infinity">&infin;</span>`;
+                    
+                    // Lời nhắn vinh danh quy tắc số 1 của IT
+                    showToast("Quy tắc vàng IT: Lỗi thì Restart!", () => showScreen(4), 2500);
+                }
+            }
+        });
 
-        // ================= VÒNG LẶP GAME CHÍNH (GAME LOOP) =================
+        // ================= VÒNG LẶP GAME =================
         function gameLoop(time) {
             const dt = time - lastTime;
             lastTime = time;
 
-            // --- LOGIC MÀN 2: CÂN BẰNG TUYỆT ĐỐI ---
+            // Màn 2: Cân bằng
             if (currentLevel === 2) {
                 const isFlat = Math.abs(currentBeta) <= 2 && Math.abs(currentGamma) <= 2;
-                const progressContainer = document.getElementById('m2-progress-container');
-                const progressBar = document.getElementById('progress-bar');
-                const errorText = document.getElementById('m2-error');
+                const progContainer = document.getElementById('m2-progress-container');
+                const progBar = document.getElementById('progress-bar');
+                const errText = document.getElementById('m2-error');
                 
                 if (isFlat) {
-                    progressContainer.style.display = 'block';
-                    errorText.innerText = "ĐANG ĐỒNG BỘ DỮ LIỆU...";
-                    errorText.style.color = "var(--warning-color)";
+                    progContainer.style.display = 'block';
+                    errText.innerText = "ĐANG ĐỒNG BỘ DỮ LIỆU...";
+                    errText.style.color = "var(--warning-color)";
                     
                     balanceTimer += dt;
-                    const percent = (balanceTimer / 3000) * 100;
-                    progressBar.style.width = Math.min(percent, 100) + '%';
+                    progBar.style.width = Math.min((balanceTimer / 3000) * 100, 100) + '%';
                     
                     if (balanceTimer >= 3000) {
-                        currentLevel = -1; // Khóa màn
-                        errorText.innerText = "ĐÃ BÌNH ỔN";
-                        errorText.style.color = "var(--success-color)";
+                        currentLevel = -1;
+                        errText.innerText = "ĐÃ BÌNH ỔN";
+                        errText.style.color = "var(--success-color)";
                         document.getElementById('eq-2').innerHTML = `<span class="infinity">&infin;</span>`;
                         showToast("Tĩnh lặng tuyệt đối!", () => showScreen(3), 2000);
                     }
                 } else {
-                    // Nếu lệch khỏi -2 đến 2 độ, reset thanh tiến trình ngay lập tức
                     balanceTimer = 0;
-                    progressBar.style.width = '0%';
-                    progressContainer.style.display = 'none';
-                    errorText.innerText = "ERROR: DỮ LIỆU ĐANG BẤT ỔN";
-                    errorText.style.color = "var(--accent-color)";
+                    progBar.style.width = '0%';
+                    progContainer.style.display = 'none';
+                    errText.innerText = "ERROR: DỮ LIỆU ĐANG BẤT ỔN";
+                    errText.style.color = "var(--accent-color)";
                 }
             }
 
-            // --- LOGIC MÀN 3: SÓNG ÂM (MICROPHONE) - ĐÃ FIX ---
-            if (currentLevel === 3 && !m3Passed) {
-                analyser.getByteFrequencyData(dataArray);
-                
-                let maxVolume = 0;
-                // Tìm giá trị âm thanh ĐỈNH thay vì lấy trung bình
-                for (let i = 0; i < dataArray.length; i++) {
-                    if (dataArray[i] > maxVolume) {
-                        maxVolume = dataArray[i];
-                    }
-                }
-                
-                const volumePercent = (maxVolume / 255) * 100;
-
-                // Chỉ cần 1 tần số đạt đỉnh 60% âm lượng là qua màn (Thổi hoặc hét lớn là được)
-                if (volumePercent > 60) {
-                    m3Passed = true;
-                    currentLevel = -1; // Khóa màn
-                    
-                    // CSS Visual: Tan lớp bụi mờ, thổi bay 3 số 0
-                    document.getElementById('m3-content').classList.add('clear');
-                    document.getElementById('m3-zeros').classList.add('blown');
-                    document.getElementById('eq-3').style.color = "var(--success-color)";
-                    
-                    showToast("Bụi đã tan!", () => showScreen(4), 2500);
-                }
-            }
-
-            // --- LOGIC MÀN 4: MULTI-TOUCH + MOTION COMBO ---
+            // Màn 4: Multi-touch + Shake
             if (currentLevel === 4 && !m4Passed) {
-                // Kiểm tra đồng thời: Đang giữ đúng 2 ngón tay VÀ Đang lắc mạnh
-                const isShaking = shakeForce > 25;
-                
-                if (isHolding && isShaking) {
+                if (isHolding && shakeForce > 25) {
                     m4Passed = true;
-                    currentLevel = -1; // Khóa màn
-                    
+                    currentLevel = -1;
                     const eq4 = document.getElementById('eq-4');
                     eq4.classList.remove('shake-light');
                     eq4.innerHTML = `<div class="heart">❤️</div>`;
-                    
                     showToast("Gắn kết tuyệt đối! Bạn đã phá đảo!", () => showScreen(5), 2000);
                 }
             }
 
-            // Tiếp tục vòng lặp
             animationFrameId = requestAnimationFrame(gameLoop);
         }
     </script>
