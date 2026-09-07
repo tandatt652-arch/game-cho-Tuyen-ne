@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOGIC BẺ LÁI - 8 MÀN CANVAS</title>
     <style>
+        /* ================= CSS (Giữ nguyên) ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
         body, html { width: 100vw; height: 100vh; background: #111; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; }
@@ -92,26 +93,20 @@
             }
         });
         window.addEventListener('touchend', e => {
-    // Sửa lỗi: Dùng e.touches.length thay vì Input.touches.length để biết màn hình không còn ngón tay nào
-    if(e.changedTouches.length === 1 && e.touches.length === 0) {
-        let dx = e.changedTouches[0].clientX - touchStartPos.x;
-        let dy = e.changedTouches[0].clientY - touchStartPos.y;
-        
-        // Kiểm tra xem người dùng vuốt trục ngang hay trục dọc
-        if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
-            Input.swipeDir = dx > 0 ? 'right' : 'left';
-        } else if(Math.abs(dy) > 50) {
-            // dy âm (nhỏ hơn 0) nghĩa là vuốt lên trên
-            Input.swipeDir = dy > 0 ? 'down' : 'up';
-        }
-    }
-    Input.touches = Array.from(e.touches);
-    
-    // Tăng delay từ 100ms lên 150ms để Vòng lặp Game (Game Loop) chắc chắn bắt kịp sự kiện này
-    setTimeout(()=> Input.swipeDir = null, 150); 
-});
+            if(e.changedTouches.length === 1 && e.touches.length === 0) {
+                let dx = e.changedTouches[0].clientX - touchStartPos.x;
+                let dy = e.changedTouches[0].clientY - touchStartPos.y;
+                
+                if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+                    Input.swipeDir = dx > 0 ? 'right' : 'left';
+                } else if(Math.abs(dy) > 50) {
+                    Input.swipeDir = dy > 0 ? 'down' : 'up';
+                }
+            }
+            Input.touches = Array.from(e.touches);
+            setTimeout(()=> Input.swipeDir = null, 150); 
+        });
 
-        // Visibility
         document.addEventListener('visibilitychange', () => { if(document.hidden) Input.hiddenTrigger = true; });
 
         // ================= PARTICLES =================
@@ -130,7 +125,7 @@
 
         // ================= LEVELS STATE MACHINE =================
         let currentLevel = 0;
-        let t = 0; // time for animation
+        let t = 0;
         const Levels = [
             { // MÀN 1: LY TRÀ
                 combo: 0, waterAng: 0,
@@ -143,7 +138,7 @@
                 draw: function() {
                     ctx.strokeStyle = '#fff'; ctx.lineWidth = 5; ctx.beginPath();
                     ctx.moveTo(W/2-50, H/2-100); ctx.lineTo(W/2-40, H/2+100); ctx.lineTo(W/2+40, H/2+100); ctx.lineTo(W/2+50, H/2-100);
-                    if(this.combo===0) ctx.lineTo(W/2-50, H/2-100); // Nắp
+                    if(this.combo===0) ctx.lineTo(W/2-50, H/2-100); 
                     ctx.stroke();
                     ctx.fillStyle = '#666'; ctx.font = "30px Courier"; ctx.fillText(this.combo===3 ? "2" : "1+1=?", W/2-45, H/2+80);
                     if(this.combo>0 && this.combo<3) {
@@ -159,18 +154,16 @@
                 combo: 0, timer: 0,
                 hints: ["Úp máy xuống bàn, im lặng 5 giây, lật lên vuốt ve (trái/phải x3).", "Tâm trạng đã ổn!"],
                 update: function(dt) {
-                    let isFlipped = (Math.abs(Sensor.beta) > 150 || Math.abs(Sensor.beta) < 30) && Math.abs(Sensor.gamma) < 30 && Sensor.accZ < -8; // Tùy OS
+                    let isFlipped = (Math.abs(Sensor.beta) > 150 || Math.abs(Sensor.beta) < 30) && Math.abs(Sensor.gamma) < 30 && Sensor.accZ < -8; 
                     if(this.combo===0 && isFlipped) this.combo=1;
                     if(this.combo===1) {
-                        if(!isFlipped) Input.resetCombo(1, "Lật máy quá sớm!"); else { this.timer+=dt; if(this.timer>3000) this.combo=2; } // 3s cho lẹ
+                        if(!isFlipped) Input.resetCombo(1, "Lật máy quá sớm!"); else { this.timer+=dt; if(this.timer>3000) this.combo=2; }
                     }
                     if(this.combo===2 && !isFlipped) this.combo = 3;
                     if(this.combo>=3 && this.combo<6) {
                         if(Input.swipeDir==='left'||Input.swipeDir==='right') { this.combo++; Input.swipeDir=null; }
                     }
-                    // Dòng cũ: if(this.combo===6) { spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
-// Hãy đổi thành:
-if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
+                    if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
                 },
                 draw: function() {
                     if(this.combo<6) {
@@ -179,7 +172,7 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                     } else { ctx.fillStyle='#ff4757'; drawHeart(ctx, W/2, H/2-20, 50 + Math.sin(t/150)*10); }
                 }
             },
-            { // MÀN 3: PHÁ BĂNG
+            { // MÀN 3: PHÁ BĂNG (Cập nhật vết nứt)
                 combo: 0,
                 hints: ["Giữ 2 mép, lắc mạnh, rồi vuốt xuống để dọn dẹp.", "Băng đã tan!"],
                 update: function() {
@@ -187,6 +180,7 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                         if(this.combo===0) this.combo=1;
                         if(this.combo===1 && Sensor.shake > 25) this.combo=2;
                     } else if (Input.touches.length === 0 && this.combo===1) Input.resetCombo(2, "Thả tay quá sớm!");
+                    
                     if(this.combo===2 && Input.touches.length===0 && Input.swipeDir==='down') {
                         this.combo=3; spawnParticles(W/2,H/2,'#dfe6e9',50,'gravity'); nextLevel();
                     }
@@ -196,49 +190,59 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                     if(this.combo<3) {
                         ctx.fillStyle = 'rgba(255,255,255,0.7)';
                         ctx.beginPath(); ctx.moveTo(W/2-100,H/2-100); ctx.lineTo(W/2+80,H/2-120); ctx.lineTo(W/2+100,H/2+100); ctx.lineTo(W/2-120,H/2+80); ctx.fill();
-                        if(this.combo>=1) { ctx.strokeStyle='#000'; ctx.lineWidth=2; ctx.setLineDash([5,5]); ctx.beginPath(); ctx.moveTo(W/2-50,H/2-100); ctx.lineTo(W/2+50,H/2+100); ctx.stroke(); ctx.setLineDash([]); }
+                        
+                        // Nứt nhẹ
+                        if(this.combo>=1) { 
+                            ctx.strokeStyle='#000'; ctx.lineWidth=2; 
+                            ctx.beginPath(); ctx.moveTo(W/2-50,H/2-100); ctx.lineTo(W/2+50,H/2+100); ctx.stroke(); 
+                        }
+                        // Lắc xong nứt to hơn
+                        if(this.combo>=2) {
+                            ctx.lineWidth=4; ctx.beginPath();
+                            ctx.moveTo(W/2, H/2); ctx.lineTo(W/2-80, H/2+50);
+                            ctx.moveTo(W/2+20, H/2-20); ctx.lineTo(W/2+100, H/2-50);
+                            ctx.stroke();
+                        }
                     }
                 }
             },
-        
-                { // MÀN 4: TRỌNG LỰC
-                combo: 0, y: 100, vy: 0,
-                hints: ["Lộn ngược máy, bắt lấy số 6 khi nó rơi, lật lại.", "Hoàn hảo!"],
+            { // MÀN 4: TRỌNG LỰC ĐẢO NGƯỢC (Cập nhật vị trí logic rớt ngược)
+                combo: 0, numY: 150, boxY: 0, vy: 0,
+                hints: ["Lộn ngược máy, bắt lấy số 6 khi nó rơi ngược lên hộp, lật lại.", "Hoàn hảo!"],
                 update: function() {
-                    // FIX LỖI: Luôn đưa số 9 về lại vị trí ban đầu nếu ở trạng thái chờ (combo 0)
+                    this.boxY = H - 150; // Trạng thái bình thường hộp ở dưới
+                    let upsideDown = Sensor.beta < -40; // Máy lộn ngược
+
                     if (this.combo === 0) {
-                        this.y = 100;
+                        this.numY = 150; // Số 9 ở trên
                         this.vy = 0;
+                        if(upsideDown) {
+                            this.combo = 1;
+                            this.numY = H - 150; // Rơi từ dưới ngược lên trên
+                        }
                     }
-
-                    // FIX LỖI: Cầm ngược đầu máy (chổng ngược) thì góc Beta sẽ âm (< -40 độ)
-                    let upsideDown = Sensor.beta < -40;
-
-                    if(this.combo===0 && upsideDown) this.combo=1;
                     
                     if(this.combo===1) {
-                        this.vy += 0.5; // Gia tốc rơi
-                        this.y += this.vy; // Cập nhật vị trí
+                        this.boxY = 150; // Khi lộn ngược, hộp đổi lên trên
+                        this.vy -= 0.5; // Gia tốc âm (bay ngược lên)
+                        this.numY += this.vy; 
                         
-                        // Kiểm tra ngón tay chạm (Mở rộng bán kính bắt lên 80px cho dễ chạm)
-                        let isTouched = Input.touches.some(t => Math.hypot(t.clientX-W/2, t.clientY-this.y) < 80);
+                        let isTouched = Input.touches.some(t => Math.hypot(t.clientX-W/2, t.clientY-this.numY) < 80);
                         
-                        // Nếu chạm vào số 6 khi nó bay ngang qua cái khung ở dưới (H-250)
-                        if(isTouched && this.y > H-250) {
+                        // Nếu chạm vào lúc nó bay ngang hộp
+                        if(isTouched && this.numY < this.boxY + 50) {
                             this.combo=2;
                         }
                         
-                        // Nếu rơi tuốt ra khỏi màn hình
-                        if(this.y > H) Input.resetCombo(4, "Rơi mất rồi! Thử lại");
+                        // Nếu lỡ rớt tuốt lên trên khỏi màn hình
+                        if(this.numY < -50) Input.resetCombo(4, "Bay mất rồi! Thử lại");
                     }
                     
                     if(this.combo===2) {
-                        // Đang bắt được mà thả ngón tay ra -> Rớt
+                        this.boxY = 150;
                         if(Input.touches.length === 0) {
                             Input.resetCombo(4, "Trượt tay!");
-                        }
-                        // Vẫn đang giữ tay và lật máy thẳng trở lại (hết lộn ngược)
-                        else if(!upsideDown) { 
+                        } else if(!upsideDown) { 
                             this.combo=3; 
                             nextLevel(); 
                         }
@@ -246,21 +250,17 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                 },
                 draw: function() {
                     ctx.strokeStyle = '#2ed573'; ctx.lineWidth = 5; 
-                    // Vẽ cái khung đón ở dưới cùng
-                    ctx.strokeRect(W/2-40, H-200, 80, 80);
+                    ctx.strokeRect(W/2-40, this.boxY-40, 80, 80); // Vẽ hộp
                     
                     if(this.combo<3) {
-                        ctx.save(); ctx.translate(W/2, this.y); 
-                        // Xoay số 9 thành số 6 khi combo > 0
-                        if(this.combo>0) ctx.rotate(Math.PI);
-                        
+                        ctx.save(); ctx.translate(W/2, this.numY); 
+                        if(this.combo>0) ctx.rotate(Math.PI); // Xoay 9 thành 6
                         ctx.fillStyle = '#fff'; ctx.font = "80px Courier"; 
                         ctx.fillText("9", -25, 25);
                         ctx.restore();
                     } else { 
-                        // Khi thắng, số 6 nằm gọn trong khung
                         ctx.fillStyle = '#2ed573'; ctx.font = "80px Courier"; 
-                        ctx.fillText("6", W/2-25, H-135); 
+                        ctx.fillText("6", W/2-25, this.boxY+25); 
                     }
                 }
             },
@@ -303,13 +303,20 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                     ctx.restore();
                 }
             },
-            { // MÀN 7: DỌN DẸP
+            { // MÀN 7: DỌN DẸP (Cập nhật bắt gia tốc chuẩn)
                 combo: 0, gap: 0,
-                hints: ["Tap 5 lần để tách, Pinch kéo giãn, hất mạnh tới trước (Z-shake).", "Đã dọn sạch!"],
+                hints: ["Tap 5 lần để tách, Pinch kéo giãn, hất thẳng đằng trước.", "Đã dọn sạch!"],
                 update: function() {
                     if(this.combo===0 && Input.taps >= 5) this.combo=1;
                     if(this.combo===1 && Input.swipeDir==='pinchOut') this.combo=2;
-                    if(this.combo===2) { this.gap = Math.min(this.gap+5, 150); if(Sensor.accZ > 15) { this.combo=3; nextLevel(); } }
+                    
+                    if(this.combo===2) { 
+                        this.gap = Math.min(this.gap+5, 150); 
+                        // Chỉ nhận diện hành động hất thẳng máy về đằng trước (trục Z đột biến, X và Y đứng im)
+                        if(Math.abs(Sensor.accZ) > 15 && Math.abs(Sensor.accX) < 10 && Math.abs(Sensor.accY) < 10) { 
+                            this.combo=3; nextLevel(); 
+                        } 
+                    }
                 },
                 draw: function() {
                     if(this.combo<3) {
@@ -322,19 +329,33 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                     }
                 }
             },
-            { // MÀN 8: BOSS
-                combo: 0, lines: [[],[]],
-                hints: ["Để phẳng máy, 2 ngón vuốt song song từ trên xuống, rồi Tap ngón thứ 3.", "Ký Tên Đóng Dấu!"],
+            { // MÀN 8: BOSS (Cập nhật 1 ngón ký tên, xong tap đóng dấu)
+                combo: 0, line: [],
+                hints: ["Để phẳng máy, ký tên (1 nét liền), thả tay rồi Tap để đóng dấu.", "Ký Tên Đóng Dấu!"],
                 update: function() {
-                    let isFlat = Math.abs(Sensor.beta) < 5 && Math.abs(Sensor.gamma) < 5;
+                    let isFlat = Math.abs(Sensor.beta) < 10 && Math.abs(Sensor.gamma) < 10;
                     if(this.combo===0 && isFlat) this.combo=1;
-                    if(!isFlat && this.combo>0 && this.combo<3) { Input.resetCombo(7, "Máy bị rung! Ký hỏng."); this.lines=[[],[]]; }
-                    if(this.combo===1 && Input.touches.length===2) {
-                        this.lines[0].push({x:Input.touches[0].clientX, y:Input.touches[0].clientY});
-                        this.lines[1].push({x:Input.touches[1].clientX, y:Input.touches[1].clientY});
-                        if(this.lines[0].length > 20) this.combo=2;
+                    
+                    if(!isFlat && this.combo>0 && this.combo<3) { 
+                        Input.resetCombo(8, "Máy bị nghiêng! Ký hỏng."); 
+                        this.line=[]; 
                     }
-                    if(this.combo===2 && Input.touches.length===3) { 
+                    
+                    if(this.combo===1) {
+                        if(Input.touches.length === 1) {
+                            // Đang vẽ 1 nét không ngắt quãng
+                            this.line.push({x:Input.touches[0].clientX, y:Input.touches[0].clientY});
+                        } else if (Input.touches.length === 0 && this.line.length > 20) {
+                            // Nhấc tay lên và nét đủ dài -> Ký xong
+                            this.combo=2;
+                        } else if (Input.touches.length === 0 && this.line.length > 0 && this.line.length <= 20) {
+                            // Nhấc tay lên nhưng nét quá ngắn -> Reset nét
+                            this.line = []; 
+                        }
+                    }
+                    
+                    // Giai đoạn đóng dấu (Chạm ngón tay thêm phát nữa)
+                    if(this.combo===2 && Input.touches.length > 0) { 
                         this.combo=3; 
                         for(let i=0;i<100;i++) spawnParticles(W/2,H/2, `hsl(${Math.random()*360},100%,50%)`, 1, 'gravity');
                         sendTrackingData("PHÁ ĐẢO", "Màn 8: Boss", "Thành công!");
@@ -343,8 +364,13 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                 },
                 draw: function() {
                     ctx.fillStyle = '#ecf0f1'; ctx.fillRect(W/2-150, H/2-200, 300, 400);
-                    ctx.strokeStyle = '#e74c3c'; ctx.lineWidth = 3;
-                    for(let j=0; j<2; j++) { ctx.beginPath(); this.lines[j].forEach((p,i)=> i===0?ctx.moveTo(p.x,p.y):ctx.lineTo(p.x,p.y)); ctx.stroke(); }
+                    
+                    // Vẽ nét chữ ký
+                    ctx.strokeStyle = '#2c3e50'; ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    this.line.forEach((p,i)=> i===0 ? ctx.moveTo(p.x,p.y) : ctx.lineTo(p.x,p.y));
+                    ctx.stroke();
+                    
                     if(this.combo===3) {
                         ctx.strokeStyle='#c0392b'; ctx.lineWidth=10; ctx.beginPath(); ctx.arc(W/2,H/2,80,0,Math.PI*2); ctx.stroke();
                         ctx.fillStyle='#c0392b'; ctx.font="30px Arial"; ctx.save(); ctx.translate(W/2,H/2); ctx.rotate(-0.5); ctx.fillText("ĐÃ DUYỆT", -70, 10); ctx.restore();
@@ -355,6 +381,8 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
 
         // ================= GAME LOOP =================
         let lastTime = 0;
+        let isTransitioning = false; 
+
         function loop(timestamp) {
             let dt = timestamp - lastTime; lastTime = timestamp; t += dt;
             ctx.clearRect(0,0,W,H);
@@ -368,14 +396,9 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
             requestAnimationFrame(loop);
         }
 
-        // Thêm biến khóa chuyển màn để chống gọi liên tục
-        let isTransitioning = false; 
-
         function nextLevel() {
-            // Nếu đang trong thời gian 2 giây chuyển màn -> Bỏ qua không làm gì cả
             if(isTransitioning) return; 
-            
-            isTransitioning = true; // Khóa lại ngay lập tức
+            isTransitioning = true; 
             
             let ui = document.getElementById('toast');
             ui.innerText = Levels[currentLevel].hints[1]; 
@@ -385,7 +408,7 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
             setTimeout(() => { 
                 ui.style.opacity = 0; 
                 currentLevel++; 
-                isTransitioning = false; // Mở khóa khi đã sang màn mới thành công
+                isTransitioning = false;
                 
                 if(currentLevel < Levels.length) {
                     document.getElementById('hint-text').innerText = `Màn ${currentLevel+1}/8: ` + Levels[currentLevel].hints[0];
