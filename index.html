@@ -168,7 +168,9 @@
                     if(this.combo>=3 && this.combo<6) {
                         if(Input.swipeDir==='left'||Input.swipeDir==='right') { this.combo++; Input.swipeDir=null; }
                     }
-                    if(this.combo===6) { spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
+                    // Dòng cũ: if(this.combo===6) { spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
+// Hãy đổi thành:
+if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLevel(); }
                 },
                 draw: function() {
                     if(this.combo<6) {
@@ -329,13 +331,25 @@
             requestAnimationFrame(loop);
         }
 
+        // Thêm biến khóa chuyển màn để chống gọi liên tục
+        let isTransitioning = false; 
+
         function nextLevel() {
+            // Nếu đang trong thời gian 2 giây chuyển màn -> Bỏ qua không làm gì cả
+            if(isTransitioning) return; 
+            
+            isTransitioning = true; // Khóa lại ngay lập tức
+            
             let ui = document.getElementById('toast');
-            ui.innerText = Levels[currentLevel].hints[1]; ui.style.opacity = 1;
+            ui.innerText = Levels[currentLevel].hints[1]; 
+            ui.style.opacity = 1;
             sendTrackingData("Qua màn", `Màn ${currentLevel+1}`, "Hoàn thành combo");
+            
             setTimeout(() => { 
                 ui.style.opacity = 0; 
                 currentLevel++; 
+                isTransitioning = false; // Mở khóa khi đã sang màn mới thành công
+                
                 if(currentLevel < Levels.length) {
                     document.getElementById('hint-text').innerText = `Màn ${currentLevel+1}/8: ` + Levels[currentLevel].hints[0];
                     sendTrackingData("Đến màn mới", `Màn ${currentLevel+1}`, "Bắt đầu");
