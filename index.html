@@ -200,31 +200,68 @@ if(this.combo===6) { this.combo=7; spawnParticles(W/2,H/2,'#ff4757',30); nextLev
                     }
                 }
             },
-            { // MÀN 4: TRỌNG LỰC
+        
+                { // MÀN 4: TRỌNG LỰC
                 combo: 0, y: 100, vy: 0,
                 hints: ["Lộn ngược máy, bắt lấy số 6 khi nó rơi, lật lại.", "Hoàn hảo!"],
                 update: function() {
-                    let upsideDown = Math.abs(Sensor.gamma) > 120 || Math.abs(Sensor.beta) > 120;
-                    if(this.combo===0 && upsideDown) this.combo=1;
-                    if(this.combo===1) {
-                        this.vy += 0.5; this.y += this.vy;
-                        let isTouched = Input.touches.some(t => Math.hypot(t.clientX-W/2, t.clientY-this.y) < 50);
-                        if(isTouched && this.y > H-200) this.combo=2;
-                        if(this.y > H) Input.resetCombo(3, "Rơi mất rồi! Thử lại");
+                    // FIX LỖI: Luôn đưa số 9 về lại vị trí ban đầu nếu ở trạng thái chờ (combo 0)
+                    if (this.combo === 0) {
+                        this.y = 100;
+                        this.vy = 0;
                     }
+
+                    // FIX LỖI: Cầm ngược đầu máy (chổng ngược) thì góc Beta sẽ âm (< -40 độ)
+                    let upsideDown = Sensor.beta < -40;
+
+                    if(this.combo===0 && upsideDown) this.combo=1;
+                    
+                    if(this.combo===1) {
+                        this.vy += 0.5; // Gia tốc rơi
+                        this.y += this.vy; // Cập nhật vị trí
+                        
+                        // Kiểm tra ngón tay chạm (Mở rộng bán kính bắt lên 80px cho dễ chạm)
+                        let isTouched = Input.touches.some(t => Math.hypot(t.clientX-W/2, t.clientY-this.y) < 80);
+                        
+                        // Nếu chạm vào số 6 khi nó bay ngang qua cái khung ở dưới (H-250)
+                        if(isTouched && this.y > H-250) {
+                            this.combo=2;
+                        }
+                        
+                        // Nếu rơi tuốt ra khỏi màn hình
+                        if(this.y > H) Input.resetCombo(4, "Rơi mất rồi! Thử lại");
+                    }
+                    
                     if(this.combo===2) {
-                        if(Input.touches.length === 0) Input.resetCombo(3, "Trượt tay!");
-                        else if(!upsideDown) { this.combo=3; nextLevel(); }
+                        // Đang bắt được mà thả ngón tay ra -> Rớt
+                        if(Input.touches.length === 0) {
+                            Input.resetCombo(4, "Trượt tay!");
+                        }
+                        // Vẫn đang giữ tay và lật máy thẳng trở lại (hết lộn ngược)
+                        else if(!upsideDown) { 
+                            this.combo=3; 
+                            nextLevel(); 
+                        }
                     }
                 },
                 draw: function() {
-                    ctx.strokeStyle = '#2ed573'; ctx.lineWidth = 5; ctx.strokeRect(W/2-40, H-200, 80, 80);
+                    ctx.strokeStyle = '#2ed573'; ctx.lineWidth = 5; 
+                    // Vẽ cái khung đón ở dưới cùng
+                    ctx.strokeRect(W/2-40, H-200, 80, 80);
+                    
                     if(this.combo<3) {
                         ctx.save(); ctx.translate(W/2, this.y); 
+                        // Xoay số 9 thành số 6 khi combo > 0
                         if(this.combo>0) ctx.rotate(Math.PI);
-                        ctx.fillStyle = '#fff'; ctx.font = "80px Courier"; ctx.fillText("9", -25, 25);
+                        
+                        ctx.fillStyle = '#fff'; ctx.font = "80px Courier"; 
+                        ctx.fillText("9", -25, 25);
                         ctx.restore();
-                    } else { ctx.fillStyle = '#2ed573'; ctx.font = "80px Courier"; ctx.fillText("6", W/2-25, H-135); }
+                    } else { 
+                        // Khi thắng, số 6 nằm gọn trong khung
+                        ctx.fillStyle = '#2ed573'; ctx.font = "80px Courier"; 
+                        ctx.fillText("6", W/2-25, H-135); 
+                    }
                 }
             },
             { // MÀN 5: ỒN ÀO
