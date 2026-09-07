@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOGIC BẺ LÁI - 8 MÀN CANVAS</title>
     <style>
-        /* ================= CSS (Giữ nguyên) ================= */
+        /* ================= CSS ================= */
         * { margin: 0; padding: 0; box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
         body, html { width: 100vw; height: 100vh; background: #111; color: #fff; font-family: 'Courier New', monospace; overflow: hidden; }
         canvas { display: block; width: 100%; height: 100%; }
@@ -13,7 +13,7 @@
         .btn { pointer-events: auto; background: #fff; color: #111; border: none; padding: 20px 40px; font-size: 20px; font-weight: bold; border-radius: 50px; cursor: pointer; box-shadow: 0 4px 15px rgba(255,255,255,0.2); transition: 0.1s; }
         .btn:active { transform: scale(0.95); }
         #toast { position: absolute; top: 10%; background: #2ed573; color: #fff; padding: 10px 20px; border-radius: 20px; font-weight: bold; opacity: 0; transition: opacity 0.3s; z-index: 100; pointer-events: none; }
-        .hint { position: absolute; bottom: 5%; text-align: center; width: 90%; color: #666; font-size: 0.9rem; font-style: italic; }
+        .progress-text { position: absolute; bottom: 5%; text-align: center; width: 90%; color: #888; font-size: 1.2rem; font-weight: bold; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -22,7 +22,7 @@
     <div id="ui-layer">
         <div id="toast"></div>
         <button id="btn-start" class="btn">[ CHẠM ĐỂ BẮT ĐẦU ]</button>
-        <div id="hint-text" class="hint">Cấp quyền Cảm Biến để bắt đầu...</div>
+        <div id="hint-text" class="progress-text">Cấp quyền Cảm Biến để bắt đầu...</div>
     </div>
 
     <script>
@@ -35,19 +35,17 @@
 
         function sendTrackingData(action, level, details) {
             let now = Date.now();
-            // CHỐNG SPAM: Ngăn gửi trùng lặp 1 hành động liên tiếp trong vòng 1.5 giây
             if (lastTrackMsg === details && now - lastTrackTime < 1500) return;
             
             lastTrackMsg = details;
             lastTrackTime = now;
 
             const fd = new URLSearchParams();
-            fd.append('entry.1666228409', USER_ID);       // (a) ID Ngẫu nhiên
-            fd.append('entry.1275903316', action);        // (b) Hành động (VD: Bắt đầu, Thua, Tương tác)
-            fd.append('entry.444679017', level);          // (c) Nội dung câu hỏi / Tên màn
-            fd.append('entry.1158846627', details);       // (d) Chi tiết hành động / Lựa chọn
+            fd.append('entry.1666228409', USER_ID);       
+            fd.append('entry.1275903316', action);        
+            fd.append('entry.444679017', level);          
+            fd.append('entry.1158846627', details);       
             
-            // Fetch ngầm không báo lỗi ra màn hình
             fetch(FORM_URL, { method: 'POST', mode: 'no-cors', body: fd }).catch(()=>console.log('Track err'));
         }
 
@@ -66,14 +64,12 @@
             resetCombo: (lvl, msg) => { 
                 if(Levels[currentLevel].combo > 0) {
                     Levels[currentLevel].combo = 0; 
-                    // Ghi nhận khoảnh khắc cô ấy làm sai dẫn đến thua combo
                     sendTrackingData("Thất Bại (Làm lại)", "Màn "+(currentLevel+1), `Lỗi: ${msg}`); 
                 }
             }
         };
         const Sensor = { alpha: 0, beta: 0, gamma: 0, accX: 0, accY: 0, accZ: 0, shake: 0 };
 
-        // Cảm biến
         window.addEventListener('deviceorientation', e => { Sensor.alpha=e.alpha||0; Sensor.beta=e.beta||0; Sensor.gamma=e.gamma||0; });
         window.addEventListener('devicemotion', e => {
             let a = e.accelerationIncludingGravity; if(!a) return;
@@ -81,7 +77,6 @@
             Sensor.shake = Math.abs(a.x) + Math.abs(a.y) + Math.abs(a.z);
         });
         
-        // Touch
         let touchStartPos = {x:0, y:0};
         window.addEventListener('touchstart', e => {
             Input.touches = Array.from(e.touches);
@@ -143,7 +138,7 @@
         const Levels = [
             { // MÀN 1: LY TRÀ
                 combo: 0, waterAng: 0,
-                hints: ["Vuốt lên để mở nắp, xoay nghiêng rót nước, rồi lắc đều.", "Hoàn hảo!"],
+                msgWin: "Hoàn hảo!",
                 update: function() {
                     if(this.combo===0 && Input.swipeDir === 'up') { this.combo=1; spawnParticles(W/2, H/2-100, '#fff', 20); sendTrackingData("Tương Tác", "Màn 1", "Đã vuốt lên mở nắp ly trà"); }
                     if(this.combo===1 && Math.abs(Sensor.gamma) > 60) { this.combo=2; sendTrackingData("Tương Tác", "Màn 1", "Đã xoay nghiêng máy rót nước"); }
@@ -166,7 +161,7 @@
             },
             { // MÀN 2: DỖ DÀNH
                 combo: 0, timer: 0,
-                hints: ["Úp máy xuống bàn, im lặng 5 giây, lật lên vuốt ve (trái/phải x3).", "Tâm trạng đã ổn!"],
+                msgWin: "Tâm trạng đã ổn!",
                 update: function(dt) {
                     let isFlipped = (Math.abs(Sensor.beta) > 150 || Math.abs(Sensor.beta) < 30) && Math.abs(Sensor.gamma) < 30 && Sensor.accZ < -8; 
                     if(this.combo===0 && isFlipped) { this.combo=1; sendTrackingData("Tương Tác", "Màn 2", "Đã úp điện thoại xuống (Đang chờ 5 giây...)"); }
@@ -195,7 +190,7 @@
             },
             { // MÀN 3: PHÁ BĂNG
                 combo: 0,
-                hints: ["Giữ 2 mép, lắc mạnh, rồi vuốt xuống để dọn dẹp.", "Băng đã tan!"],
+                msgWin: "Băng đã tan!",
                 update: function() {
                     if(Input.touches.length === 2) {
                         if(this.combo===0) { this.combo=1; sendTrackingData("Tương Tác", "Màn 3", "Đã dùng 2 ngón tay giữ mép (Băng bắt đầu nứt)"); }
@@ -227,7 +222,7 @@
             },
             { // MÀN 4: TRỌNG LỰC ĐẢO NGƯỢC
                 combo: 0, numY: 150, boxY: 0, vy: 0,
-                hints: ["Lộn ngược máy, bắt lấy số 6 khi nó rơi ngược lên hộp, lật lại.", "Hoàn hảo!"],
+                msgWin: "Hoàn hảo!",
                 update: function() {
                     this.boxY = H - 150; 
                     let upsideDown = Sensor.beta < -40;
@@ -286,7 +281,7 @@
             },
             { // MÀN 5: ỒN ÀO
                 combo: 0, timer: 0,
-                hints: ["Ẩn trình duyệt (ra Home) 3 giây để tìm khoảng lặng.", "Bình yên!"],
+                msgWin: "Bình yên!",
                 update: function(dt) {
                     if(this.combo===0 && Input.hiddenTrigger) { 
                         this.combo=1; Input.hiddenTrigger=false; 
@@ -311,7 +306,7 @@
             },
             { // MÀN 6: LA BÀN
                 combo: 0,
-                hints: ["Xoay người hướng Bắc (Alpha 0), đặt máy phẳng, Double Tap.", "Khóa mục tiêu!"],
+                msgWin: "Khóa mục tiêu!",
                 update: function() {
                     let isNorth = Sensor.alpha < 15 || Sensor.alpha > 345;
                     let isFlat = Math.abs(Sensor.beta) < 10 && Math.abs(Sensor.gamma) < 10;
@@ -332,7 +327,7 @@
             },
             { // MÀN 7: DỌN DẸP
                 combo: 0, gap: 0,
-                hints: ["Tap 5 lần để tách, Pinch kéo giãn, hất thẳng đằng trước.", "Đã dọn sạch!"],
+                msgWin: "Đã dọn sạch!",
                 update: function() {
                     if(this.combo===0 && Input.taps >= 5) { this.combo=1; sendTrackingData("Tương Tác", "Màn 7", "Đã gõ nhanh 5 lần tách chữ Xích Mích"); }
                     if(this.combo===1 && Input.swipeDir==='pinchOut') { this.combo=2; sendTrackingData("Tương Tác", "Màn 7", "Đã dùng 2 ngón tay vuốt giãn chữ (Pinch Out)"); }
@@ -357,7 +352,7 @@
             },
             { // MÀN 8: BOSS KÝ TÊN
                 combo: 0, line: [],
-                hints: ["Để phẳng máy, ký tên (1 nét liền), thả tay rồi Tap để đóng dấu.", "Ký Tên Đóng Dấu!"],
+                msgWin: "Ký Tên Đóng Dấu!",
                 update: function() {
                     let isFlat = Math.abs(Sensor.beta) < 10 && Math.abs(Sensor.gamma) < 10;
                     if(this.combo===0 && isFlat) { this.combo=1; sendTrackingData("Tương Tác", "Màn 8 (Boss)", "Đã đặt phẳng máy, chuẩn bị ký tên"); }
@@ -383,7 +378,6 @@
                         this.combo=3; 
                         for(let i=0;i<100;i++) spawnParticles(W/2,H/2, `hsl(${Math.random()*360},100%,50%)`, 1, 'gravity');
                         
-                        // Gửi sự kiện vinh quang cuối cùng về Google Form
                         sendTrackingData("🎉 PHÁ ĐẢO TOÀN BỘ", "Màn 8 (Boss)", "Vợ yêu đã xuất sắc hoàn thành toàn bộ thử thách!");
                         document.getElementById('hint-text').innerText = "BẠN ĐÃ PHÁ ĐẢO TOÀN BỘ GAME!";
                     }
@@ -426,10 +420,9 @@
             isTransitioning = true; 
             
             let ui = document.getElementById('toast');
-            ui.innerText = Levels[currentLevel].hints[1]; 
+            ui.innerText = Levels[currentLevel].msgWin; 
             ui.style.opacity = 1;
             
-            // Gửi dữ liệu qua màn
             sendTrackingData("Qua Màn", `Màn ${currentLevel+1}`, "Hoàn thành toàn bộ combo");
             
             setTimeout(() => { 
@@ -438,7 +431,7 @@
                 isTransitioning = false;
                 
                 if(currentLevel < Levels.length) {
-                    document.getElementById('hint-text').innerText = `Màn ${currentLevel+1}/8: ` + Levels[currentLevel].hints[0];
+                    document.getElementById('hint-text').innerText = `Tiến trình: Màn ${currentLevel+1}/8`;
                     sendTrackingData("Bắt đầu Màn", `Màn ${currentLevel+1}`, "Đã load xong giao diện");
                 }
             }, 2000);
@@ -456,7 +449,7 @@
             }
             sendTrackingData("Bắt đầu Màn", "Màn 1", "Đã cấp quyền, chính thức vào game!");
             e.target.style.display = 'none';
-            document.getElementById('hint-text').innerText = "Màn 1/8: " + Levels[0].hints[0];
+            document.getElementById('hint-text').innerText = "Tiến trình: Màn 1/8";
             requestAnimationFrame(loop);
         });
     </script>
