@@ -92,15 +92,24 @@
             }
         });
         window.addEventListener('touchend', e => {
-            if(e.changedTouches.length === 1 && Input.touches.length === 0) {
-                let dx = e.changedTouches[0].clientX - touchStartPos.x;
-                let dy = e.changedTouches[0].clientY - touchStartPos.y;
-                if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) Input.swipeDir = dx > 0 ? 'right' : 'left';
-                else if(Math.abs(dy) > 50) Input.swipeDir = dy > 0 ? 'down' : 'up';
-            }
-            Input.touches = Array.from(e.touches);
-            setTimeout(()=> Input.swipeDir = null, 100); // Clear swipe
-        });
+    // Sửa lỗi: Dùng e.touches.length thay vì Input.touches.length để biết màn hình không còn ngón tay nào
+    if(e.changedTouches.length === 1 && e.touches.length === 0) {
+        let dx = e.changedTouches[0].clientX - touchStartPos.x;
+        let dy = e.changedTouches[0].clientY - touchStartPos.y;
+        
+        // Kiểm tra xem người dùng vuốt trục ngang hay trục dọc
+        if(Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+            Input.swipeDir = dx > 0 ? 'right' : 'left';
+        } else if(Math.abs(dy) > 50) {
+            // dy âm (nhỏ hơn 0) nghĩa là vuốt lên trên
+            Input.swipeDir = dy > 0 ? 'down' : 'up';
+        }
+    }
+    Input.touches = Array.from(e.touches);
+    
+    // Tăng delay từ 100ms lên 150ms để Vòng lặp Game (Game Loop) chắc chắn bắt kịp sự kiện này
+    setTimeout(()=> Input.swipeDir = null, 150); 
+});
 
         // Visibility
         document.addEventListener('visibilitychange', () => { if(document.hidden) Input.hiddenTrigger = true; });
