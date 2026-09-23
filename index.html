@@ -1,1351 +1,457 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>🌙TRUNG THU - BẢN THỬ NGHIỆM💗</title>
-<style>
-:root{
-  --bg:#0B0F19;
-  --panel:rgba(19,27,44,.72);
-  --panel-2:rgba(28,36,58,.58);
-  --gold:#ffd66b;
-  --gold2:#ffefab;
-  --pink:#ff9fc7;
-  --cyan:#9fe9ff;
-  --text:#f9f7ff;
-  --muted:#b8bfd6;
-  --danger:#ff637c;
-  --ok:#9effb7;
-  --glass: blur(18px) saturate(140%);
-}
-*{box-sizing:border-box}
-html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);font-family:"Trebuchet MS","Segoe UI",system-ui,sans-serif;color:var(--text)}
-body{
-  background:
-    radial-gradient(circle at 50% 15%, rgba(58,70,120,.16), transparent 35%),
-    linear-gradient(#09101b,#0b0f19 55%,#0d1422);
-}
-button{font:inherit;color:inherit}
-#gameWrap{position:relative;width:100vw;height:100vh;overflow:hidden}
-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#fxCanvas{pointer-events:none;z-index:6}
-#gameCanvas{z-index:1}
-#waterGlow{position:absolute;left:0;right:0;bottom:0;height:35%;pointer-events:none;z-index:2;background:linear-gradient(180deg,transparent,rgba(54,111,140,.06) 15%,rgba(50,134,176,.10));mix-blend-mode:screen}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thử thách não cá váng</title>
+    <style>
+        /* ================= CÀI ĐẶT GIAO DIỆN (CSS) ================= */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
 
-#hud{position:absolute;inset:0;z-index:10;pointer-events:none}
-.glass{
-  background:linear-gradient(180deg,rgba(31,40,67,.72),rgba(15,20,36,.62));
-  border:1px solid rgba(255,255,255,.13);
-  box-shadow:0 15px 50px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.08);
-  backdrop-filter:var(--glass);
-  -webkit-backdrop-filter:var(--glass);
-}
-#topBar{
-  position:absolute;top:14px;left:14px;right:14px;height:54px;border-radius:18px;
-  display:flex;align-items:center;justify-content:space-between;padding:0 16px;pointer-events:auto
-}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.4px}
-.brand .moonDot{
-  width:28px;height:28px;border-radius:50%;
-  background:radial-gradient(circle at 40% 35%,#fff7c4,#ffdb73 46%,#d79335 70%);
-  box-shadow:0 0 12px #ffdf77,0 0 38px rgba(255,212,94,.4);
-  position:relative;overflow:hidden
-}
-.brand .moonDot:after{content:"";position:absolute;width:26px;height:26px;border-radius:50%;background:#11192a;left:9px;top:-3px}
-#progressText{font-size:14px;color:#e7e9f7}
-#inventoryBtn{
-  pointer-events:auto;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.06);
-  border-radius:12px;padding:8px 12px;cursor:pointer;transition:.2s
-}
-#inventoryBtn:hover{transform:translateY(-1px);background:rgba(255,255,255,.1)}
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none; /* Tránh bôi đen text khi click nhanh */
+        }
 
-#dialogue{
-  position:absolute;left:50%;bottom:26px;transform:translateX(-50%);
-  width:min(700px,calc(100vw - 28px));min-height:116px;border-radius:24px;padding:18px 20px 16px;
-  display:none;pointer-events:auto
-}
-#dialogue.show{display:block;animation:popIn .35s cubic-bezier(.2,1.15,.3,1)}
-#speaker{font-size:13px;color:#ffd987;font-weight:800;letter-spacing:.7px;margin-bottom:7px}
-#dialogueText{font-size:20px;line-height:1.5;min-height:60px;text-shadow:0 2px 10px rgba(0,0,0,.4)}
-#dialogueHint{font-size:12px;color:#99a4c4;text-align:right}
-@keyframes popIn{from{opacity:0;transform:translateX(-50%) translateY(14px) scale(.97)}to{opacity:1;transform:translateX(-50%) translateY(0) scale(1)}}
+        body {
+            font-family: 'Nunito', sans-serif;
+            /* Nền gradient chuyển động sinh động */
+            background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #e94560);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
 
-#toastLayer{position:absolute;inset:0;pointer-events:none;z-index:24}
-.floatText{
-  position:absolute;font-weight:900;color:#ffe89b;text-shadow:0 0 8px rgba(255,224,120,.9),0 2px 10px rgba(0,0,0,.6);
-  animation:floatUp 1.8s ease forwards;transform:translate(-50%,-50%)
-}
-@keyframes floatUp{0%{opacity:0;transform:translate(-50%,10px) scale(.8)}15%{opacity:1;transform:translate(-50%,-6px) scale(1.05)}100%{opacity:0;transform:translate(-50%,-70px) scale(.95)}}
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
 
-#phaseBadge{
-  position:absolute;top:80px;left:50%;transform:translateX(-50%);
-  padding:8px 14px;border-radius:999px;font-size:12px;letter-spacing:1.2px;color:#d7def7;opacity:.92
-}
+        .game-container {
+            background: rgba(22, 33, 62, 0.85);
+            backdrop-filter: blur(10px);
+            padding: 30px;
+            border-radius: 25px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
+            text-align: center;
+            max-width: 420px;
+            width: 90%;
+            position: relative;
+            z-index: 10;
+        }
 
-.overlay{
-  position:absolute;inset:0;z-index:40;display:none;align-items:center;justify-content:center;
-  background:radial-gradient(circle at 50% 45%,rgba(32,39,63,.44),rgba(4,6,12,.86));
-  backdrop-filter:blur(8px)
-}
-.overlay.show{display:flex;animation:fadeIn .25s ease}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-.panel{
-  width:min(760px,calc(100vw - 28px));max-height:90vh;overflow:auto;border-radius:28px;padding:22px;
-}
-.panel h2{margin:0 0 8px;font-size:28px}
-.panel p{color:#cbd2e9}
-.closeBtn{float:right;border:0;background:rgba(255,255,255,.08);width:36px;height:36px;border-radius:12px;cursor:pointer}
+        h1 {
+            font-size: 2.2rem;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #ff6b81;
+            text-shadow: 2px 2px 0px #2f3542;
+        }
 
-#introScreen{z-index:60;background:
- radial-gradient(circle at 50% 18%,rgba(255,226,138,.10),transparent 26%),
- radial-gradient(circle at 20% 70%,rgba(82,126,255,.09),transparent 30%),
- linear-gradient(180deg,#0a0f19,#080b12)}
-.introCard{text-align:center;width:min(760px,90vw)}
-.introMoon{
-  width:160px;height:160px;margin:0 auto 22px;border-radius:50%;position:relative;
-  background:radial-gradient(circle at 38% 32%,#fff7cb,#ffd467 50%,#a96530 83%);
-  box-shadow:0 0 28px rgba(255,216,111,.78),0 0 90px rgba(255,183,75,.24);
-  animation:moonBreath 3s ease-in-out infinite
-}
-.introMoon:after{content:"";position:absolute;width:154px;height:154px;border-radius:50%;background:#0a0f19;left:57px;top:-8px;box-shadow:-18px 3px 30px rgba(255,218,120,.08)}
-@keyframes moonBreath{50%{filter:brightness(1.12);transform:scale(1.025)}}
-.introCard h1{font-size:clamp(34px,6vw,64px);margin:8px 0 4px;letter-spacing:2px}
-.introCard .sub{color:#adb7d6;margin-bottom:26px}
-.primary{
-  border:1px solid rgba(255,234,163,.5);background:linear-gradient(180deg,#ffe79a,#d9a844);
-  color:#251b09;font-weight:900;border-radius:16px;padding:13px 20px;cursor:pointer;
-  box-shadow:0 8px 28px rgba(255,195,78,.2),inset 0 1px #fff9d7;transition:.2s
-}
-.primary:hover{transform:translateY(-2px) scale(1.02);box-shadow:0 11px 38px rgba(255,195,78,.35)}
+        .scoreboard {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 30px;
+            font-size: 1.3rem;
+            background: rgba(15, 52, 96, 0.8);
+            padding: 15px;
+            border-radius: 15px;
+            box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
+        }
 
-#joystick{position:absolute;left:22px;bottom:24px;width:112px;height:112px;border-radius:50%;display:none;pointer-events:auto;
-  background:radial-gradient(circle,rgba(255,255,255,.07),rgba(255,255,255,.025));border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 26px rgba(0,0,0,.25)}
-#stick{position:absolute;left:35px;top:35px;width:42px;height:42px;border-radius:50%;background:rgba(255,220,130,.72);box-shadow:0 0 18px rgba(255,216,110,.4)}
+        .score-box span { color: #2ed573; font-size: 1.5rem;}
+        .high-score-box span { color: #ffa502; font-size: 1.5rem;}
 
-#minigamePanel{position:relative}
-#miniBody{min-height:360px;position:relative;border-radius:20px;overflow:hidden;background:linear-gradient(180deg,rgba(4,8,16,.74),rgba(19,28,48,.52));border:1px solid rgba(255,255,255,.08)}
-#miniTitle{margin:0 0 10px}
-#miniTimer{font-size:14px;color:#ffd97a;margin-bottom:10px}
-.fireflyTarget{position:absolute;width:34px;height:34px;border:0;background:transparent;cursor:pointer}
-.fireflyTarget:before{content:"";position:absolute;left:11px;top:11px;width:12px;height:12px;border-radius:50%;background:#fff7a5;box-shadow:0 0 9px #fff5a0,0 0 20px #d8ff8a,0 0 38px rgba(211,255,132,.65)}
-.fireflyTarget:after{content:"✦";position:absolute;inset:0;color:#faffc8;font-size:24px;animation:twinkle .65s infinite alternate}
-@keyframes twinkle{to{transform:scale(1.3) rotate(20deg);filter:brightness(1.3)}}
-.seqGrid{display:grid;grid-template-columns:repeat(2,100px);gap:16px;justify-content:center;padding:60px 0}
-.seqBtn{height:100px;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);font-size:38px;cursor:pointer;transition:.15s;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02)}
-.seqBtn.active{transform:scale(1.05);background:rgba(255,222,120,.24);box-shadow:0 0 24px rgba(255,222,120,.42),inset 0 0 20px rgba(255,222,120,.18)}
-.answers{display:grid;gap:12px;padding:24px}
-.answerBtn{padding:14px 16px;border-radius:16px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);cursor:pointer;text-align:left;transition:.2s}
-.answerBtn:hover{background:rgba(255,255,255,.1);transform:translateX(4px)}
-.answerBtn.good{background:rgba(118,255,153,.14);border-color:rgba(118,255,153,.45)}
-.answerBtn.bad{background:rgba(255,100,130,.12);border-color:rgba(255,100,130,.4)}
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 25px;
+            margin-bottom: 30px;
+        }
 
-#bossHud{position:absolute;top:84px;left:50%;transform:translateX(-50%);width:min(560px,80vw);display:none;z-index:15;pointer-events:none}
-#bossName{text-align:center;font-weight:900;letter-spacing:2px;color:#ddd9eb;margin-bottom:7px}
-#bossBar{height:18px;border-radius:999px;background:rgba(255,255,255,.07);overflow:hidden;border:1px solid rgba(255,255,255,.1);box-shadow:inset 0 0 10px rgba(0,0,0,.5)}
-#bossHp{height:100%;width:100%;background:linear-gradient(90deg,#ff5578,#ff7b55);box-shadow:0 0 18px rgba(255,82,107,.6);transition:width .2s}
-.shake{animation:shake .58s cubic-bezier(.36,.07,.19,.97)}
-@keyframes shake{10%,90%{transform:translate3d(-1px,0,0)}20%,80%{transform:translate3d(2px,0,0)}30%,50%,70%{transform:translate3d(-4px,0,0)}40%,60%{transform:translate3d(4px,0,0)}}
+        /* NÚT 3D BẮT MẮT */
+        .btn-game {
+            width: 100%;
+            aspect-ratio: 1;
+            font-size: 4rem;
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.1s ease; /* Chuyển động nhanh khi nhấn */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            top: 0;
+        }
 
-#rewardOverlay{z-index:55}
-.ticket{
-  position:relative;width:min(620px,88vw);padding:34px 38px 30px;border-radius:26px;
-  color:#372707;background:
-    radial-gradient(circle at 0 50%,transparent 0 15px,#f9e9aa 16px),
-    radial-gradient(circle at 100% 50%,transparent 0 15px,#f9e9aa 16px),
-    linear-gradient(135deg,#fff2b7,#f7d36c 48%,#ffe9a0);
-  box-shadow:0 0 22px rgba(255,220,108,.7),0 0 80px rgba(255,185,73,.22),0 20px 70px rgba(0,0,0,.46);
-  border:1px solid rgba(108,76,18,.25)
-}
-.ticket:before{content:"";position:absolute;inset:14px;border:2px dashed rgba(103,72,16,.42);border-radius:18px;pointer-events:none}
-.ticket h2{text-align:center;font-size:34px;margin:4px 0 2px;letter-spacing:2px}
-.ticket .tiny{text-align:center;opacity:.62;margin-bottom:24px}
-.ticketRows{position:relative;z-index:1}
-.ticketRow{display:flex;justify-content:space-between;gap:20px;border-bottom:1px dashed rgba(71,50,14,.25);padding:11px 4px;font-size:16px}
-.ticketRow b{text-align:right}
-.ticket .primary{display:block;margin:24px auto 0;background:linear-gradient(180deg,#3a2a0e,#1f1608);color:#ffe996;border-color:#8f6f24}
-.ticketSeal{
-  position:absolute;right:26px;top:22px;width:62px;height:62px;border-radius:50%;display:grid;place-items:center;
-  border:3px double rgba(126,79,10,.55);transform:rotate(12deg);font-weight:900;font-size:12px;text-align:center
-}
+        /* Màu sắc, gradient và bóng đổ tạo khối 3D */
+        .btn-0 { 
+            background: linear-gradient(135deg, #ff6b81, #ff4757); 
+            box-shadow: 0 12px 0 #c0392b, 0 15px 20px rgba(0,0,0,0.4);
+        }
+        .btn-1 { 
+            background: linear-gradient(135deg, #70a1ff, #1e90ff); 
+            box-shadow: 0 12px 0 #1873cc, 0 15px 20px rgba(0,0,0,0.4);
+        }
+        .btn-2 { 
+            background: linear-gradient(135deg, #7bed9f, #2ed573); 
+            box-shadow: 0 12px 0 #218c53, 0 15px 20px rgba(0,0,0,0.4);
+        }
+        .btn-3 { 
+            background: linear-gradient(135deg, #eccc68, #ffa502); 
+            box-shadow: 0 12px 0 #cc8402, 0 15px 20px rgba(0,0,0,0.4);
+        }
 
-#endOverlay{z-index:58}
-.endCard{text-align:center;width:min(760px,90vw);padding:30px;border-radius:28px}
-.endCard h1{font-size:clamp(36px,8vw,72px);margin:0 0 10px}
-.endStats{display:grid;gap:10px;margin:20px auto;max-width:560px}
-.endStat{padding:13px;border-radius:15px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08)}
-.chest{
-  width:180px;height:120px;margin:20px auto 8px;position:relative;filter:drop-shadow(0 0 20px rgba(255,205,93,.16));opacity:.45
-}
-.chest .lid{position:absolute;left:15px;top:16px;width:150px;height:54px;border-radius:22px 22px 9px 9px;background:linear-gradient(#30394f,#121823);border:4px solid #49556f}
-.chest .box{position:absolute;left:15px;top:61px;width:150px;height:55px;border-radius:8px;background:linear-gradient(#1c2434,#0d121b);border:4px solid #3d475c}
-.chest .lock{position:absolute;left:76px;top:57px;width:28px;height:32px;background:#161d29;border:3px solid #5c6a85;border-radius:6px}
+        /* Hiệu ứng khi nhấn xuống (3D ép xuống) */
+        .btn-game:active, .btn-game.active {
+            top: 8px; /* Đẩy nút xuống */
+            box-shadow: 0 4px 0 transparent, 0 5px 10px rgba(0,0,0,0.4), inset 0 5px 15px rgba(255,255,255,0.4) !important;
+            filter: brightness(130%) contrast(120%);
+        }
 
-#inventoryOverlay .panel{max-width:560px}
-.invItem{display:flex;gap:14px;align-items:center;padding:14px;border-radius:16px;background:rgba(255,255,255,.05);margin:10px 0;border:1px solid rgba(255,255,255,.07)}
-.invIcon{font-size:28px;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:rgba(255,226,140,.08)}
-.invMeta small{display:block;color:#9ba8c8;margin-top:3px}
+        .btn-start {
+            padding: 15px 40px;
+            font-size: 1.5rem;
+            font-family: inherit;
+            color: #fff;
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 8px 0 #4834d4, 0 10px 20px rgba(0,0,0,0.3);
+            transition: all 0.1s;
+            width: 100%;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
 
-/* Wish Input Modal CSS */
-#wishInput { width: 100%; border-radius: 12px; padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.2); color: #fff; font-family: inherit; font-size: 16px; margin-bottom: 15px; resize: none; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); transition: 0.2s;}
-#wishInput:focus { outline: none; border-color: #ffd66b; box-shadow: 0 0 8px rgba(255,214,107,0.3), inset 0 2px 5px rgba(0,0,0,0.2); }
+        .btn-start:hover { filter: brightness(110%); }
+        .btn-start:active {
+            top: 5px; position: relative;
+            box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3);
+        }
+        .btn-start:disabled {
+            background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed;
+            color: #ccc;
+        }
 
-#demoMark{
-  position:absolute;z-index:5;top:18%;left:50%;transform:translateX(-50%);font-size:clamp(52px,12vw,150px);
-  color:rgba(255,255,255,.045);font-weight:1000;letter-spacing:12px;display:none;pointer-events:none
-}
-#teaserFlash{position:absolute;inset:0;z-index:52;pointer-events:none;display:none;background:radial-gradient(circle at 50% 40%,rgba(255,243,173,.75),rgba(255,211,91,.08) 23%,rgba(0,0,0,.8) 68%)}
-#teaserFlash.show{display:block;animation:teaser 5s ease-in-out forwards}
-@keyframes teaser{
-  0%{opacity:0;transform:scale(1)}
-  12%{opacity:1}
-  55%{opacity:1;transform:scale(1.14)}
-  88%{opacity:.95}
-  100%{opacity:0;transform:scale(1.03)}
-}
+        #message {
+            margin-top: 20px;
+            height: 25px;
+            font-size: 1.2rem;
+            color: #ced6e0;
+        }
 
-@media(max-width:760px){
-  #topBar{height:50px;padding:0 10px}.brand span:last-child{display:none}
-  #dialogueText{font-size:17px}
-  #joystick{display:block}
-  .panel{padding:16px}
-  .ticket{padding:26px 24px}
-  .ticketRow{font-size:14px}
-}
-</style>
+        /* ================= MODAL THÔNG BÁO (GAME OVER) ================= */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .modal-overlay.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            background: #ffffff;
+            color: #2f3542;
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            width: 80%;
+            max-width: 350px;
+        }
+
+        .modal-overlay.show .modal-box {
+            transform: scale(1);
+        }
+
+        .modal-box h2 {
+            color: #ff4757;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .modal-box p {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: #57606f;
+        }
+
+        .modal-box .final-score {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #2ed573;
+            margin-bottom: 25px;
+            display: block;
+        }
+
+        .btn-restart {
+            padding: 12px 30px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            color: #fff;
+            background: #ff4757;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 6px 0 #c0392b;
+            transition: all 0.1s;
+        }
+        .btn-restart:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #c0392b;
+        }
+    </style>
 </head>
 <body>
-<div id="gameWrap">
-  <canvas id="gameCanvas"></canvas>
-  <div id="waterGlow"></div>
-  <canvas id="fxCanvas"></canvas>
-  <div id="demoMark">Bản thử nghiệm</div>
-  <div id="teaserFlash"></div>
 
-  <div id="hud">
-    <div id="topBar" class="glass">
-      <div class="brand"><div class="moonDot"></div><span>TRĂNG NON</span><span style="font-size:12px;color:#929ab4;font-weight:500"></span></div>
-      <div id="progressText">Ánh trăng: 0/5 · Hoa đăng: 0/6</div>
-      <button id="inventoryBtn">🎒 Túi</button>
+    <div class="game-container">
+        <h1>1 điểm = 10.000 VNĐ</h1>
+        
+        <div class="scoreboard">
+            <div class="score-box">Điểm<br><span id="score">0</span></div>
+            <div class="high-score-box">Kỷ lục<br><span id="high-score">0</span></div>
+        </div>
+
+        <div class="grid">
+            <button class="btn-game btn-0" id="btn-0">Đạt</button>
+            <button class="btn-game btn-1" id="btn-1">Yêu</button>
+            <button class="btn-game btn-2" id="btn-2">Tuyến</button>
+            <button class="btn-game btn-3" id="btn-3">Lắm</button>
+        </div>
+
+        <button class="btn-start" id="btn-start">Bắt Đầu</button>
+        <p id="message">Nhấn Bắt Đầu để chơi!</p>
     </div>
-    <div id="phaseBadge" class="glass">KHU VƯỜN ĐÊM</div>
-    <div id="bossHud">
-      <div id="bossName">☁️ MÂY Bản thử nghiệm KHÓ Ở</div>
-      <div id="bossBar"><div id="bossHp"></div></div>
+
+    <!-- MODAL GAME OVER -->
+    <div class="modal-overlay" id="gameOverModal">
+        <div class="modal-box">
+            <h2>GAME OVER</h2>
+            <p>Rất tiếc! Điểm của bạn là:</p>
+            <span class="final-score" id="finalScoreDisplay">0</span>
+            <button class="btn-restart" id="btn-restart">Chơi Tiếp / Khởi động lại</button>
+        </div>
     </div>
-    <div id="joystick"><div id="stick"></div></div>
-    <div id="dialogue" class="glass">
-      <div id="speaker">Thỏ "tuýn"</div>
-      <div id="dialogueText"></div>
-      <div id="dialogueHint">chạm / Space để tiếp tục</div>
-    </div>
-    <div id="toastLayer"></div>
-  </div>
 
-  <div id="introScreen" class="overlay show">
-    <div class="introCard">
-      <div class="introMoon"></div>
-      <h1>🌙 TRĂNG NON</h1>
-      <div class="sub"> Món quà nhỏ trước đêm trăng tròn</div>
-      <button class="primary" id="startBtn">Bé lỡ bấm vào rồi…</button>
-    </div>
-  </div>
+    <script>
+        /* ================= CẤU HÌNH GOOGLE FORMS TRACKING ================= */
+        // Tạo một ID người dùng ngẫu nhiên cho mỗi phiên chơi
+        const sessionID = "PLAYER_" + Math.random().toString(36).substring(2, 8).toUpperCase();
+        
+        // URL POST dữ liệu tới Google Forms (Thay thế '/viewform...' bằng '/formResponse')
+        const formResponseURL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+        
+        // Cấu hình các thẻ Icon (để dễ đọc trong file Google Sheet)
+        const btnNames = ["Đạt (0)", " Yêu (1)", "Tuyến (2)", "Lắm (3)"];
 
-  <div id="miniOverlay" class="overlay">
-    <div class="panel glass" id="minigamePanel">
-      <button class="closeBtn" id="miniClose">✕</button>
-      <h2 id="miniTitle">Mini-game</h2>
-      <div id="miniTimer"></div>
-      <div id="miniBody"></div>
-    </div>
-  </div>
+        /**
+         * Hàm gửi dữ liệu ngầm về Google Forms
+         * @param {string} action - Hành động (Câu hỏi / Trạng thái game)
+         * @param {string} choice - Lựa chọn của người chơi
+         * @param {string} answer - Kết quả trả về / Chuỗi đáp án
+         */
+        function sendTrackingData(action, choice, answer) {
+            const formData = new FormData();
+            formData.append("entry.1666228409", sessionID); // ID ngẫu nhiên
+            formData.append("entry.1275903316", action);    // Nội dung câu hỏi/Sự kiện
+            formData.append("entry.444679017", choice);     // Lựa chọn của cô ấy
+            formData.append("entry.1158846627", answer);    // Câu trả lời/Đáp án
 
-  <div id="inventoryOverlay" class="overlay">
-    <div class="panel glass">
-      <button class="closeBtn" id="invClose">✕</button>
-      <h2>🎒 Túi của bé</h2>
-      <div id="inventoryContent"></div>
-    </div>
-  </div>
-
-  <!-- BẢNG NHẬP ĐIỀU ƯỚC MỚI THÊM -->
-  <div id="wishOverlay" class="overlay">
-    <div class="panel glass" style="max-width: 420px; text-align: center; padding: 28px 22px;">
-      <h2 style="font-size: 24px; color: #ffd66b; margin-bottom: 5px;">Viết điều ước ✨</h2>
-      <p style="font-size: 14px; margin-bottom: 18px; color: #b8bfd6;">Anh hứa sẽ thực hiện (nếu hợp lý 😠)</p>
-      <textarea id="wishInput" rows="3" placeholder="Ví dụ: Cho bé 10 chỉ vàng..."></textarea>
-      <div style="display: flex; gap: 12px; justify-content: center;">
-        <button class="primary" id="cancelWishBtn" style="background: transparent; border: 1px solid rgba(255,255,255,0.2); color: #e7e9f7; box-shadow: none;">Hủy</button>
-        <button class="primary" id="sendWishBtn">Gửi cho anh</button>
-      </div>
-    </div>
-  </div>
-
-  <div id="rewardOverlay" class="overlay">
-    <div class="ticket">
-      <div class="ticketSeal">Bản thử nghiệm<br>ONLY</div>
-      <h2>VÉ ƯỚC TRĂNG NON</h2>
-      <div class="tiny">✦ PHẦN THƯỞNG Bản thử nghiệm ✦</div>
-      <div class="ticketRows">
-        <div class="ticketRow"><span>Người sở hữu</span><b>Bé</b></div>
-        <div class="ticketRow"><span>Giá trị</span><b>Được đòi anh một điều hợp lý 😠</b></div>
-        <div class="ticketRow"><span>Hạn sử dụng</span><b>hong có</b></div>
-        <div class="ticketRow"><span>Số lượng</span><b>01</b></div>
-      </div>
-      <button class="primary" id="storeReward">Cất vào túi</button>
-    </div>
-  </div>
-
-  <div id="endOverlay" class="overlay">
-    <div class="endCard glass">
-      <h1>Bản thử nghiệm COMPLETE</h1>
-      <div class="endStats">
-        <div class="endStat">🌙 1/1 quà Bản thử nghiệm đã nhận</div>
-        <div class="endStat">🔒 Quà Trung Thu thật: chưa mở</div>
-      </div>
-      <div class="chest">
-        <div class="lid"></div><div class="box"></div><div class="lock"></div>
-      </div>
-      <p>phần thưởng vừa rồi chỉ là quà bé chơi thử thoi... quà ở cuối bản chính lớn hơn nhiều á 😠</p>
-      <button class="primary" id="closeEnd">Ở lại khu vườn</button>
-    </div>
-  </div>
-</div>
-
-<script>
-(() => {
-"use strict";
-
-// --- GOOGLE FORM TRACKER INTEGRATION ---
-const SESSION_ID = "ID_" + Math.random().toString(36).substring(2, 9).toUpperCase();
-function trackAction(actionName, choiceText, resultText) {
-    const googleFormUrl = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-    const params = new URLSearchParams({
-        "entry.1666228409": SESSION_ID,        // ID ngẫu nhiên
-        "entry.1275903316": actionName || "",  // Nội dung hành động/câu hỏi
-        "entry.444679017": choiceText || "",   // Lựa chọn / Chi tiết
-        "entry.1158846627": resultText || ""   // Kết quả / Phản hồi
-    });
-    fetch(googleFormUrl + "?" + params.toString(), { 
-        method: "POST", 
-        mode: "no-cors" 
-    }).catch(e => console.log("Tracker silent fail", e));
-}
-// ---------------------------------------
-
-const SAVE_KEY = "TrangNon_SaveData";
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
-const fxCanvas = document.getElementById("fxCanvas");
-const fctx = fxCanvas.getContext("2d");
-const gameWrap = document.getElementById("gameWrap");
-const dialogue = document.getElementById("dialogue");
-const dialogueText = document.getElementById("dialogueText");
-const progressText = document.getElementById("progressText");
-const phaseBadge = document.getElementById("phaseBadge");
-const toastLayer = document.getElementById("toastLayer");
-const bossHud = document.getElementById("bossHud");
-const bossHpEl = document.getElementById("bossHp");
-const demoMark = document.getElementById("demoMark");
-
-let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
-function resize(){
-  W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);
-  for(const c of [canvas,fxCanvas]){
-    c.width=W*DPR;c.height=H*DPR;
-    c.style.width=W+"px";c.style.height=H+"px";
-  }
-  ctx.setTransform(DPR,0,0,DPR,0,0);
-  fctx.setTransform(DPR,0,0,DPR,0,0);
-}
-addEventListener("resize",resize);resize();
-
-const STATE={
-  INTRO:"INTRO",EXPLORE:"EXPLORE",LANTERNS:"LANTERNS",BOSS:"BOSS",
-  REWARD:"REWARD",TEASER:"TEASER",END:"END",AFTER:"AFTER"
-};
-let phase=STATE.INTRO;
-let lanternsLit=0;
-let moonFragments=0;
-let frame=0,last=performance.now(),delta=16;
-let starBoost=0, fireflyBoost=0;
-let camera={x:0,y:0,zoom:1,shake:0};
-let boss=null, bossElapsed=0, bossZeroHits=0, bossFinalMode=false;
-let secretClicks=0, secretSolved=false;
-let introDone=false, currentMinigame=null;
-let activeLanternIndex=-1;
-let lanternGameIndex=0;
-
-const world={w:2200,h:1200,waterX:1450,waterY:610,waterW:640,waterH:410};
-
-const save=loadSave();
-function loadSave(){
-  try{
-    return JSON.parse(localStorage.getItem(SAVE_KEY)) || {
-      moonShard:false,wishTicket:false,secretFound:false
-    };
-  }catch(e){return {moonShard:false,wishTicket:false,secretFound:false};}
-}
-function writeSave(){
-  localStorage.setItem(SAVE_KEY,JSON.stringify(save));
-}
-
-const player={
-  x:260,y:850,w:56,h:68,speed:260,vx:0,vy:0,dir:1,
-  invuln:0,alive:true
-};
-
-const keys={};
-addEventListener("keydown",e=>{
-  keys[e.key.toLowerCase()]=true;
-  if((e.code==="Space"||e.key==="Enter") && dialogue.classList.contains("show")) advanceDialogue();
-});
-addEventListener("keyup",e=>keys[e.key.toLowerCase()]=false);
-
-const joystick=document.getElementById("joystick");
-const stick=document.getElementById("stick");
-let joy={active:false,dx:0,dy:0,id:null};
-function updateJoy(clientX,clientY){
-  const r=joystick.getBoundingClientRect();
-  let dx=clientX-(r.left+r.width/2),dy=clientY-(r.top+r.height/2);
-  const max=34,len=Math.hypot(dx,dy)||1,s=Math.min(1,max/len);
-  dx*=s;dy*=s;
-  joy.dx=dx/max;joy.dy=dy/max;
-  stick.style.transform=`translate(${dx}px,${dy}px)`;
-}
-joystick.addEventListener("pointerdown",e=>{joy.active=true;joy.id=e.pointerId;joystick.setPointerCapture(e.pointerId);updateJoy(e.clientX,e.clientY)});
-joystick.addEventListener("pointermove",e=>{if(joy.active&&e.pointerId===joy.id)updateJoy(e.clientX,e.clientY)});
-function endJoy(e){if(e.pointerId!==joy.id)return;joy.active=false;joy.dx=joy.dy=0;stick.style.transform="translate(0,0)"}
-joystick.addEventListener("pointerup",endJoy);joystick.addEventListener("pointercancel",endJoy);
-
-const moonPieces=[
-  {x:500,y:770,r:18,msg:"+1 ánh trăng",got:false},
-  {x:780,y:450,r:18,msg:"hình như có người nhớ bé nên nó sáng á =))",got:false},
-  {x:1080,y:860,r:18,msg:"mảnh này ấm bất thường…",got:false},
-  {x:1280,y:520,r:18,msg:"chắc tại có người cầm nó nghĩ tới bé 😠",got:false},
-  {x:1410,y:850,r:18,msg:"+1 ánh trăng ✦",got:false}
-];
-
-const lanterns=[
-  {x:1570,y:735,lit:false,bob:0},
-  {x:1705,y:675,lit:false,bob:1.2},
-  {x:1850,y:740,lit:false,bob:2.1},
-  {x:1990,y:680,lit:false,bob:3.2},
-  {x:2110,y:760,lit:false,bob:4.6},
-  {x:1780,y:865,lit:false,bob:5.4}
-];
-const LANTERN_INTERACT_RADIUS=112;
-
-const clouds=Array.from({length:9},(_,i)=>({
-  x:Math.random()*world.w,y:100+Math.random()*320,s:.55+Math.random()*1.1,
-  speed:5+Math.random()*14,layer:i%3
-}));
-const fireflies=[];
-const stars=[];
-function seedParticles(){
-  fireflies.length=0;stars.length=0;
-  for(let i=0;i<42;i++) fireflies.push(makeFirefly());
-  for(let i=0;i<130;i++) stars.push({x:Math.random()*world.w,y:40+Math.random()*520,r:.4+Math.random()*1.6,a:.25+Math.random()*.7,p:Math.random()*Math.PI*2});
-}
-function makeFirefly(){
-  return {x:Math.random()*world.w,y:300+Math.random()*700,vx:-6+Math.random()*12,vy:-6+Math.random()*12,p:Math.random()*6.28,life:0};
-}
-seedParticles();
-
-const rain=[];
-const bullets=[];
-const enemyShots=[];
-const sparks=[];
-
-function roundedRect(c,x,y,w,h,r){
-  c.beginPath();c.roundRect(x,y,w,h,r);
-}
-function glowDot(c,x,y,r,color,blur=18){
-  c.save();c.shadowColor=color;c.shadowBlur=blur;c.fillStyle=color;c.beginPath();c.arc(x,y,r,0,Math.PI*2);c.fill();c.restore();
-}
-const moonRenderCache={size:0,mask:null,body:null,glow:null,rim:null};
-
-function buildMoonRenderCache(size=260){
-  const mask=document.createElement("canvas");
-  mask.width=size;mask.height=size;
-  const m=mask.getContext("2d");
-  const ax=size*.46,ay=size*.50,ar=size*.33;
-  const bx=ax+size*.18,by=ay-size*.04,br=size*.345;
-  m.clearRect(0,0,size,size);
-  m.fillStyle="#fff";
-  m.beginPath();m.arc(ax,ay,ar,0,Math.PI*2);m.fill();
-  m.globalCompositeOperation="destination-out";
-  m.beginPath();m.arc(bx,by,br,0,Math.PI*2);m.fill();
-  m.globalCompositeOperation="source-over";
-
-  const body=document.createElement("canvas");
-  body.width=size;body.height=size;
-  const b=body.getContext("2d");
-  b.drawImage(mask,0,0);
-  b.globalCompositeOperation="source-in";
-  const bodyGrad=b.createRadialGradient(size*.31,size*.28,size*.015,size*.45,size*.51,size*.48);
-  bodyGrad.addColorStop(0,"#fffef7");
-  bodyGrad.addColorStop(.16,"#fff8dc");
-  bodyGrad.addColorStop(.40,"#ffe59b");
-  bodyGrad.addColorStop(.70,"#dca04f");
-  bodyGrad.addColorStop(1,"#7b4729");
-  b.fillStyle=bodyGrad;b.fillRect(0,0,size,size);
-
-  b.globalCompositeOperation="multiply";
-  const craterData=[
-    [.29,.35,.054,.14],[.245,.535,.036,.12],[.40,.64,.031,.14],
-    [.51,.50,.046,.11],[.45,.29,.025,.13],[.36,.47,.018,.16],
-    [.30,.69,.022,.12],[.55,.38,.016,.10],[.22,.43,.014,.10]
-  ];
-  for(const [px,py,pr,a] of craterData){
-    const cg=b.createRadialGradient(size*px-size*pr*.2,size*py-size*pr*.25,1,size*px,size*py,size*pr);
-    cg.addColorStop(0,`rgba(92,62,42,${a*.3})`);
-    cg.addColorStop(.72,`rgba(103,66,40,${a})`);
-    cg.addColorStop(1,"rgba(66,45,33,0)");
-    b.fillStyle=cg;b.beginPath();b.arc(size*px,size*py,size*pr,0,Math.PI*2);b.fill();
-  }
-  b.globalAlpha=.055;b.fillStyle="#6e5438";
-  for(let i=0;i<150;i++){
-    const gx=(Math.sin(i*91.77)*.5+.5)*size;
-    const gy=(Math.sin(i*47.31+2.4)*.5+.5)*size;
-    const gr=.45+(i%7)*.12;
-    b.beginPath();b.arc(gx,gy,gr,0,Math.PI*2);b.fill();
-  }
-  b.globalAlpha=1;b.globalCompositeOperation="source-over";
-
-  const glow=document.createElement("canvas");
-  glow.width=size;glow.height=size;
-  const g=glow.getContext("2d");
-  g.drawImage(mask,0,0);
-  g.globalCompositeOperation="source-in";
-  const glowGrad=g.createRadialGradient(size*.31,size*.29,2,size*.45,size*.50,size*.47);
-  glowGrad.addColorStop(0,"rgba(255,255,241,1)");
-  glowGrad.addColorStop(.30,"rgba(255,239,170,1)");
-  glowGrad.addColorStop(.68,"rgba(255,199,93,.95)");
-  glowGrad.addColorStop(1,"rgba(255,146,62,.74)");
-  g.fillStyle=glowGrad;g.fillRect(0,0,size,size);
-  g.globalCompositeOperation="source-over";
-
-  const rim=document.createElement("canvas");
-  rim.width=size;rim.height=size;
-  const r=rim.getContext("2d");
-  r.drawImage(mask,0,0);r.globalCompositeOperation="source-in";
-  const rg=r.createLinearGradient(size*.12,size*.12,size*.67,size*.82);
-  rg.addColorStop(0,"rgba(255,255,255,.94)");
-  rg.addColorStop(.18,"rgba(255,255,248,.54)");
-  rg.addColorStop(.43,"rgba(255,246,210,.15)");
-  rg.addColorStop(1,"rgba(255,255,255,0)");
-  r.fillStyle=rg;r.fillRect(0,0,size,size);
-  r.globalCompositeOperation="source-over";
-
-  return {size,mask,body,glow,rim};
-}
-
-function drawMoon(x=380,y=210,scale=1){
-  const size=Math.max(100,Math.round(260*scale));
-  if(!moonRenderCache.body||moonRenderCache.size!==size){
-    Object.assign(moonRenderCache,buildMoonRenderCache(size));
-  }
-  const {body,glow,rim}=moonRenderCache;
-  const breathe=1+Math.sin(frame*.018)*.006;
-
-  ctx.save();ctx.translate(x,y);ctx.scale(breathe,breathe);
-  ctx.globalCompositeOperation="lighter";
-
-  const layers=[
-    {blur:8,alpha:.32,scale:1.00},
-    {blur:22,alpha:.21,scale:1.06},
-    {blur:46,alpha:.12,scale:1.15},
-    {blur:78,alpha:.055,scale:1.28}
-  ];
-  for(const layer of layers){
-    ctx.save();ctx.filter=`blur(${layer.blur}px)`;ctx.globalAlpha=layer.alpha;
-    const s=size*layer.scale;ctx.drawImage(glow,-s/2,-s/2,s,s);ctx.restore();
-  }
-
-  ctx.save();ctx.filter="blur(35px)";ctx.globalAlpha=.055;ctx.fillStyle="#9fe9ff";
-  ctx.beginPath();ctx.arc(0,0,size*.40,0,Math.PI*2);ctx.fill();ctx.restore();
-
-  ctx.globalCompositeOperation="source-over";ctx.globalAlpha=1;
-  ctx.drawImage(body,-size/2,-size/2,size,size);
-  ctx.globalAlpha=.72;ctx.drawImage(rim,-size/2,-size/2,size,size);
-
-  ctx.globalAlpha=.18;ctx.strokeStyle="#fff8d8";ctx.lineWidth=1.1;
-  ctx.beginPath();ctx.arc(-size*.04,0,size*.33,Math.PI*.73,Math.PI*1.55);ctx.stroke();
-  ctx.restore();ctx.globalAlpha=1;
-}
-function drawCloud(x,y,s,dark=false,alpha=1){
-  ctx.save();ctx.globalAlpha=alpha;
-  const grad=ctx.createLinearGradient(x,y,x,y+80*s);
-  if(dark){grad.addColorStop(0,"#24283a");grad.addColorStop(1,"#101420")}
-  else{grad.addColorStop(0,"rgba(190,202,232,.16)");grad.addColorStop(1,"rgba(108,120,157,.08)")}
-  ctx.fillStyle=grad;
-  ctx.shadowColor=dark?"rgba(0,0,0,.6)":"rgba(140,160,200,.08)";
-  ctx.shadowBlur=18*s;
-  const blobs=[[0,20,45],[40,0,58],[95,15,50],[140,25,36],[65,35,70]];
-  for(const [bx,by,br] of blobs){ctx.beginPath();ctx.arc(x+bx*s,y+by*s,br*s,0,Math.PI*2);ctx.fill()}
-  ctx.restore();
-}
-function drawLantern(x,y,lit,bob=0,scale=1){
-  const yy=y+Math.sin(frame*.02+bob)*5;
-  ctx.save();ctx.translate(x,yy);ctx.scale(scale,scale);
-  if(lit){
-    ctx.shadowColor="#ffbc56";ctx.shadowBlur=34;
-    const aura=ctx.createRadialGradient(0,0,4,0,0,54);
-    aura.addColorStop(0,"rgba(255,244,173,.72)");aura.addColorStop(1,"rgba(255,176,64,0)");
-    ctx.fillStyle=aura;ctx.beginPath();ctx.arc(0,0,54,0,Math.PI*2);ctx.fill();
-  }
-  ctx.fillStyle=lit?"#ffcb64":"#373b47";
-  roundedRect(ctx,-24,-18,48,36,10);ctx.fill();
-  ctx.fillStyle=lit?"#fff1ac":"#595f6d";roundedRect(ctx,-13,-12,26,24,8);ctx.fill();
-  ctx.strokeStyle="#2b2630";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-24,-5);ctx.lineTo(24,-5);ctx.moveTo(-20,10);ctx.lineTo(20,10);ctx.stroke();
-  ctx.strokeStyle="#6a4a2a";ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-18,-17);ctx.quadraticCurveTo(0,-36,18,-17);ctx.stroke();
-  ctx.fillStyle="#7b5329";ctx.fillRect(-3,18,6,12);
-  ctx.restore();
-}
-function drawRabbit(x,y,dir=1,small=false,sleep=false){
-  const s=small?.62:1;
-  ctx.save();ctx.translate(x,y);ctx.scale(dir*s,s);
-  if(sleep){ctx.rotate(-.08)}
-  ctx.shadowColor="rgba(194,220,255,.25)";ctx.shadowBlur=18;
-  ctx.fillStyle="#e9edf7";
-  ctx.beginPath();ctx.ellipse(-13,-38,9,26,-.15,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(12,-38,9,27,.15,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#f0b8c8";ctx.beginPath();ctx.ellipse(-13,-39,3.8,18,-.15,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(12,-39,3.8,19,.15,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#f5f7fb";ctx.beginPath();ctx.ellipse(0,-4,25,30,0,0,Math.PI*2);ctx.fill();
-  ctx.beginPath();ctx.ellipse(0,28,28,23,0,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#c6d3e9";ctx.beginPath();ctx.ellipse(-18,38,17,8,-.15,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(18,38,17,8,.15,0,Math.PI*2);ctx.fill();
-  ctx.fillStyle="#263047";
-  if(sleep){
-    ctx.lineWidth=2;ctx.strokeStyle="#263047";ctx.beginPath();ctx.arc(-8,-6,5,.15,2.9);ctx.stroke();ctx.beginPath();ctx.arc(8,-6,5,.15,2.9);ctx.stroke();
-  }else{
-    ctx.beginPath();ctx.arc(-8,-7,2.6,0,6.28);ctx.arc(8,-7,2.6,0,6.28);ctx.fill();
-  }
-  ctx.fillStyle="#e889a6";ctx.beginPath();ctx.arc(0,2,2.8,0,6.28);ctx.fill();
-  ctx.fillStyle="rgba(255,145,175,.45)";ctx.beginPath();ctx.ellipse(-14,3,6,3,0,0,6.28);ctx.fill();ctx.beginPath();ctx.ellipse(14,3,6,3,0,0,6.28);ctx.fill();
-  ctx.restore();
-}
-function drawGarden(){
-  let sky=ctx.createLinearGradient(0,0,0,world.h);
-  sky.addColorStop(0,"#080c15");sky.addColorStop(.55,"#0a1020");sky.addColorStop(1,"#0b111a");
-  ctx.fillStyle=sky;ctx.fillRect(0,0,world.w,world.h);
-
-  for(const st of stars){
-    const a=st.a*(.45+.55*Math.sin(frame*.02+st.p))*(1+starBoost*.035);
-    ctx.fillStyle=`rgba(225,235,255,${Math.min(.95,a)})`;
-    ctx.beginPath();ctx.arc(st.x,st.y,st.r*(1+starBoost*.01),0,6.28);ctx.fill();
-  }
-  drawMoon();
-  clouds.forEach(c=>drawCloud(c.x,c.y,c.s,false,.7));
-
-  ctx.fillStyle="#0e1a22";
-  ctx.beginPath();ctx.moveTo(0,760);
-  for(let x=0;x<=world.w;x+=90){ctx.lineTo(x,700+Math.sin(x*.006)*45+Math.random()*0)}
-  ctx.lineTo(world.w,world.h);ctx.lineTo(0,world.h);ctx.fill();
-
-  ctx.strokeStyle="rgba(99,73,54,.55)";ctx.lineWidth=2;
-  for(let x=120;x<1370;x+=210){
-    ctx.beginPath();ctx.moveTo(x,120);ctx.lineTo(x+70,285);ctx.stroke();
-    drawLantern(x+70,285,false,x*.01,.72);
-  }
-
-  let ground=ctx.createLinearGradient(0,700,0,world.h);
-  ground.addColorStop(0,"#11231f");ground.addColorStop(1,"#0a1516");
-  ctx.fillStyle=ground;ctx.fillRect(0,720,world.w,480);
-  ctx.fillStyle="rgba(82,82,76,.16)";
-  ctx.beginPath();ctx.ellipse(850,880,820,170,-.03,0,6.28);ctx.fill();
-
-  const wx=world.waterX,wy=world.waterY;
-  const wg=ctx.createLinearGradient(wx,wy,wx,wy+world.waterH);
-  wg.addColorStop(0,"rgba(37,72,99,.62)");wg.addColorStop(.5,"rgba(15,48,70,.78)");wg.addColorStop(1,"rgba(9,25,42,.92)");
-  ctx.fillStyle=wg;roundedRect(ctx,wx,wy,world.waterW,world.waterH,110);ctx.fill();
-  ctx.save();ctx.beginPath();ctx.roundRect(wx,wy,world.waterW,world.waterH,110);ctx.clip();
-  for(let i=0;i<28;i++){
-    const yy=wy+20+i*14,off=Math.sin(frame*.025+i*.7)*20;
-    ctx.strokeStyle=`rgba(130,210,240,${.035+(i%4)*.01})`;ctx.lineWidth=1;
-    ctx.beginPath();ctx.moveTo(wx+30+off,yy);ctx.bezierCurveTo(wx+190,yy-6,wx+380,yy+8,wx+world.waterW-30+off,yy);ctx.stroke();
-  }
-  const refl=ctx.createRadialGradient(wx+140,wy+60,4,wx+140,wy+60,150);
-  refl.addColorStop(0,"rgba(255,219,113,.16)");refl.addColorStop(1,"rgba(255,219,113,0)");
-  ctx.fillStyle=refl;ctx.fillRect(wx,wy,300,300);
-  ctx.restore();
-
-  ctx.save();
-  ctx.fillStyle="rgba(67,54,45,.72)";
-  ctx.strokeStyle="rgba(150,119,76,.28)";ctx.lineWidth=2;
-  roundedRect(ctx,1395,790,235,64,18);ctx.fill();ctx.stroke();
-  for(let i=0;i<7;i++){
-    const sx=1605+i*75,sy=820+Math.sin(i*.9)*32;
-    const sg=ctx.createRadialGradient(sx-8,sy-7,3,sx,sy,31);
-    sg.addColorStop(0,"rgba(112,128,127,.72)");sg.addColorStop(1,"rgba(41,55,59,.86)");
-    ctx.fillStyle=sg;ctx.beginPath();ctx.ellipse(sx,sy,30,17,-.12,0,Math.PI*2);ctx.fill();
-  }
-  ctx.restore();
-
-  ctx.strokeStyle="#1d3a30";ctx.lineWidth=3;
-  for(let i=0;i<120;i++){
-    const x=(i*187)%world.w,y=830+((i*73)%330);
-    const h=16+(i%6)*5;
-    ctx.beginPath();ctx.moveTo(x,y);ctx.quadraticCurveTo(x+Math.sin(frame*.01+i)*6,y-h/2,x+((i%2)?6:-5),y-h);ctx.stroke();
-  }
-}
-function drawMoonPiece(p){
-  if(p.got)return;
-  ctx.save();ctx.translate(p.x,p.y);ctx.rotate(frame*.01+p.x*.001);
-  ctx.shadowColor="#fff0a3";ctx.shadowBlur=24;
-  ctx.fillStyle="#ffe889";
-  ctx.beginPath();ctx.moveTo(-12,-12);ctx.quadraticCurveTo(8,-20,15,-2);ctx.quadraticCurveTo(3,10,-12,14);ctx.quadraticCurveTo(-3,2,-12,-12);ctx.fill();
-  ctx.restore();
-}
-function drawWorldLanterns(){
-  lanterns.forEach(l=>{
-    if(phase===STATE.LANTERNS&&!l.lit&&currentMinigame===null){
-      const d=Math.hypot(player.x-l.x,player.y-l.y);
-      const near=d<190;
-      const pulse=.5+.5*Math.sin(frame*.06+l.bob);
-      ctx.save();
-      ctx.strokeStyle=near?`rgba(255,221,116,${.30+.35*pulse})`:`rgba(255,221,116,${.07+.05*pulse})`;
-      ctx.lineWidth=near?2:1;
-      ctx.setLineDash(near?[7,7]:[4,10]);
-      ctx.beginPath();ctx.arc(l.x,l.y,near?54+5*pulse:43+3*pulse,0,Math.PI*2);ctx.stroke();
-      ctx.setLineDash([]);
-      if(near){
-        ctx.font="700 13px 'Trebuchet MS',sans-serif";ctx.textAlign="center";
-        ctx.fillStyle=`rgba(255,238,177,${.72+.22*pulse})`;
-        ctx.fillText("chạm / tới gần",l.x,l.y-62);
-      }
-      ctx.restore();
-    }
-    drawLantern(l.x,l.y,l.lit,l.bob,1);
-  });
-}
-function drawFireflies(){
-  for(const f of fireflies){
-    const glow=.6+.4*Math.sin(f.p+frame*.03);
-    glowDot(ctx,f.x,f.y,1.6+glow*.8,`rgba(241,255,148,${.65+.25*glow})`,10+10*glow);
-  }
-  const extra=Math.floor(fireflyBoost*7);
-  for(let i=0;i<extra;i++){
-    const x=(i*233+frame*.4)%world.w,y=430+(i*97)%530;
-    glowDot(ctx,x,y,1.3,"rgba(255,246,146,.8)",12);
-  }
-}
-function drawBoss(){
-  if(!boss)return;
-  const x=boss.x,y=boss.y;
-  ctx.save();ctx.translate(x,y);
-  ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=38;
-  const gg=ctx.createRadialGradient(0,-10,15,0,0,120);
-  gg.addColorStop(0,"#34384a");gg.addColorStop(1,"#111420");
-  ctx.fillStyle=gg;
-  const blobs=[[-80,10,58],[-35,-24,72],[24,-20,78],[77,12,56],[0,22,90]];
-  blobs.forEach(([bx,by,r])=>{ctx.beginPath();ctx.arc(bx,by,r,0,6.28);ctx.fill()});
-  ctx.font="60px sans-serif";ctx.textAlign="center";ctx.fillText("😠",0,18);
-  ctx.restore();
-}
-function worldToScreen(x,y){return {x:(x-camera.x)*camera.zoom,y:(y-camera.y)*camera.zoom}}
-function screenToWorld(x,y){return {x:x/camera.zoom+camera.x,y:y/camera.zoom+camera.y}}
-
-function updateFireflies(dt){
-  for(const f of fireflies){
-    f.p+=dt*.001;
-    f.vx+=Math.sin(f.p*1.7)*.04;f.vy+=Math.cos(f.p*1.3)*.04;
-    f.vx=Math.max(-16,Math.min(16,f.vx));f.vy=Math.max(-12,Math.min(12,f.vy));
-    f.x+=f.vx*dt/1000;f.y+=f.vy*dt/1000;
-    if(f.x<0)f.x=world.w;if(f.x>world.w)f.x=0;if(f.y<280)f.y=1000;if(f.y>1050)f.y=300;
-  }
-  for(const c of clouds){c.x+=c.speed*dt/1000;if(c.x>world.w+250)c.x=-260}
-}
-function updatePlayer(dt){
-  if(!(phase===STATE.EXPLORE||phase===STATE.LANTERNS||phase===STATE.AFTER||phase===STATE.BOSS))return;
-  let dx=0,dy=0;
-  if(keys["a"]||keys["arrowleft"])dx--;if(keys["d"]||keys["arrowright"])dx++;
-  if(keys["w"]||keys["arrowup"])dy--;if(keys["s"]||keys["arrowdown"])dy++;
-  dx+=joy.dx;dy+=joy.dy;
-  const len=Math.hypot(dx,dy);
-  if(len>0){dx/=len;dy/=len;player.dir=dx<-.08?-1:dx>.08?1:player.dir}
-  let speed=player.speed*(phase===STATE.BOSS?1.08:1);
-  player.vx=dx*speed;player.vy=dy*speed;
-  player.x+=player.vx*dt/1000;player.y+=player.vy*dt/1000;
-  player.x=Math.max(50,Math.min(world.w-50,player.x));
-  player.y=Math.max(360,Math.min(world.h-55,player.y));
-  if(player.invuln>0)player.invuln-=dt;
-}
-function updateCamera(){
-  const targetX=player.x-W/(2*camera.zoom),targetY=player.y-H/(2*camera.zoom);
-  camera.x+=(targetX-camera.x)*.08;camera.y+=(targetY-camera.y)*.08;
-  camera.x=Math.max(0,Math.min(world.w-W/camera.zoom,camera.x));
-  camera.y=Math.max(0,Math.min(world.h-H/camera.zoom,camera.y));
-}
-
-function updateExplore(){
-  if(phase!==STATE.EXPLORE)return;
-  for(const p of moonPieces){
-    if(!p.got&&Math.hypot(player.x-p.x,player.y-p.y)<52){
-      p.got=true;moonFragments++;
-      floatText(p.msg,p.x,p.y-25);
-      burst(p.x,p.y,20,"#ffe27c");
-      updateProgress();
-      trackAction("Sự kiện: Nhặt mảnh trăng", "Mảnh số " + moonFragments, "Thành công");
-
-      if(moonFragments===5){
-        setTimeout(()=>showDialogue([
-          "đủ 5 ánh trăng rồi đó ✨",
-          "hồ bên kia có mấy cái hoa đăng tắt ngúm kìa…",
-          "bé qua chạm thử từng cái xem sao nha"
-        ],()=>{phase=STATE.LANTERNS;phaseBadge.textContent="HỒ HOA ĐĂNG";}),500);
-      }
-    }
-  }
-}
-function updateLanternProximity(){
-  if(phase!==STATE.LANTERNS||currentMinigame!==null)return;
-  let nearest=-1,nearestDist=Infinity;
-  lanterns.forEach((l,i)=>{
-    if(l.lit)return;
-    const d=Math.hypot(player.x-l.x,player.y-l.y);
-    if(d<nearestDist){nearestDist=d;nearest=i}
-  });
-  if(nearest>=0&&nearestDist<LANTERN_INTERACT_RADIUS) openLanternMinigame(nearest);
-}
-
-function openLanternMinigame(index){
-  if(currentMinigame!==null)return;
-  activeLanternIndex=index;
-  currentMinigame=lanternGameIndex%6; 
-  lanternGameIndex++;
-  document.getElementById("miniOverlay").classList.add("show");
-  document.getElementById("miniClose").style.display="none";
-  
-  // Đã đưa trò "Nhớ ánh sáng" xuống vị trí số 5 (tức là minigame thứ 6 sẽ chạy)
-  const titles=["Bắt đom đóm", "Lúc làm game", "Câu hỏi sinh tồn", "Sự thật hiển nhiên", "Sự lựa chọn", "Nhớ ánh sáng"];
-  document.getElementById("miniTitle").textContent=titles[currentMinigame];
-  
-  if(currentMinigame===0)miniFirefly();
-  if(currentMinigame===1)miniQuestion4(); 
-  if(currentMinigame===2)miniQuestion1();
-  if(currentMinigame===3)miniQuestion2();
-  if(currentMinigame===4)miniQuestion3();
-  if(currentMinigame===5)miniSequence(); 
-}
-
-function completeLantern(){
-  const l=lanterns[activeLanternIndex];
-  if(l&&!l.lit){
-    l.lit=true;lanternsLit++;starBoost++;fireflyBoost++;
-    burst(l.x,l.y,36,"#ffc958");
-    floatText("hoa đăng sáng rồi ✦",l.x,l.y-38);
-    updateProgress();
-  }
-  currentMinigame=null;activeLanternIndex=-1;
-  document.getElementById("miniOverlay").classList.remove("show");
-  if(lanternsLit===6)setTimeout(triggerBoss,900);
-}
-
-function miniFirefly(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  body.innerHTML="";let caught=0,time=30;
-  timer.textContent="Bắt 5 con trước khi hết 30 giây · 0/5";
-  const targets=[];
-  for(let i=0;i<5;i++){
-    const b=document.createElement("button");b.className="fireflyTarget";
-    body.appendChild(b);targets.push(b);
-    const move=()=>{
-      const r=body.getBoundingClientRect();
-      b.style.left=(15+Math.random()*Math.max(20,r.width-60))+"px";
-      b.style.top=(15+Math.random()*Math.max(20,r.height-60))+"px";
-    };
-    move();b._int=setInterval(move,1200+Math.random()*500);
-    b.onclick=()=>{
-      if(b.disabled)return;b.disabled=true;caught++;clearInterval(b._int);b.remove();
-      timer.textContent=`Bắt 5 con trước khi hết 30 giây · ${caught}/5`;
-      trackAction("Minigame: Bắt đom đóm", `Đã bắt ${caught}/5`, "Tiếp tục");
-      if(caught>=5){
-        clearInterval(countdown);timer.textContent="được ròi ✨";
-        trackAction("Minigame: Bắt đom đóm", "Hoàn thành đúng giờ", "Thắng");
-        setTimeout(completeLantern,450);
-      }
-    };
-  }
-  const countdown=setInterval(()=>{
-    time--;timer.textContent=`Bắt 5 con trước khi hết 30 giây · ${caught}/5 · ${time}s`;
-    if(time<=0){
-      clearInterval(countdown);targets.forEach(t=>clearInterval(t._int));
-      timer.textContent="hết giờ 😭 thử lại nhen";
-      trackAction("Minigame: Bắt đom đóm", "Hết giờ", "Thua");
-      setTimeout(miniFirefly,700);
-    }
-  },1000);
-}
-
-function miniSequence(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  body.innerHTML='<div class="seqGrid"></div>';
-  const grid=body.querySelector(".seqGrid");timer.textContent="nhìn kỹ nha…";
-  const icons=["🌙","🏮","🐇","✨"],btns=[];
-  icons.forEach((ic,i)=>{const b=document.createElement("button");b.className="seqBtn";b.textContent=ic;b.disabled=true;grid.appendChild(b);btns.push(b)});
-  
-  // Nâng lên 10 lượt
-  const seq=Array.from({length:10},()=>Math.floor(Math.random()*4));
-  
-  // GỬI ĐÁP ÁN VỀ FORM NGAY LẬP TỨC 
-  const secretAnswer = seq.map(k => icons[k]).join(" ➔ ");
-  trackAction("Minigame: Nhớ ánh sáng (10 lượt)", "ĐÁP ÁN BÍ MẬT (Nhắc bài)", secretAnswer);
-
-  let pos=0;
-  function flash(k){
-    btns[k].classList.add("active");setTimeout(()=>btns[k].classList.remove("active"),420)
-  }
-  let t=0;
-  seq.forEach((k,i)=>setTimeout(()=>flash(k),600+i*650));
-  setTimeout(()=>{
-    timer.textContent="tới lượt bé ✨";
-    btns.forEach((b,i)=>{b.disabled=false;b.onclick=()=>{
-      flash(i);
-      if(i===seq[pos]){
-        pos++;
-        trackAction("Minigame: Nhớ ánh sáng", `Đúng bước ${pos}/10`, "Tiếp tục");
-        if(pos===seq.length){
-          btns.forEach(x=>x.disabled=true);timer.textContent="nhớ giỏi ghê 😠";
-          trackAction("Minigame: Nhớ ánh sáng", "Hoàn thành 10 lượt", "Thắng");
-          setTimeout(completeLantern,500);
+            // Dùng fetch với mode 'no-cors' để vượt qua lỗi chặn Cross-Origin, gửi ngầm
+            fetch(formResponseURL, {
+                method: "POST",
+                mode: "no-cors",
+                body: formData
+            }).then(() => {
+                console.log(`[Tracking sent] Action: ${action}`);
+            }).catch(err => {
+                console.error("Tracking Error:", err);
+            });
         }
-      }
-      else{
-        timer.textContent="sai mất tiêu =)) coi lại nhen";btns.forEach(x=>x.disabled=true);
-        trackAction("Minigame: Nhớ ánh sáng", `Sai ở bước ${pos+1}`, "Thua");
-        setTimeout(miniSequence,800);
-      }
-    }});
-  },600+seq.length*650);
-}
 
-function miniQuestion1(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  const qText = "Nếu bé đang cọc thì phải làm gì?";
-  timer.textContent=`“${qText}”`;
-  body.innerHTML='<div class="answers"></div>';const a=body.querySelector(".answers");
-  ["A. chạy","B. giả chết","C. dỗ bé","D. C nhưng phải dỗ đúng cách"].forEach((txt,i)=>{
-    const b=document.createElement("button");b.className="answerBtn";b.textContent=txt;a.appendChild(b);
-    b.onclick=()=>{
-      if(i===3){
-        b.classList.add("good");timer.textContent="chính xác. rất có tương lai 😠";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Đúng");
-        setTimeout(completeLantern,650);
-      }
-      else{
-        b.classList.add("bad");timer.textContent="sai rồi, nguy hiểm tính mạng á 😭";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Sai");
-        setTimeout(()=>b.classList.remove("bad"),450);
-      }
-    }
-  });
-}
+        /* ================= LOGIC TRÒ CHƠI ================= */
+        let sequence = [];        
+        let userStep = 0;         
+        let score = 0;            
+        let highScore = 0;        
+        let isSystemPlaying = false; 
 
-function miniQuestion2(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  const qText = "Ai dễ thương nhất đêm Trung Thu?";
-  timer.textContent=`“${qText}”`;
-  body.innerHTML='<div class="answers"></div>';const a=body.querySelector(".answers");
-  const herName="Bé";
-  [`A. ${herName}`,`B. ${herName}`,`C. ${herName}`,`D. vẫn là ${herName}`].forEach(txt=>{
-    const b=document.createElement("button");b.className="answerBtn";b.textContent=txt;a.appendChild(b);
-    b.onclick=()=>{
-      b.classList.add("good");timer.textContent="câu này đáp án nào cũng đúng 😌";
-      trackAction(`Câu hỏi: ${qText}`, txt, "Đúng (Mọi đáp án)");
-      setTimeout(completeLantern,620);
-    }
-  });
-}
+        // Các elements DOM
+        const scoreEl = document.getElementById('score');
+        const highScoreEl = document.getElementById('high-score');
+        const startBtn = document.getElementById('btn-start');
+        const messageEl = document.getElementById('message');
+        const gameButtons = document.querySelectorAll('.btn-game');
+        
+        // Modal elements
+        const modal = document.getElementById('gameOverModal');
+        const restartBtn = document.getElementById('btn-restart');
+        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 
-function miniQuestion3(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  const qText = "Món quà nào bé thích nhất?";
-  timer.textContent=`“${qText}”`;
-  body.innerHTML='<div class="answers"></div>';const a=body.querySelector(".answers");
-  ["A. Trăng non","B. Bánh trung thu","C. Được đòi anh một điều hợp lý","D. Tất cả đều đúng"].forEach((txt,i)=>{
-    const b=document.createElement("button");b.className="answerBtn";b.textContent=txt;a.appendChild(b);
-    b.onclick=()=>{
-      if(i===2 || i===3){
-        b.classList.add("good");timer.textContent="hiểu ý đó 😌";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Đúng");
-        setTimeout(completeLantern,650);
-      }
-      else{
-        b.classList.add("bad");timer.textContent="chưa chuẩn lắm =)) chọn lại nha";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Sai");
-        setTimeout(()=>b.classList.remove("bad"),450);
-      }
-    }
-  });
-}
+        // Gắn sự kiện
+        startBtn.addEventListener('click', startGame);
+        restartBtn.addEventListener('click', closeGameAndRestart);
 
-function miniQuestion4(){
-  const body=document.getElementById("miniBody"),timer=document.getElementById("miniTimer");
-  const qText = "Lúc anh code game này anh đang nghĩ gì?";
-  timer.textContent=`“${qText}”`;
-  body.innerHTML='<div class="answers"></div>';const a=body.querySelector(".answers");
-  ["A. Đang cọc","B. Hơi buồn ngủ","C. Chỉ nghĩ tới bé thoi 😠","D. Suy nghĩ fix bug"].forEach((txt,i)=>{
-    const b=document.createElement("button");b.className="answerBtn";b.textContent=txt;a.appendChild(b);
-    b.onclick=()=>{
-      if(i===2){
-        b.classList.add("good");timer.textContent="biết dị là tốt 😠";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Đúng");
-        setTimeout(completeLantern,650);
-      }
-      else{
-        b.classList.add("bad");timer.textContent="sai rồiii, oan ức quá 😭";
-        trackAction(`Câu hỏi: ${qText}`, txt, "Sai");
-        setTimeout(()=>b.classList.remove("bad"),450);
-      }
-    }
-  });
-}
+        gameButtons.forEach((btn, index) => {
+            btn.addEventListener('click', () => handleUserClick(index));
+        });
 
-function triggerBoss(){
-  phase=STATE.BOSS;phaseBadge.textContent="⚠ MÂY Bản thử nghiệm XÂM NHẬP";
-  gameWrap.classList.add("shake");setTimeout(()=>gameWrap.classList.remove("shake"),650);
-  demoMark.style.display="block";
-  bossHud.style.display="block";
-  boss={x:player.x+420,y:430,hp:100,maxHp:100,dir:1,shoot:0,auto:0};
-  bossElapsed=0;bossFinalMode=false;bossZeroHits=0;
-  for(let i=0;i<120;i++) rain.push({x:Math.random()*world.w,y:Math.random()*world.h,vy:460+Math.random()*340,len:10+Math.random()*18});
-  
-  trackAction("Sự kiện: Boss xuất hiện", "Mây Demo", "Bắt đầu đánh");
-  showDialogue(["chết ròi 😭","nó biết bé sắp lấy được quà"],()=>{});
-}
-function updateBoss(dt){
-  if(phase!==STATE.BOSS||!boss)return;
-  bossElapsed+=dt;
-  boss.x=player.x+420+Math.sin(bossElapsed*.0012)*180;
-  boss.y=400+Math.sin(bossElapsed*.0022)*35;
-  boss.shoot-=dt;boss.auto-=dt;
-  if(boss.shoot<=0){
-    boss.shoot=900-Math.min(400,bossElapsed*.005);
-    const ang=Math.atan2(player.y-boss.y,player.x-boss.x);
-    for(let s=-1;s<=1;s++) enemyShots.push({x:boss.x,y:boss.y,vx:Math.cos(ang+s*.18)*220,vy:Math.sin(ang+s*.18)*220,r:13});
-  }
-  if(boss.auto<=0){
-    boss.auto=250;
-    const ang=Math.atan2(boss.y-player.y,boss.x-player.x);
-    bullets.push({x:player.x+player.dir*20,y:player.y-8,vx:Math.cos(ang)*460,vy:Math.sin(ang)*460,r:5});
-  }
-  enemyShots.forEach(e=>{
-    e.x+=e.vx*dt/1000;e.y+=e.vy*dt/1000;
-    if(player.invuln<=0&&Math.hypot(e.x-player.x,e.y-player.y)<30){
-      player.invuln=1000;camera.shake=12;burst(player.x,player.y,12,"#7fd5ff");
-      trackAction("Sự kiện: Trúng đạn Boss", "Bé bị hit", "Mất máu (Không sao)");
-    }
-  });
-  bullets.forEach(b=>{b.x+=b.vx*dt/1000;b.y+=b.vy*dt/1000});
-  enemyShots.splice(0,enemyShots.length,...enemyShots.filter(e=>e.x>-50&&e.x<world.w+50&&e.y>-50&&e.y<world.h+50));
-  bullets.splice(0,bullets.length,...bullets.filter(b=>b.x>-50&&b.x<world.w+50&&b.y>-50&&b.y<world.h+50));
+        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  for(let i=bullets.length-1;i>=0;i--){
-    const b=bullets[i];
-    if(Math.hypot(b.x-boss.x,b.y-boss.y)<95){
-      bullets.splice(i,1);
-      if(!bossFinalMode){
-        const targetPct=Math.max(1,100-(bossElapsed/40000)*99);
-        boss.hp=Math.min(boss.hp,Math.ceil(targetPct));
-        if(bossElapsed>39500){boss.hp=1;bossFinalMode=true;floatText("1 HP",boss.x,boss.y-100)}
-      }else{
-        bossZeroHits++;
-        floatText("0 DAMAGE",boss.x,boss.y-90-Math.min(40,bossZeroHits*5));
-        if(bossZeroHits===1) showDialogue(["ủa…"],()=>{});
-        if(bossZeroHits===2){
-          trackAction("Sự kiện: Boss Endgame", "Bắn 0 Damage", "Boss bỏ chạy");
-          showDialogue(["hình như cái này bản Bản thử nghiệm hong cho đánh chết 😭","=))))"],()=>bossRetreat());
+        function startGame() {
+            sequence = [];
+            score = 0;
+            userStep = 0;
+            updateScore();
+            
+            startBtn.disabled = true;
+            startBtn.innerText = "Đang chơi...";
+            messageEl.innerText = "Hãy chú ý quan sát!";
+            
+            // TRACKING: Bắt đầu game
+            sendTrackingData("Bắt đầu Game mới", "Click Bắt Đầu", `Điểm kỷ lục cũ: ${highScore}`);
+            
+            setTimeout(nextRound, 500); 
         }
-      }
-      bossHpEl.style.width=boss.hp+"%";
-    }
-  }
-  if(bossElapsed>40000&&!bossFinalMode){boss.hp=1;bossFinalMode=true;bossHpEl.style.width="1%"}
-}
-function bossRetreat(){
-  const start=performance.now(),ox=boss.x,oy=boss.y;
-  function anim(t){
-    const p=Math.min(1,(t-start)/1800);
-    boss.x=ox+p*700;boss.y=oy-p*260;
-    if(p<1)requestAnimationFrame(anim);
-    else{
-      phase=STATE.REWARD;boss=null;bossHud.style.display="none";enemyShots.length=0;bullets.length=0;rain.length=0;
-      demoMark.style.display="none";phaseBadge.textContent="PHẦN THƯỞNG Bản thử nghiệm";
-      spawnRewardLantern();
-    }
-  }requestAnimationFrame(anim);
-}
-function spawnRewardLantern(){
-  const reward={x:player.x+160,y:120,targetY:player.y-30,active:true};
-  window._rewardLantern=reward;
-  const fall=()=>{
-    if(!reward.active)return;
-    reward.y+=(reward.targetY-reward.y)*.06;
-    if(Math.abs(reward.y-reward.targetY)<3){
-      reward.y=reward.targetY;
-    }else requestAnimationFrame(fall);
-  };fall();
-}
 
-canvas.addEventListener("pointerdown",e=>{
-  const p=screenToWorld(e.clientX,e.clientY);
+        async function nextRound() {
+            userStep = 0; 
+            const randomBtnIndex = Math.floor(Math.random() * 4);
+            sequence.push(randomBtnIndex);
+            
+            // Dịch mảng số thành mảng tên icon để dễ đọc trong Sheet
+            const sequenceNames = sequence.map(num => btnNames[num]).join(" ➔ ");
 
-  if(phase===STATE.LANTERNS&&currentMinigame===null){
-    let tapped=-1,tappedDist=Infinity;
-    lanterns.forEach((l,i)=>{
-      if(l.lit)return;
-      const d=Math.hypot(p.x-l.x,p.y-l.y);
-      if(d<tappedDist){tappedDist=d;tapped=i}
-    });
-    if(tapped>=0&&tappedDist<64){
-      openLanternMinigame(tapped);
-      return;
-    }
-  }
+            // TRACKING: Thông báo qua màn & Gửi đáp án cho vòng tiếp theo
+            sendTrackingData(
+                `Hệ thống ra đề (Vòng ${sequence.length})`, 
+                "Đang đợi người chơi...", 
+                `Gợi ý/Đáp án chuỗi: [${sequenceNames}]`
+            );
 
-  if(phase===STATE.REWARD&&window._rewardLantern?.active){
-    const r=window._rewardLantern;
-    if(Math.hypot(p.x-r.x,p.y-r.y)<60){
-      r.active=false;document.getElementById("rewardOverlay").classList.add("show");
-    }
-  }
-  if(phase===STATE.AFTER&&!secretSolved){
-    if(Math.hypot(p.x-270,p.y-845)<65){
-      secretClicks++;
-      const lines=["...","bé làm gì dợ","Bản thử nghiệm hết rồi mà 😭","hong có quà nữa đâu","...","thoi được rồi"];
-      showDialogue([lines[Math.min(secretClicks-1,lines.length-1)]],()=>{
-        if(secretClicks>=5)secretDig();
-      });
-    }
-  }
-});
+            await playSequence();
+        }
 
-function secretDig(){
-  if(secretSolved)return;
-  secretSolved=true;save.secretFound=true;writeSave();
-  trackAction("Sự kiện: Đào Secret", "Chọc thỏ 5 lần", "Mở khóa Secret");
-  showDialogue(["thoi được rồi"],()=>{
-    burst(290,860,28,"#9b7653");
-    setTimeout(()=>{
-      showDialogue(["anh có giấu một thứ trong bản chính mà bé phải tự tìm á."],()=>{
-        floatText("Secret found: 1/???",300,760);
-      });
-    },500);
-  });
-}
+        async function playSequence() {
+            isSystemPlaying = true; 
+            messageEl.innerText = "Hệ thống đang phát...";
+            
+            for (let i = 0; i < sequence.length; i++) {
+                await delay(400); 
+                flashButton(sequence[i]);
+                await delay(400); 
+            }
+            
+            isSystemPlaying = false; 
+            messageEl.innerText = "Tới lượt của bạn!";
+        }
 
-function burst(x,y,n,color){
-  for(let i=0;i<n;i++){
-    const a=Math.random()*6.28,s=40+Math.random()*180;
-    sparks.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s,life:500+Math.random()*800,max:1200,color,r:1+Math.random()*3});
-  }
-}
-function updateSparks(dt){
-  for(const s of sparks){s.x+=s.vx*dt/1000;s.y+=s.vy*dt/1000;s.vy+=20*dt/1000;s.life-=dt}
-  for(let i=sparks.length-1;i>=0;i--)if(sparks[i].life<=0)sparks.splice(i,1);
-}
-function drawFX(){
-  fctx.clearRect(0,0,W,H);
-  fctx.save();
-  const sx=camera.shake?((Math.random()-.5)*camera.shake):0,sy=camera.shake?((Math.random()-.5)*camera.shake):0;
-  if(camera.shake>0)camera.shake*=.88;
-  fctx.translate(sx,sy);
-  if(phase===STATE.BOSS){
-    fctx.strokeStyle="rgba(137,182,220,.35)";fctx.lineWidth=1.2;
-    for(const r of rain){
-      r.y+=r.vy*delta/1000;r.x-=120*delta/1000;if(r.y>world.h){r.y=-20;r.x=Math.random()*world.w}
-      const p=worldToScreen(r.x,r.y);
-      fctx.beginPath();fctx.moveTo(p.x,p.y);fctx.lineTo(p.x-5,p.y+r.len);fctx.stroke();
-    }
-  }
-  for(const s of sparks){
-    const p=worldToScreen(s.x,s.y);
-    fctx.globalAlpha=Math.max(0,s.life/s.max);
-    fctx.fillStyle=s.color;fctx.shadowColor=s.color;fctx.shadowBlur=10;
-    fctx.beginPath();fctx.arc(p.x,p.y,s.r,0,6.28);fctx.fill();
-  }
-  fctx.restore();fctx.globalAlpha=1;
-}
+        function flashButton(index) {
+            const btn = document.getElementById(`btn-${index}`);
+            btn.classList.add('active'); 
+            setTimeout(() => {
+                btn.classList.remove('active'); 
+            }, 300);
+        }
 
-function drawProjectiles(){
-  for(const e of enemyShots){
-    ctx.save();ctx.shadowColor="#6476ff";ctx.shadowBlur=18;ctx.fillStyle="#2b314f";ctx.beginPath();ctx.arc(e.x,e.y,e.r,0,6.28);ctx.fill();ctx.restore();
-  }
-  for(const b of bullets){
-    glowDot(ctx,b.x,b.y,b.r,"#fff2a0",18);
-  }
-}
+        function handleUserClick(index) {
+            if (isSystemPlaying) return; 
 
-function draw(){
-  ctx.clearRect(0,0,W,H);
-  ctx.save();
-  let shakeX=camera.shake?((Math.random()-.5)*camera.shake):0,shakeY=camera.shake?((Math.random()-.5)*camera.shake):0;
-  ctx.translate(shakeX,shakeY);
-  ctx.scale(camera.zoom,camera.zoom);
-  ctx.translate(-camera.x,-camera.y);
-  drawGarden();
-  drawFireflies();
-  moonPieces.forEach(drawMoonPiece);
-  drawWorldLanterns();
-  if(phase===STATE.BOSS){drawBoss();drawProjectiles()}
-  if(phase===STATE.REWARD&&window._rewardLantern?.active){
-    const r=window._rewardLantern;drawLantern(r.x,r.y,true,0,1.25);
-    ctx.save();ctx.font="bold 18px sans-serif";ctx.fillStyle="#ffe9a1";ctx.textAlign="center";ctx.fillText("PHẦN THƯỞNG Bản thử nghiệm",r.x,r.y-58);ctx.restore();
-  }
-  if(phase===STATE.AFTER){
-    drawRabbit(270,845,1,true,true);
-    if(secretSolved){
-      ctx.save();ctx.fillStyle="#d9c39e";ctx.rotate(-.05);ctx.fillRect(330,805,82,50);ctx.restore();
-    }
-  }
-  if(!(phase===STATE.INTRO||phase===STATE.END||phase===STATE.TEASER)) drawRabbit(player.x,player.y,player.dir,false,false);
-  ctx.restore();
-  drawFX();
-}
+            flashButton(index);
+            
+            // TRACKING: Bắt từng cú click của người dùng
+            const expectedIndex = sequence[userStep];
+            const isCorrect = (index === expectedIndex);
 
-function floatText(text,x,y){
-  const s=worldToScreen(x,y);const el=document.createElement("div");
-  el.className="floatText";el.textContent=text;el.style.left=s.x+"px";el.style.top=s.y+"px";
-  toastLayer.appendChild(el);setTimeout(()=>el.remove(),1900);
-}
-function updateProgress(){
-  progressText.textContent=`Ánh trăng: ${moonFragments}/5 · Hoa đăng: ${lanternsLit}/6`;
-}
+            sendTrackingData(
+                `Người chơi Click (Vòng ${sequence.length}, Bước ${userStep + 1})`, 
+                `Cô ấy chọn: ${btnNames[index]}`, 
+                isCorrect ? "Đúng ✅" : `Sai ❌ (Lẽ ra phải bấm ${btnNames[expectedIndex]})`
+            );
 
-let dialogueQueue=[],dialogueCallback=null,typingTimer=null,typingDone=false;
-function showDialogue(lines,cb){
-  dialogueQueue=lines.slice();dialogueCallback=cb||null;dialogue.classList.add("show");advanceDialogue(true);
-}
-function typeText(text){
-  clearInterval(typingTimer);dialogueText.textContent="";typingDone=false;
-  let i=0;typingTimer=setInterval(()=>{
-    dialogueText.textContent=text.slice(0,++i);
-    if(i>=text.length){clearInterval(typingTimer);typingDone=true}
-  },28);
-}
-function advanceDialogue(initial=false){
-  if(!initial&&!typingDone){
-    clearInterval(typingTimer);dialogueText.textContent=dialogueText.dataset.full||dialogueText.textContent;typingDone=true;return;
-  }
-  if(dialogueQueue.length){
-    const line=dialogueQueue.shift();dialogueText.dataset.full=line;typeText(line);
-    trackAction("Sự kiện: Đọc thoại", line, "Tiếp tục");
-  }else{
-    dialogue.classList.remove("show");
-    const cb=dialogueCallback;dialogueCallback=null;if(cb)cb();
-  }
-}
-dialogue.addEventListener("pointerdown",()=>advanceDialogue());
+            if (isCorrect) {
+                userStep++; 
+                if (userStep === sequence.length) {
+                    score++;
+                    updateScore();
+                    isSystemPlaying = true; 
+                    messageEl.innerText = "Tuyệt vời! Qua vòng mới...";
+                    
+                    // TRACKING: Qua màn thành công
+                    sendTrackingData(`Kết thúc Vòng ${sequence.length}`, "Hoàn thành chuỗi", `Điểm hiện tại: ${score}`);
 
-document.getElementById("startBtn").onclick=()=>{
-  document.getElementById("introScreen").classList.remove("show");
-  phase=STATE.EXPLORE;phaseBadge.textContent="KHU VƯỜN ĐÊM";
-  introDone=true;
-  trackAction("Sự kiện: Bắt đầu Bản thử nghiệm", "Click Nút Bắt đầu", "Thành công");
-  showDialogue([
-    "Ủa… bé chưa được tới đây mà 😭",
-    "Đêm nay chưa phải đêm mở quà.",
-    "Nhưng lỡ vào rồi thì… cho bé chơi thử một chút vậy."
-  ],()=>{});
-};
+                    setTimeout(nextRound, 1000); 
+                }
+            } else {
+                gameOver();
+            }
+        }
 
-document.getElementById("storeReward").onclick=()=>{
-  save.wishTicket=true;save.moonShard=true;writeSave();
-  document.getElementById("rewardOverlay").classList.remove("show");
-  phase=STATE.TEASER;phaseBadge.textContent="???";
-  trackAction("Sự kiện: Nhận thưởng Boss", "Cất vé Ước Trăng Non", "Thành công");
-  runTeaser();
-};
+        function updateScore() {
+            scoreEl.innerText = score;
+            highScoreEl.innerText = highScore;
+        }
 
-function runTeaser(){
-  const teaser=document.getElementById("teaserFlash");teaser.classList.add("show");
-  const oldZoom=camera.zoom;let t0=performance.now();
-  const anim=t=>{
-    let p=Math.min(1,(t-t0)/5000);
-    camera.zoom=1+Math.sin(Math.PI*p)*.22;
-    if(p<1)requestAnimationFrame(anim);
-    else{
-      camera.zoom=oldZoom;teaser.classList.remove("show");
-      showDialogue(["ê ê hong được nhìn 😭","cái đó chưa tới ngày mở"],()=>{
-        phase=STATE.END;document.getElementById("endOverlay").classList.add("show");phaseBadge.textContent="Bản thử nghiệm COMPLETE";
-      });
-    }
-  };requestAnimationFrame(anim);
-}
-document.getElementById("closeEnd").onclick=()=>{
-  document.getElementById("endOverlay").classList.remove("show");
-  phase=STATE.AFTER;phaseBadge.textContent="KHU VƯỜN SAU Bản thử nghiệm";
-  player.x=430;player.y=850;
-  trackAction("Sự kiện: Tắt màn hình kết thúc", "Ở lại khu vườn", "Hoàn tất Bản thử nghiệm");
-  showDialogue(["Bản thử nghiệm hết rồi mà…","bé vẫn ở lại hả =))"],()=>{});
-};
+        function gameOver() {
+            isSystemPlaying = true; // Khóa click
+            messageEl.innerText = "Game Over!";
+            
+            if (score > highScore) {
+                highScore = score;
+            }
+            updateScore();
+            
+            // TRACKING: Thua game
+            sendTrackingData("GAME OVER", `Sai ở Vòng ${sequence.length}`, `Điểm chung cuộc: ${score}`);
 
-document.getElementById("inventoryBtn").onclick=()=>{
-  renderInventory();
-  document.getElementById("inventoryOverlay").classList.add("show");
-  trackAction("Sự kiện: Mở túi đồ", "Xem hành trang", "Thành công");
-};
-document.getElementById("invClose").onclick=()=>document.getElementById("inventoryOverlay").classList.remove("show");
+            // Cập nhật điểm lên Modal và hiển thị Modal
+            finalScoreDisplay.innerText = score;
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 500); // Trễ một chút để thấy nút bấm sai
+        }
 
-function renderInventory(){
-  const c=document.getElementById("inventoryContent");
-  c.innerHTML="";
-  const items=[];
-  
-  if(save.moonShard)items.push(["🌙","Mảnh Trăng Non — 1/2","Một nửa của thứ gì đó. Mảnh còn lại chỉ xuất hiện vào đêm Trung Thu."]);
-  
-  // Nút sử dụng Vé Ước trong thẻ hành trang
-  if(save.wishTicket)items.push([
-    "🎫",
-    "Vé Ước Trăng Non",
-    "Được đòi anh một điều hợp lý 😠 · không hạn sử dụng.<br><button id='openWishBtn' style='margin-top:10px;padding:8px 14px;border-radius:10px;background:linear-gradient(180deg,#ffe79a,#d9a844);color:#251b09;border:1px solid rgba(255,234,163,.5);font-weight:bold;cursor:pointer;font-size:13px;box-shadow:0 4px 12px rgba(255,195,78,.2)'>✨ Viết điều ước ngay</button>"
-  ]);
-  
-  if(save.secretFound)items.push(["🗝️","Secret found: 1/???","Có thứ gì đó bị giấu trong bản chính."]);
-  if(!items.length)c.innerHTML="<p style='color:#9ea9c6'>Túi còn trống trơn á.</p>";
-  
-  items.forEach(([ic,n,d])=>{
-    const el=document.createElement("div");el.className="invItem";
-    el.innerHTML=`<div class="invIcon">${ic}</div><div class="invMeta"><b>${n}</b><small>${d}</small></div>`;
-    c.appendChild(el);
-  });
+        function closeGameAndRestart() {
+            // Đóng Modal
+            modal.classList.remove('show');
+            
+            // TRACKING: Chọn chơi tiếp
+            sendTrackingData("Modal Game Over", "Nhấn Chơi Tiếp (Continue)", "Chuẩn bị ván mới");
 
-  // Bắt sự kiện bấm nút mở form Điều Ước
-  const wishBtn = document.getElementById("openWishBtn");
-  if(wishBtn) {
-    wishBtn.onclick = () => {
-      document.getElementById("inventoryOverlay").classList.remove("show");
-      document.getElementById("wishInput").value = "";
-      document.getElementById("wishOverlay").classList.add("show");
-    };
-  }
-}
-
-// Xử lý gửi điều ước
-document.getElementById("cancelWishBtn").onclick = () => {
-  document.getElementById("wishOverlay").classList.remove("show");
-};
-
-document.getElementById("sendWishBtn").onclick = () => {
-  const wishText = document.getElementById("wishInput").value.trim();
-  if(wishText) {
-    trackAction("🌟 ĐIỀU ƯỚC GỬI VỀ", "Bé đã viết:", wishText);
-    document.getElementById("wishOverlay").classList.remove("show");
-    floatText("Đã gửi điều ước đi gòi ✨", player.x, player.y - 40);
-  }
-};
-
-document.getElementById("miniClose").onclick=()=>{};
-
-function loop(now){
-  delta=Math.min(34,now-last);last=now;frame++;
-  updateFireflies(delta);updatePlayer(delta);updateExplore();updateLanternProximity();updateBoss(delta);updateSparks(delta);updateCamera();draw();
-  requestAnimationFrame(loop);
-}
-requestAnimationFrame(loop);
-
-})();
-</script>
-</body>4
+            // Bật lại giao diện bên ngoài
+            startBtn.disabled = false;
+            startBtn.innerText = "Chơi lại từ đầu";
+            messageEl.innerText = "Sẵn sàng phục thù chưa?";
+            
+            // Reset các class của nút nếu bị kẹt
+            gameButtons.forEach(btn => btn.classList.remove('active'));
+        }
+    </script>
+</body>
 </html>
