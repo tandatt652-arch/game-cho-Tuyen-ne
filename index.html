@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thử thách não cá vàng</title>
+    <title>Não cá vàng "nhưng X2"</title>
     <style>
         /* ================= CÀI ĐẶT GIAO DIỆN (CSS) ================= */
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
@@ -39,12 +39,12 @@
         .game-container {
             background: rgba(22, 33, 62, 0.85);
             backdrop-filter: blur(10px);
-            padding: 30px;
+            padding: 30px 20px;
             border-radius: 25px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
             text-align: center;
-            max-width: 420px;
-            width: 90%;
+            max-width: 600px;
+            width: 300%;
             position: relative;
             z-index: 10;
         }
@@ -74,8 +74,8 @@
 
         .grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
+            grid-template-columns: repeat(4, 1fr); /* Đổi thành 4 cột cho 8 nút */
+            gap: 15px; /* Điều chỉnh khoảng cách */
             margin-bottom: 30px;
         }
 
@@ -83,11 +83,11 @@
         .btn-game {
             width: 100%;
             aspect-ratio: 1;
-            font-size: 4rem;
+            font-size: 2.5rem; /* Giảm font-size vì nút nhỏ lại (4 cột) */
             border: none;
-            border-radius: 25px;
+            border-radius: 20px;
             cursor: pointer;
-            transition: all 0.1s ease; /* Chuyển động nhanh khi nhấn */
+            transition: all 0.1s ease; 
             display: flex;
             align-items: center;
             justify-content: center;
@@ -95,28 +95,44 @@
             top: 0;
         }
 
-        /* Màu sắc, gradient và bóng đổ tạo khối 3D */
+        /* Màu sắc, gradient và bóng đổ tạo khối 3D cho 8 nút */
         .btn-0 { 
             background: linear-gradient(135deg, #ff6b81, #ff4757); 
-            box-shadow: 0 12px 0 #c0392b, 0 15px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 0 #c0392b, 0 12px 15px rgba(0,0,0,0.4);
         }
         .btn-1 { 
             background: linear-gradient(135deg, #70a1ff, #1e90ff); 
-            box-shadow: 0 12px 0 #1873cc, 0 15px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 0 #1873cc, 0 12px 15px rgba(0,0,0,0.4);
         }
         .btn-2 { 
             background: linear-gradient(135deg, #7bed9f, #2ed573); 
-            box-shadow: 0 12px 0 #218c53, 0 15px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 0 #218c53, 0 12px 15px rgba(0,0,0,0.4);
         }
         .btn-3 { 
             background: linear-gradient(135deg, #eccc68, #ffa502); 
-            box-shadow: 0 12px 0 #cc8402, 0 15px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 10px 0 #cc8402, 0 12px 15px rgba(0,0,0,0.4);
+        }
+        .btn-4 { 
+            background: linear-gradient(135deg, #a29bfe, #6c5ce7); 
+            box-shadow: 0 10px 0 #4834d4, 0 12px 15px rgba(0,0,0,0.4);
+        }
+        .btn-5 { 
+            background: linear-gradient(135deg, #81ecec, #00cec9); 
+            box-shadow: 0 10px 0 #00b894, 0 12px 15px rgba(0,0,0,0.4);
+        }
+        .btn-6 { 
+            background: linear-gradient(135deg, #fab1a0, #e17055); 
+            box-shadow: 0 10px 0 #d63031, 0 12px 15px rgba(0,0,0,0.4);
+        }
+        .btn-7 { 
+            background: linear-gradient(135deg, #ffeaa7, #fdcb6e); 
+            box-shadow: 0 10px 0 #e1b12c, 0 12px 15px rgba(0,0,0,0.4);
         }
 
         /* Hiệu ứng khi nhấn xuống (3D ép xuống) */
         .btn-game:active, .btn-game.active {
-            top: 8px; /* Đẩy nút xuống */
-            box-shadow: 0 4px 0 transparent, 0 5px 10px rgba(0,0,0,0.4), inset 0 5px 15px rgba(255,255,255,0.4) !important;
+            top: 7px; /* Đẩy nút xuống */
+            box-shadow: 0 3px 0 transparent, 0 4px 8px rgba(0,0,0,0.4), inset 0 5px 15px rgba(255,255,255,0.4) !important;
             filter: brightness(130%) contrast(120%);
         }
 
@@ -125,11 +141,11 @@
             font-size: 1.5rem;
             font-family: inherit;
             color: #fff;
-            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
+            background: linear-gradient(135deg, #0984e3, #74b9ff);
             border: none;
             border-radius: 15px;
             cursor: pointer;
-            box-shadow: 0 8px 0 #4834d4, 0 10px 20px rgba(0,0,0,0.3);
+            box-shadow: 0 8px 0 #0984e3, 0 10px 20px rgba(0,0,0,0.3);
             transition: all 0.1s;
             width: 100%;
             text-transform: uppercase;
@@ -139,7 +155,7 @@
         .btn-start:hover { filter: brightness(110%); }
         .btn-start:active {
             top: 5px; position: relative;
-            box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3);
+            box-shadow: 0 3px 0 #0984e3, 0 5px 10px rgba(0,0,0,0.3);
         }
         .btn-start:disabled {
             background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed;
@@ -231,18 +247,23 @@
 <body>
 
     <div class="game-container">
-        <h1>1 điểm = 10.000 VNĐ</h1>
+        <h1>Trí Nhớ Siêu Phàm</h1>
         
         <div class="scoreboard">
             <div class="score-box">Điểm<br><span id="score">0</span></div>
             <div class="high-score-box">Kỷ lục<br><span id="high-score">0</span></div>
         </div>
 
+        <!-- Cập nhật lưới 8 nút -->
         <div class="grid">
             <button class="btn-game btn-0" id="btn-0">Đạt</button>
-            <button class="btn-game btn-1" id="btn-1">Yêu</button>
+            <button class="btn-game btn-1" id="btn-1">Iu</button>
             <button class="btn-game btn-2" id="btn-2">Tuyến</button>
-            <button class="btn-game btn-3" id="btn-3">Lắm</button>
+            <button class="btn-game btn-3" id="btn-3">Như</button>
+            <button class="btn-game btn-4" id="btn-4">Hoa</button>
+            <button class="btn-game btn-5" id="btn-5">Lá</button>
+            <button class="btn-game btn-6" id="btn-6">Yêu</button>
+            <button class="btn-game btn-7" id="btn-7">Cây</button>
         </div>
 
         <button class="btn-start" id="btn-start">Bắt Đầu</button>
@@ -261,29 +282,29 @@
 
     <script>
         /* ================= CẤU HÌNH GOOGLE FORMS TRACKING ================= */
-        // Tạo một ID người dùng ngẫu nhiên cho mỗi phiên chơi
         const sessionID = "PLAYER_" + Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        // URL POST dữ liệu tới Google Forms (Thay thế '/viewform...' bằng '/formResponse')
         const formResponseURL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
         
-        // Cấu hình các thẻ Icon (để dễ đọc trong file Google Sheet)
-        const btnNames = ["Đạt (0)", " Yêu (1)", "Tuyến (2)", "Lắm (3)"];
+        // Bổ sung các icon mới vào mảng để đồng bộ Tracking (Gồm 8 phần tử)
+        const btnNames = [
+            "Đạt (0)", 
+            "Iu (1)", 
+            "Tuyến (2)", 
+            "Như (3)",
+            "Hoa (4)",
+            "Lá (5)",
+            "Yêu (6)",
+            "Cây (7)"
+        ];
 
-        /**
-         * Hàm gửi dữ liệu ngầm về Google Forms
-         * @param {string} action - Hành động (Câu hỏi / Trạng thái game)
-         * @param {string} choice - Lựa chọn của người chơi
-         * @param {string} answer - Kết quả trả về / Chuỗi đáp án
-         */
         function sendTrackingData(action, choice, answer) {
             const formData = new FormData();
-            formData.append("entry.1666228409", sessionID); // ID ngẫu nhiên
-            formData.append("entry.1275903316", action);    // Nội dung câu hỏi/Sự kiện
-            formData.append("entry.444679017", choice);     // Lựa chọn của cô ấy
-            formData.append("entry.1158846627", answer);    // Câu trả lời/Đáp án
+            formData.append("entry.1666228409", sessionID); 
+            formData.append("entry.1275903316", action);    
+            formData.append("entry.444679017", choice);     
+            formData.append("entry.1158846627", answer);    
 
-            // Dùng fetch với mode 'no-cors' để vượt qua lỗi chặn Cross-Origin, gửi ngầm
             fetch(formResponseURL, {
                 method: "POST",
                 mode: "no-cors",
@@ -302,22 +323,22 @@
         let highScore = 0;        
         let isSystemPlaying = false; 
 
-        // Các elements DOM
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('high-score');
         const startBtn = document.getElementById('btn-start');
         const messageEl = document.getElementById('message');
+        
+        // Quét lấy đủ 8 nút
         const gameButtons = document.querySelectorAll('.btn-game');
         
-        // Modal elements
         const modal = document.getElementById('gameOverModal');
         const restartBtn = document.getElementById('btn-restart');
         const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 
-        // Gắn sự kiện
         startBtn.addEventListener('click', startGame);
         restartBtn.addEventListener('click', closeGameAndRestart);
 
+        // Gắn sự kiện click cho cả 8 nút
         gameButtons.forEach((btn, index) => {
             btn.addEventListener('click', () => handleUserClick(index));
         });
@@ -334,7 +355,6 @@
             startBtn.innerText = "Đang chơi...";
             messageEl.innerText = "Hãy chú ý quan sát!";
             
-            // TRACKING: Bắt đầu game
             sendTrackingData("Bắt đầu Game mới", "Click Bắt Đầu", `Điểm kỷ lục cũ: ${highScore}`);
             
             setTimeout(nextRound, 500); 
@@ -342,13 +362,13 @@
 
         async function nextRound() {
             userStep = 0; 
-            const randomBtnIndex = Math.floor(Math.random() * 4);
+            
+            // Đã đổi thành Math.random() * 8 để chọn ngẫu nhiên trong 8 nút
+            const randomBtnIndex = Math.floor(Math.random() * 8);
             sequence.push(randomBtnIndex);
             
-            // Dịch mảng số thành mảng tên icon để dễ đọc trong Sheet
             const sequenceNames = sequence.map(num => btnNames[num]).join(" ➔ ");
 
-            // TRACKING: Thông báo qua màn & Gửi đáp án cho vòng tiếp theo
             sendTrackingData(
                 `Hệ thống ra đề (Vòng ${sequence.length})`, 
                 "Đang đợi người chơi...", 
@@ -385,7 +405,6 @@
 
             flashButton(index);
             
-            // TRACKING: Bắt từng cú click của người dùng
             const expectedIndex = sequence[userStep];
             const isCorrect = (index === expectedIndex);
 
@@ -403,7 +422,6 @@
                     isSystemPlaying = true; 
                     messageEl.innerText = "Tuyệt vời! Qua vòng mới...";
                     
-                    // TRACKING: Qua màn thành công
                     sendTrackingData(`Kết thúc Vòng ${sequence.length}`, "Hoàn thành chuỗi", `Điểm hiện tại: ${score}`);
 
                     setTimeout(nextRound, 1000); 
@@ -419,7 +437,7 @@
         }
 
         function gameOver() {
-            isSystemPlaying = true; // Khóa click
+            isSystemPlaying = true; 
             messageEl.innerText = "Game Over!";
             
             if (score > highScore) {
@@ -427,29 +445,23 @@
             }
             updateScore();
             
-            // TRACKING: Thua game
             sendTrackingData("GAME OVER", `Sai ở Vòng ${sequence.length}`, `Điểm chung cuộc: ${score}`);
 
-            // Cập nhật điểm lên Modal và hiển thị Modal
             finalScoreDisplay.innerText = score;
             setTimeout(() => {
                 modal.classList.add('show');
-            }, 500); // Trễ một chút để thấy nút bấm sai
+            }, 500); 
         }
 
         function closeGameAndRestart() {
-            // Đóng Modal
             modal.classList.remove('show');
             
-            // TRACKING: Chọn chơi tiếp
             sendTrackingData("Modal Game Over", "Nhấn Chơi Tiếp (Continue)", "Chuẩn bị ván mới");
 
-            // Bật lại giao diện bên ngoài
             startBtn.disabled = false;
             startBtn.innerText = "Chơi lại từ đầu";
             messageEl.innerText = "Sẵn sàng phục thù chưa?";
             
-            // Reset các class của nút nếu bị kẹt
             gameButtons.forEach(btn => btn.classList.remove('active'));
         }
     </script>
