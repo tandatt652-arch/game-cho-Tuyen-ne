@@ -3,31 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thử thách não cá vàng</title>
+    <title>Simon Says - Món Quà Bí Mật</title>
     <style>
-        /* ================= CÀI ĐẶT GIAO DIỆN (CSS) ================= */
-        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&display=swap');
+        /* ================= CÀI ĐẶT GIAO DIỆN CHUNG ================= */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Dancing+Script:wght@700&display=swap');
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            user-select: none; /* Tránh bôi đen text khi click nhanh */
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
         body {
             font-family: 'Nunito', sans-serif;
-            /* Nền gradient chuyển động sinh động */
             background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #e94560);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             color: #ffffff;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-height: 100vh; overflow: hidden;
+            transition: all 1.5s ease-in-out; 
         }
 
         @keyframes gradientBG {
@@ -36,202 +27,181 @@
             100% { background-position: 0% 50%; }
         }
 
+        /* ================= CHẾ ĐỘ LÃNG MẠN (KHI ĐẠT 20 ĐIỂM) ================= */
+        body.romantic-mode {
+            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #ffb199, #ff0844);
+            background-size: 400% 400%;
+        }
+
+        body.romantic-mode .game-container {
+            background: rgba(255, 255, 255, 0.3);
+            animation: pulseRomantic 2s infinite alternate;
+            color: #d63031;
+        }
+        
+        @keyframes pulseRomantic {
+            0% { box-shadow: 0 20px 50px rgba(255, 20, 147, 0.4), inset 0 0 0 2px rgba(255,255,255,0.6); }
+            100% { box-shadow: 0 20px 80px rgba(255, 105, 180, 0.8), inset 0 0 0 5px rgba(255,255,255,0.9); transform: scale(1.02); }
+        }
+
+        body.romantic-mode h1 {
+            color: #ff4757; text-shadow: 2px 2px 0px #fff;
+            font-family: 'Dancing Script', cursive; font-size: 3.5rem;
+        }
+
+        body.romantic-mode .scoreboard { background: rgba(255, 255, 255, 0.6); color: #d63031; }
+
         .game-container {
-            background: rgba(22, 33, 62, 0.85);
-            backdrop-filter: blur(10px);
-            padding: 30px;
-            border-radius: 25px;
+            background: rgba(22, 33, 62, 0.85); backdrop-filter: blur(10px);
+            padding: 30px; border-radius: 25px;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
-            text-align: center;
-            max-width: 420px;
-            width: 90%;
-            position: relative;
-            z-index: 10;
+            text-align: center; max-width: 420px; width: 90%;
+            position: relative; z-index: 10; transition: all 1s ease;
         }
 
         h1 {
-            font-size: 2.2rem;
-            margin-bottom: 20px;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: #ff6b81;
-            text-shadow: 2px 2px 0px #2f3542;
+            font-size: 2.2rem; margin-bottom: 20px; text-transform: uppercase;
+            letter-spacing: 2px; color: #ff6b81; text-shadow: 2px 2px 0px #2f3542;
+            transition: all 1s ease;
         }
 
         .scoreboard {
-            display: flex;
-            justify-content: space-around;
-            margin-bottom: 30px;
-            font-size: 1.3rem;
-            background: rgba(15, 52, 96, 0.8);
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
+            display: flex; justify-content: space-around; margin-bottom: 30px;
+            font-size: 1.3rem; background: rgba(15, 52, 96, 0.8);
+            padding: 15px; border-radius: 15px; box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
+            transition: all 1s ease;
         }
 
-        .score-box span { color: #2ed573; font-size: 1.5rem;}
-        .high-score-box span { color: #ffa502; font-size: 1.5rem;}
+        .score-box span, .high-score-box span { font-size: 1.5rem; font-weight: 900;}
+        .score-box span { color: #2ed573; }
+        .high-score-box span { color: #ffa502; }
 
         .grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 25px;
-            margin-bottom: 30px;
+            display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 30px;
         }
 
-        /* NÚT 3D BẮT MẮT */
+        /* THIẾT LẬP NÚT (SỐ 1, 2, 3, 4) */
         .btn-game {
-            width: 100%;
-            aspect-ratio: 1;
-            font-size: 4rem;
-            border: none;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.1s ease; /* Chuyển động nhanh khi nhấn */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            top: 0;
+            width: 100%; aspect-ratio: 1; font-size: 4rem; font-weight: 900; color: #fff;
+            border: none; border-radius: 25px; cursor: pointer;
+            transition: all 0.1s ease; display: flex; align-items: center; justify-content: center;
+            position: relative; top: 0;
+            overflow: hidden; 
+            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
+        
+        /* Nền mặc định của 4 nút */
+        .btn-0 { background: linear-gradient(135deg, #ff6b81, #ff4757); box-shadow: 0 12px 0 #c0392b, 0 15px 20px rgba(0,0,0,0.4); }
+        .btn-1 { background: linear-gradient(135deg, #70a1ff, #1e90ff); box-shadow: 0 12px 0 #1873cc, 0 15px 20px rgba(0,0,0,0.4); }
+        .btn-2 { background: linear-gradient(135deg, #7bed9f, #2ed573); box-shadow: 0 12px 0 #218c53, 0 15px 20px rgba(0,0,0,0.4); }
+        .btn-3 { background: linear-gradient(135deg, #eccc68, #ffa502); box-shadow: 0 12px 0 #cc8402, 0 15px 20px rgba(0,0,0,0.4); }
 
-        /* Màu sắc, gradient và bóng đổ tạo khối 3D */
-        .btn-0 { 
-            background: linear-gradient(135deg, #ff6b81, #ff4757); 
-            box-shadow: 0 12px 0 #c0392b, 0 15px 20px rgba(0,0,0,0.4);
+        /* ================= HIỆU ỨNG ÁNH SÁNG LÕI TỎA RA VIỀN KHI BẤM HOẶC PHÁT SÁNG ================= */
+        .btn-0:active, .btn-0.active {
+            top: 8px; 
+            background: radial-gradient(circle at center, #ffb3bd 0%, #ff4757 80%) !important;
+            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 71, 87, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
         }
-        .btn-1 { 
-            background: linear-gradient(135deg, #70a1ff, #1e90ff); 
-            box-shadow: 0 12px 0 #1873cc, 0 15px 20px rgba(0,0,0,0.4);
+        .btn-1:active, .btn-1.active {
+            top: 8px; 
+            background: radial-gradient(circle at center, #b3d9ff 0%, #1e90ff 80%) !important;
+            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(30, 144, 255, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
         }
-        .btn-2 { 
-            background: linear-gradient(135deg, #7bed9f, #2ed573); 
-            box-shadow: 0 12px 0 #218c53, 0 15px 20px rgba(0,0,0,0.4);
+        .btn-2:active, .btn-2.active {
+            top: 8px; 
+            background: radial-gradient(circle at center, #b3f2c9 0%, #2ed573 80%) !important;
+            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(46, 213, 115, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
         }
-        .btn-3 { 
-            background: linear-gradient(135deg, #eccc68, #ffa502); 
-            box-shadow: 0 12px 0 #cc8402, 0 15px 20px rgba(0,0,0,0.4);
-        }
-
-        /* Hiệu ứng khi nhấn xuống (3D ép xuống) */
-        .btn-game:active, .btn-game.active {
-            top: 8px; /* Đẩy nút xuống */
-            box-shadow: 0 4px 0 transparent, 0 5px 10px rgba(0,0,0,0.4), inset 0 5px 15px rgba(255,255,255,0.4) !important;
-            filter: brightness(130%) contrast(120%);
+        .btn-3:active, .btn-3.active {
+            top: 8px; 
+            background: radial-gradient(circle at center, #ffdfaa 0%, #ffa502 80%) !important;
+            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 165, 2, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
         }
 
         .btn-start {
-            padding: 15px 40px;
-            font-size: 1.5rem;
-            font-family: inherit;
-            color: #fff;
+            padding: 15px 40px; font-size: 1.5rem; font-family: inherit; color: #fff;
             background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-            border: none;
-            border-radius: 15px;
-            cursor: pointer;
+            border: none; border-radius: 15px; cursor: pointer;
             box-shadow: 0 8px 0 #4834d4, 0 10px 20px rgba(0,0,0,0.3);
-            transition: all 0.1s;
-            width: 100%;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: all 0.1s; width: 100%; text-transform: uppercase; letter-spacing: 1px;
         }
+        .btn-start:active { top: 5px; position: relative; box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3); }
+        .btn-start:disabled { background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed; color: #ccc; }
 
-        .btn-start:hover { filter: brightness(110%); }
-        .btn-start:active {
-            top: 5px; position: relative;
-            box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3);
-        }
-        .btn-start:disabled {
-            background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed;
-            color: #ccc;
-        }
+        #message { margin-top: 20px; height: 25px; font-size: 1.2rem; font-weight: bold;}
 
-        #message {
-            margin-top: 20px;
-            height: 25px;
-            font-size: 1.2rem;
-            color: #ced6e0;
-        }
-
-        /* ================= MODAL THÔNG BÁO (GAME OVER) ================= */
+        /* ================= MODAL THÔNG BÁO ================= */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 100;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.8s ease;
         }
-
-        .modal-overlay.show {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.show { opacity: 1; pointer-events: auto; }
 
         .modal-box {
-            background: #ffffff;
-            color: #2f3542;
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            transform: scale(0.7);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-            width: 80%;
-            max-width: 350px;
+            background: #ffffff; color: #2f3542; padding: 40px; border-radius: 20px;
+            text-align: center; transform: scale(0.5) translateY(100px);
+            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 85%; max-width: 400px;
+        }
+        .modal-overlay.show .modal-box { transform: scale(1) translateY(0); }
+
+        .modal-over h2 { color: #ff4757; font-size: 2.5rem; margin-bottom: 10px; }
+        .modal-over .final-score { font-size: 3rem; font-weight: 900; color: #2ed573; margin-bottom: 25px; display: block; }
+
+        .modal-victory { background: rgba(255, 255, 255, 0.95); border: 4px solid #ff7eb3; box-shadow: 0 0 40px rgba(255, 105, 180, 0.8); }
+        .modal-victory h2 { font-family: 'Dancing Script', cursive; color: #ff4757; font-size: 3.8rem; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
+        .modal-victory p { font-size: 1.2rem; color: #d63031; margin-bottom: 15px; line-height: 1.5; font-weight: bold;}
+        .modal-victory .love-message {
+            font-size: 1.4rem; font-weight: bold; color: #e84118; margin-bottom: 25px;
+            background: #ffe6eb; padding: 15px; border-radius: 15px; border: 2px dashed #ff758c;
         }
 
-        .modal-overlay.show .modal-box {
-            transform: scale(1);
+        .btn-modal { padding: 12px 30px; font-size: 1.2rem; font-family: inherit; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.1s; }
+        .btn-restart { background: #ff4757; box-shadow: 0 6px 0 #c0392b; }
+        .btn-restart:active { transform: translateY(4px); box-shadow: 0 2px 0 #c0392b; }
+        
+        .btn-love { background: linear-gradient(135deg, #ff7eb3, #ff758c); box-shadow: 0 6px 0 #d63031; font-weight: bold;}
+        .btn-love:active { transform: translateY(4px); box-shadow: 0 2px 0 #d63031; }
+
+        /* ================= HỆ THỐNG HIỆU ỨNG PHỤ ================= */
+        .falling-item { position: fixed; top: -10vh; z-index: 40; pointer-events: none; animation: fallDown linear forwards; }
+        @keyframes fallDown { 0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; } }
+
+        .floating-item { position: fixed; bottom: -10vh; z-index: 45; pointer-events: none; animation: floatUp ease-in forwards; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
+
+        .sparkle-star {
+            position: fixed; background: #fff;
+            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
+            z-index: 42; pointer-events: none; animation: twinkle ease-in-out forwards;
+        }
+        @keyframes twinkle {
+            0% { transform: scale(0) rotate(0deg); opacity: 0; }
+            50% { transform: scale(1) rotate(180deg); opacity: 1; box-shadow: 0 0 20px #fff; }
+            100% { transform: scale(0) rotate(360deg); opacity: 0; }
         }
 
-        .modal-box h2 {
-            color: #ff4757;
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-        }
-
-        .modal-box p {
-            font-size: 1.2rem;
-            margin-bottom: 20px;
-            color: #57606f;
-        }
-
-        .modal-box .final-score {
-            font-size: 3rem;
-            font-weight: 900;
-            color: #2ed573;
-            margin-bottom: 25px;
-            display: block;
-        }
-
-        .btn-restart {
-            padding: 12px 30px;
-            font-size: 1.2rem;
-            font-family: inherit;
-            color: #fff;
-            background: #ff4757;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            box-shadow: 0 6px 0 #c0392b;
-            transition: all 0.1s;
-        }
-        .btn-restart:active {
-            transform: translateY(4px);
-            box-shadow: 0 2px 0 #c0392b;
+        /* LỚP PHỦ CANVAS CHO PHÁO HOA */
+        #fireworksCanvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 48; /* Nằm dưới popup nhưng đè lên mọi thứ khác */
+            display: none;
         }
     </style>
 </head>
 <body>
 
+    <canvas id="fireworksCanvas"></canvas> <!-- Thẻ Canvas phụ trách vẽ pháo hoa -->
+
     <div class="game-container">
-        <h1>1 điểm = 10.000 VNĐ</h1>
+        <h1>Trí Nhớ Siêu Phàm</h1>
         
         <div class="scoreboard">
             <div class="score-box">Điểm<br><span id="score">0</span></div>
@@ -239,60 +209,171 @@
         </div>
 
         <div class="grid">
-            <button class="btn-game btn-0" id="btn-0">Hồi</button>
-            <button class="btn-game btn-1" id="btn-1">Chiều</button>
-            <button class="btn-game btn-2" id="btn-2">Trời</button>
-            <button class="btn-game btn-3" id="btn-3">Mưa</button>
+            <button class="btn-game btn-0" id="btn-0">1</button>
+            <button class="btn-game btn-1" id="btn-1">2</button>
+            <button class="btn-game btn-2" id="btn-2">3</button>
+            <button class="btn-game btn-3" id="btn-3">4</button>
         </div>
-
         <button class="btn-start" id="btn-start">Bắt Đầu</button>
         <p id="message">Nhấn Bắt Đầu để chơi!</p>
     </div>
 
-    <!-- MODAL GAME OVER -->
+    <!-- MODAL THUA (GAME OVER) -->
     <div class="modal-overlay" id="gameOverModal">
-        <div class="modal-box">
+        <div class="modal-box modal-over">
             <h2>GAME OVER</h2>
-            <p>Rất tiếc! Điểm của bạn là:</p>
+            <p>Rất tiếc! Điểm của em là: Não cá vàng</p>
             <span class="final-score" id="finalScoreDisplay">0</span>
-            <button class="btn-restart" id="btn-restart">Chơi Tiếp / Khởi động lại</button>
+            <button class="btn-modal btn-restart" onclick="closeModal('gameOverModal')">Chơi Tiếp / Khởi động lại</button>
+        </div>
+    </div>
+
+    <!-- MODAL THẮNG (MÓN QUÀ LÃNG MẠN) -->
+    <div class="modal-overlay" id="victoryModal">
+        <div class="modal-box modal-victory">
+            <h2>Bé Giỏi Quá! ❤️</h2>
+            <p>Chúc mừng bà chã hơm của tui đã xuất sắc vượt qua mốc 20 level não cá vàng</p>
+            <div class="love-message">
+                Món quà nhỏ này anh dành riêng cho em. Yêu em bé nhiều lắm! 💕🥰
+            </div>
+            <button class="btn-modal btn-love" onclick="closeModal('victoryModal')">Thích Quá! Nhấn để chơi tiếp nha ❤️</button>
         </div>
     </div>
 
     <script>
         /* ================= CẤU HÌNH GOOGLE FORMS TRACKING ================= */
-        // Tạo một ID người dùng ngẫu nhiên cho mỗi phiên chơi
-        const sessionID = "PLAYER_" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        
-        // URL POST dữ liệu tới Google Forms (Thay thế '/viewform...' bằng '/formResponse')
+        const sessionID = "BABE_" + Math.random().toString(36).substring(2, 8).toUpperCase();
         const formResponseURL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-        
-        // Cấu hình các thẻ Icon (để dễ đọc trong file Google Sheet)
-        const btnNames = ["Hồi (0)", " Chiều (1)", "Trời (2)", "Mưa (3)"];
+        const btnNames = ["1", "2", "3", "4"];
 
-        /**
-         * Hàm gửi dữ liệu ngầm về Google Forms
-         * @param {string} action - Hành động (Câu hỏi / Trạng thái game)
-         * @param {string} choice - Lựa chọn của người chơi
-         * @param {string} answer - Kết quả trả về / Chuỗi đáp án
-         */
         function sendTrackingData(action, choice, answer) {
             const formData = new FormData();
-            formData.append("entry.1666228409", sessionID); // ID ngẫu nhiên
-            formData.append("entry.1275903316", action);    // Nội dung câu hỏi/Sự kiện
-            formData.append("entry.444679017", choice);     // Lựa chọn của cô ấy
-            formData.append("entry.1158846627", answer);    // Câu trả lời/Đáp án
+            formData.append("entry.1666228409", sessionID); 
+            formData.append("entry.1275903316", action);    
+            formData.append("entry.444679017", choice);     
+            formData.append("entry.1158846627", answer);    
 
-            // Dùng fetch với mode 'no-cors' để vượt qua lỗi chặn Cross-Origin, gửi ngầm
-            fetch(formResponseURL, {
-                method: "POST",
-                mode: "no-cors",
-                body: formData
-            }).then(() => {
-                console.log(`[Tracking sent] Action: ${action}`);
-            }).catch(err => {
-                console.error("Tracking Error:", err);
-            });
+            fetch(formResponseURL, { method: "POST", mode: "no-cors", body: formData })
+                .catch(err => console.error("Tracking Error:", err));
+        }
+
+        /* ================= ENGINE CANVAS VẼ PHÁO HOA TỐI ƯU HÓA ================= */
+        const fwCanvas = document.getElementById('fireworksCanvas');
+        const ctx = fwCanvas.getContext('2d');
+        let fwParticles = [];
+        let fwAnimationId;
+
+        function resizeCanvas() {
+            fwCanvas.width = window.innerWidth;
+            fwCanvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function drawCanvasStar(ctx, size) {
+            let rot = Math.PI / 2 * 3;
+            let step = Math.PI / 5;
+            ctx.beginPath();
+            ctx.moveTo(0, -size);
+            for (let i = 0; i < 5; i++) {
+                ctx.lineTo(Math.cos(rot) * size, Math.sin(rot) * size); rot += step;
+                ctx.lineTo(Math.cos(rot) * (size / 2.2), Math.sin(rot) * (size / 2.2)); rot += step;
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawCanvasHeart(ctx, size) {
+            const s = size / 2.5; 
+            ctx.beginPath();
+            ctx.moveTo(0, s);
+            ctx.bezierCurveTo(0, -s, -s * 2, -s, -s * 2, s);
+            ctx.bezierCurveTo(-s * 2, s * 2.5, 0, s * 3.5, 0, s * 4.5);
+            ctx.bezierCurveTo(0, s * 3.5, s * 2, s * 2.5, s * 2, s);
+            ctx.bezierCurveTo(s * 2, -s, 0, -s, 0, s);
+            ctx.fill();
+        }
+
+        // Bắn 1 chùm pháo hoa (Mượt mà hơn, chi tiết hơn, nhiều hạt hơn)
+        function shootGrandFirework() {
+            const x = Math.random() * fwCanvas.width;
+            const y = Math.random() * (fwCanvas.height * 0.6); 
+            
+            // Tăng số lượng hạt pháo hoa (80 - 130 hạt/chùm)
+            const particleCount = 80 + Math.floor(Math.random() * 50); 
+            
+            const colors = ['#ff4757', '#ff7eb3', '#ff9a9e', '#fecfef', '#ffffff', '#ffd700'];
+            const shapes = ['heart', 'star', 'circle']; 
+
+            for(let i = 0; i < particleCount; i++) {
+                const angle = Math.random() * Math.PI * 2;
+                // Tạo hiệu ứng tỏa ra mượt mà, tâm đặc hơn, rìa thưa dần
+                const speed = Math.random() * Math.random() * 10 + 2; 
+                
+                fwParticles.push({
+                    x: x,
+                    y: y,
+                    vx: Math.cos(angle) * speed, 
+                    vy: Math.sin(angle) * speed, 
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    shape: shapes[Math.floor(Math.random() * shapes.length)],
+                    // Hạt nhỏ hơn để trông thanh mảnh và chi tiết
+                    size: Math.random() * 2.5 + 1, 
+                    life: 1, 
+                    // Độ tan biến chậm lại một chút
+                    decay: Math.random() * 0.01 + 0.005 
+                });
+            }
+        }
+
+        // Vòng lặp Render Canvas có áp dụng vật lý (Gravity & Friction)
+        function animateFireworks() {
+            // Vệt đuôi nhạt màu để lại phía sau (0.15 giúp vệt dài hơn bản cũ)
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
+            ctx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
+            ctx.globalCompositeOperation = 'lighter';
+
+            for (let i = fwParticles.length - 1; i >= 0; i--) {
+                const p = fwParticles[i];
+                
+                // Lực cản không khí (Friction) làm các hạt hãm dần tốc độ lại
+                p.vx *= 0.97;
+                p.vy *= 0.97;
+
+                // Cập nhật vị trí
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                // Trọng lực lướt nhẹ nhàng kéo hạt rơi xuống
+                p.vy += 0.04; 
+                
+                // Hạt mờ dần
+                p.life -= p.decay; 
+
+                if (p.life <= 0) {
+                    fwParticles.splice(i, 1); 
+                    continue;
+                }
+
+                ctx.save();
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.translate(p.x, p.y);
+                
+                if (p.shape === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else if (p.shape === 'heart') {
+                    drawCanvasHeart(ctx, p.size);
+                } else if (p.shape === 'star') {
+                    drawCanvasStar(ctx, p.size);
+                }
+                
+                ctx.restore();
+            }
+            fwAnimationId = requestAnimationFrame(animateFireworks);
         }
 
         /* ================= LOGIC TRÒ CHƠI ================= */
@@ -301,60 +382,49 @@
         let score = 0;            
         let highScore = 0;        
         let isSystemPlaying = false; 
+        
+        let fireworkInterval, rainInterval, floatInterval, sparkleInterval; 
 
-        // Các elements DOM
         const scoreEl = document.getElementById('score');
         const highScoreEl = document.getElementById('high-score');
         const startBtn = document.getElementById('btn-start');
         const messageEl = document.getElementById('message');
         const gameButtons = document.querySelectorAll('.btn-game');
-        
-        // Modal elements
-        const modal = document.getElementById('gameOverModal');
-        const restartBtn = document.getElementById('btn-restart');
-        const finalScoreDisplay = document.getElementById('finalScoreDisplay');
 
-        // Gắn sự kiện
         startBtn.addEventListener('click', startGame);
-        restartBtn.addEventListener('click', closeGameAndRestart);
-
-        gameButtons.forEach((btn, index) => {
-            btn.addEventListener('click', () => handleUserClick(index));
-        });
+        gameButtons.forEach((btn, index) => btn.addEventListener('click', () => handleUserClick(index)));
 
         const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
         function startGame() {
-            sequence = [];
-            score = 0;
-            userStep = 0;
-            updateScore();
+            sequence = []; score = 0; userStep = 0; updateScore();
+            
+            // CHỈ KHI NÀY MỚI XÓA SẠCH HIỆU ỨNG CỦA VÁN TRƯỚC (NẾU CÓ)
+            document.body.classList.remove('romantic-mode');
+            fwCanvas.style.display = 'none';
+            fwParticles = [];
+            cancelAnimationFrame(fwAnimationId);
+
+            clearInterval(fireworkInterval);
+            clearInterval(rainInterval);
+            clearInterval(floatInterval);
+            clearInterval(sparkleInterval);
             
             startBtn.disabled = true;
             startBtn.innerText = "Đang chơi...";
             messageEl.innerText = "Hãy chú ý quan sát!";
             
-            // TRACKING: Bắt đầu game
-            sendTrackingData("Bắt đầu Game mới", "Click Bắt Đầu", `Điểm kỷ lục cũ: ${highScore}`);
-            
+            sendTrackingData("Bắt đầu Game", "Bắt Đầu", `Kỷ lục cũ: ${highScore}`);
             setTimeout(nextRound, 500); 
         }
 
         async function nextRound() {
             userStep = 0; 
-            const randomBtnIndex = Math.floor(Math.random() * 4);
-            sequence.push(randomBtnIndex);
+            sequence.push(Math.floor(Math.random() * 4));
             
-            // Dịch mảng số thành mảng tên icon để dễ đọc trong Sheet
             const sequenceNames = sequence.map(num => btnNames[num]).join(" ➔ ");
-
-            // TRACKING: Thông báo qua màn & Gửi đáp án cho vòng tiếp theo
-            sendTrackingData(
-                `Hệ thống ra đề (Vòng ${sequence.length})`, 
-                "Đang đợi người chơi...", 
-                `Gợi ý/Đáp án chuỗi: [${sequenceNames}]`
-            );
-
+            sendTrackingData(`Hệ thống ra đề (Vòng ${sequence.length})`, "Đợi em bé bấm...", `Đáp án: [${sequenceNames}]`);
+            
             await playSequence();
         }
 
@@ -367,32 +437,27 @@
                 flashButton(sequence[i]);
                 await delay(400); 
             }
-            
             isSystemPlaying = false; 
-            messageEl.innerText = "Tới lượt của bạn!";
+            messageEl.innerText = "Tới lượt của em bé!";
         }
 
         function flashButton(index) {
             const btn = document.getElementById(`btn-${index}`);
             btn.classList.add('active'); 
-            setTimeout(() => {
-                btn.classList.remove('active'); 
-            }, 300);
+            setTimeout(() => btn.classList.remove('active'), 300);
         }
 
         function handleUserClick(index) {
             if (isSystemPlaying) return; 
 
             flashButton(index);
-            
-            // TRACKING: Bắt từng cú click của người dùng
             const expectedIndex = sequence[userStep];
             const isCorrect = (index === expectedIndex);
 
             sendTrackingData(
-                `Người chơi Click (Vòng ${sequence.length}, Bước ${userStep + 1})`, 
-                `Cô ấy chọn: ${btnNames[index]}`, 
-                isCorrect ? "Đúng ✅" : `Sai ❌ (Lẽ ra phải bấm ${btnNames[expectedIndex]})`
+                `Cô ấy Click (Vòng ${sequence.length}, Bước ${userStep + 1})`, 
+                `Chọn: ${btnNames[index]}`, 
+                isCorrect ? "Đúng ✅" : `Sai ❌ (Lẽ ra bấm ${btnNames[expectedIndex]})`
             );
 
             if (isCorrect) {
@@ -401,12 +466,14 @@
                     score++;
                     updateScore();
                     isSystemPlaying = true; 
-                    messageEl.innerText = "Tuyệt vời! Qua vòng mới...";
                     
-                    // TRACKING: Qua màn thành công
-                    sendTrackingData(`Kết thúc Vòng ${sequence.length}`, "Hoàn thành chuỗi", `Điểm hiện tại: ${score}`);
-
-                    setTimeout(nextRound, 1000); 
+                    if (score === 20) {
+                        triggerRomanticVictory();
+                    } else {
+                        messageEl.innerText = "Giỏi quá! Qua vòng...";
+                        sendTrackingData(`Kết thúc Vòng ${sequence.length}`, "Qua màn", `Điểm: ${score}`);
+                        setTimeout(nextRound, 1000); 
+                    }
                 }
             } else {
                 gameOver();
@@ -419,38 +486,100 @@
         }
 
         function gameOver() {
-            isSystemPlaying = true; // Khóa click
+            isSystemPlaying = true; 
             messageEl.innerText = "Game Over!";
-            
-            if (score > highScore) {
-                highScore = score;
-            }
+            if (score > highScore) highScore = score;
             updateScore();
             
-            // TRACKING: Thua game
             sendTrackingData("GAME OVER", `Sai ở Vòng ${sequence.length}`, `Điểm chung cuộc: ${score}`);
-
-            // Cập nhật điểm lên Modal và hiển thị Modal
-            finalScoreDisplay.innerText = score;
+            document.getElementById('finalScoreDisplay').innerText = score;
+            
             setTimeout(() => {
-                modal.classList.add('show');
-            }, 500); // Trễ một chút để thấy nút bấm sai
+                document.getElementById('gameOverModal').classList.add('show');
+            }, 500);
         }
 
-        function closeGameAndRestart() {
-            // Đóng Modal
-            modal.classList.remove('show');
+        /* ================= HIỆU ỨNG CHIẾN THẮNG HOÀNH TRÁNG ================= */
+        function triggerRomanticVictory() {
+            if (score > highScore) highScore = score;
+            updateScore();
+            sendTrackingData("🎉 CHIẾN THẮNG 20 ĐIỂM 🎉", "Kích hoạt lãng mạn", "Đang ngắm màn pháo hoa Canvas!");
+            messageEl.innerText = "Bé yêu thắng rồi! ❤️ Tận hưởng đi nào...";
             
-            // TRACKING: Chọn chơi tiếp
-            sendTrackingData("Modal Game Over", "Nhấn Chơi Tiếp (Continue)", "Chuẩn bị ván mới");
+            document.body.classList.add('romantic-mode');
+            
+            // Bật màn Canvas và chạy render Engine
+            fwCanvas.style.display = 'block';
+            resizeCanvas();
+            animateFireworks();
+            
+            // Kích hoạt đa tầng hiệu ứng
+            fireworkInterval = setInterval(shootGrandFirework, 700); 
+            rainInterval = setInterval(createFallingRain, 150);      
+            floatInterval = setInterval(createFloatingItems, 300);   
+            sparkleInterval = setInterval(createSparkles, 100); 
 
-            // Bật lại giao diện bên ngoài
+            // Chờ 4.5s ngắm cảnh rồi mới hiện Popup
+            setTimeout(() => {
+                document.getElementById('victoryModal').classList.add('show');
+            }, 4500);
+        }
+
+        // Tầng 2: Mưa lãng mạn
+        function createFallingRain() {
+            const drop = document.createElement('div');
+            drop.classList.add('falling-item');
+            drop.innerText = Math.random() > 0.5 ? '🌷' : '💕';
+            drop.style.left = Math.random() * window.innerWidth + 'px';
+            drop.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            drop.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            document.body.appendChild(drop);
+            setTimeout(() => drop.remove(), 6000);
+        }
+
+        // Tầng 3: Bong bóng bay
+        function createFloatingItems() {
+            const floatItem = document.createElement('div');
+            floatItem.classList.add('floating-item');
+            floatItem.innerText = Math.random() > 0.3 ? '💸' : '🐮';
+            floatItem.style.left = Math.random() * window.innerWidth + 'px';
+            floatItem.style.fontSize = (Math.random() * 35 + 25) + 'px';
+            floatItem.style.animationDuration = (Math.random() * 5 + 4) + 's';
+            document.body.appendChild(floatItem);
+            setTimeout(() => floatItem.remove(), 9000);
+        }
+
+        // Tầng 4: Vì sao lấp lánh
+        function createSparkles() {
+            const sparkle = document.createElement('div');
+            sparkle.classList.add('sparkle-star');
+            sparkle.style.left = Math.random() * 100 + 'vw';
+            sparkle.style.top = Math.random() * 100 + 'vh';
+            
+            const size = Math.random() * 12 + 8;
+            sparkle.style.width = size + 'px';
+            sparkle.style.height = size + 'px';
+            sparkle.style.animationDuration = (Math.random() * 1 + 0.8) + 's';
+            
+            document.body.appendChild(sparkle);
+            setTimeout(() => sparkle.remove(), 2000); 
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('show');
+            
+            const logMessage = modalId === 'victoryModal' 
+                ? "Đã đọc xong lời chúc, ưng ý và nhấn chơi tiếp!" 
+                : "Đóng popup Thua, chuẩn bị ván mới";
+            sendTrackingData("Đóng Popup", logMessage, "Setup ván mới");
+
             startBtn.disabled = false;
             startBtn.innerText = "Chơi lại từ đầu";
-            messageEl.innerText = "Sẵn sàng phục thù chưa?";
-            
-            // Reset các class của nút nếu bị kẹt
+            messageEl.innerText = "Sẵn sàng ván mới chưa bé?";
             gameButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // ĐÃ XÓA PHẦN DỌN DẸP Ở ĐÂY ĐỂ PHÁO HOA TIẾP TỤC CHẠY.
+            // Pháo hoa sẽ chỉ được xóa khi hàm startGame() được gọi!
         }
     </script>
 </body>
