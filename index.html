@@ -2,585 +2,1339 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Simon Says - Món Quà Bí Mật</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ninety Days of You</title>
     <style>
-        /* ================= CÀI ĐẶT GIAO DIỆN CHUNG ================= */
+        /* CSS Reset & Setup */
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@700;900&family=Dancing+Script:wght@700&display=swap');
+        
+        :root {
+            --primary: #ff8fb3;
+            --text-dark: #2d3436;
+            --text-light: #ffffff;
+            --font-main: system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+        body, html {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            overflow: hidden;
+            background-color: #000;
+            font-family: var(--font-main);
+            touch-action: none; /* Prevent scroll on mobile */
+            user-select: none;
+        }
 
-        body {
+        canvas {
+            display: block; width: 100%; height: 100%;
+        }
+
+        /* UI Overlays */
+        #ui-layer {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            pointer-events: none;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+        }
+
+        .screen {
+            position: absolute; top: 0; left: 0;
+            width: 100%; height: 100%;
+            display: flex; flex-direction: column;
+            justify-content: center; align-items: center;
+            pointer-events: auto;
+            background: rgba(0,0,0,0.4);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            transition: opacity 0.5s, visibility 0.5s;
+        }
+
+        .hidden { opacity: 0; visibility: hidden; pointer-events: none !important; }
+
+        h1 {
+            color: var(--text-light); font-size: 3.5rem;
+            text-align: center; text-shadow: 0 0 20px var(--primary);
+            margin-bottom: 10px; padding: 0 20px;
+        }
+        
+        h2 {
+            color: #ffeaa7; font-size: 1.5rem;
+            text-shadow: 0 0 15px #ffeaa7; margin-bottom: 40px; text-align: center;
+        }
+
+        button {
+            padding: 15px 40px; font-size: 1.2rem;
+            font-family: var(--font-main); font-weight: bold;
+            color: var(--text-dark);
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            border: none; border-radius: 30px; cursor: pointer;
+            box-shadow: 0 5px 15px rgba(255, 154, 158, 0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+            pointer-events: auto;
+        }
+
+        button:active { transform: scale(0.95); box-shadow: 0 2px 10px rgba(255, 154, 158, 0.8); }
+        @media (hover: hover) {
+            button:hover { transform: scale(1.05); box-shadow: 0 5px 25px rgba(255, 154, 158, 0.8); }
+        }
+
+        /* Dialog Box */
+        #dialog-box {
+            position: absolute; bottom: 10%; width: 85%; max-width: 600px;
+            background: rgba(255, 255, 255, 0.95); padding: 25px;
+            border-radius: 20px; box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            text-align: center; pointer-events: auto;
+            transform: translateY(150px) scale(0.9); opacity: 0;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; align-items: center; z-index: 10;
+        }
+        #dialog-box.show { transform: translateY(0) scale(1); opacity: 1; }
+        #dialog-text {
+            font-size: 1.1rem; color: var(--text-dark);
+            margin-bottom: 20px; font-weight: 600; line-height: 1.6;
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute; top: 20px; left: 20px;
+            display: flex; align-items: center; gap: 10px;
+            pointer-events: none; opacity: 0; transition: opacity 0.5s; z-index: 5;
+        }
+        .hp-bar-container {
+            width: 150px; height: 18px; background: rgba(255,255,255,0.2);
+            border-radius: 10px; overflow: hidden;
+            border: 2px solid rgba(255,255,255,0.6);
+        }
+        .hp-bar-fill {
+            height: 100%; width: 0%;
+            background: linear-gradient(90deg, #ff9a9e, #ff0844);
+            transition: width 0.3s;
+        }
+        #hud-label {
+            color: white; font-weight: bold; font-size: 1.2rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Mobile Controls */
+        #mobile-controls {
+            position: absolute; bottom: 20px; left: 0;
+            width: 100%; height: 150px; display: none; pointer-events: none; z-index: 5;
+        }
+        @media (hover: none) and (pointer: coarse) {
+            #mobile-controls { display: block; }
+        }
+        .joystick-base {
+            position: absolute; bottom: 20px; left: 20px;
+            width: 120px; height: 120px;
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4);
+            border-radius: 50%; pointer-events: auto;
+        }
+        .joystick-stick {
+            position: absolute; top: 50%; left: 50%;
+            width: 50px; height: 50px; background: rgba(255,255,255,0.8);
+            border-radius: 50%; transform: translate(-50%, -50%);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .action-btn {
+            position: absolute; bottom: 35px; right: 30px;
+            width: 80px; height: 80px;
+            background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
+            border: 3px solid rgba(255, 255, 255, 0.8);
+            border-radius: 50%; pointer-events: auto;
+            display: flex; justify-content: center; align-items: center;
+            color: white; font-weight: bold; font-size: 1rem;
+            box-shadow: 0 10px 20px rgba(255, 117, 140, 0.5);
+        }
+        .action-btn:active { transform: scale(0.9); }
+
+        /* Stage 4 Hint Button */
+        #puzzle-hint-btn {
+            position: absolute; top: 20px; right: 20px;
+            padding: 10px 20px; font-size: 1rem; display: none; z-index: 5;
+        }
+
+        /* Stage 5 Hug Button */
+        #hug-btn {
+            position: absolute; top: 50%; left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            font-size: 2rem; padding: 20px 50px;
+            background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
+            color: white; border-radius: 50px; border: 4px solid white;
+            opacity: 0; pointer-events: auto; z-index: 10;
+            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #hug-btn.show {
+            transform: translate(-50%, -50%) scale(1); opacity: 1;
+            animation: pulseHug 0.8s infinite alternate;
+        }
+        @keyframes pulseHug {
+            0% { box-shadow: 0 0 20px #ff0844; transform: translate(-50%, -50%) scale(1); }
+            100% { box-shadow: 0 0 60px #ff0844; transform: translate(-50%, -50%) scale(1.05); }
+        }
+
+        /* Ending Letter Room */
+        #ending-room {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            pointer-events: none; opacity: 0; transition: opacity 1s; z-index: 10;
+        }
+        .letter-paper {
+            width: 90%; max-width: 600px; background: #fffcf2;
+            padding: 30px; border-radius: 8px; box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+            color: #2d3436; font-size: 1.1rem; line-height: 1.8;
+            pointer-events: auto; position: relative;
+            transform: translateY(50px); transition: transform 1s;
+        }
+        #ending-room.show { opacity: 1; pointer-events: auto; }
+        #ending-room.show .letter-paper { transform: translateY(0); }
+        #secret-code-ui {
+            font-size: 1.5rem; font-weight: bold; color: #d63031;
+            text-align: center; margin-top: 20px; letter-spacing: 2px;
+            padding: 10px; border: 2px dashed #d63031; border-radius: 10px;
+        }
+        .restart-btn { margin-top: 20px; display: block; margin-left: auto; margin-right: auto; }
+
+        /* ================= CSS MÀN 3: SIMON TÙY CHỈNH ================= */
+        #screen-simon {
             font-family: 'Nunito', sans-serif;
             background: linear-gradient(-45deg, #1a1a2e, #16213e, #0f3460, #e94560);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             color: #ffffff;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            min-height: 100vh; overflow: hidden;
             transition: all 1.5s ease-in-out; 
+            z-index: 50; /* Hiển thị đè lên canvas */
         }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
 
-        @keyframes gradientBG {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+        #screen-simon.romantic-mode { background: linear-gradient(-45deg, #ff9a9e, #fecfef, #ffb199, #ff0844); background-size: 400% 400%; }
+        #screen-simon.romantic-mode .simon-container { background: rgba(255, 255, 255, 0.3); animation: pulseRomantic 2s infinite alternate; color: #d63031; }
+        @keyframes pulseRomantic { 0% { box-shadow: 0 20px 50px rgba(255, 20, 147, 0.4), inset 0 0 0 2px rgba(255,255,255,0.6); } 100% { box-shadow: 0 20px 80px rgba(255, 105, 180, 0.8), inset 0 0 0 5px rgba(255,255,255,0.9); transform: scale(1.02); } }
+        #screen-simon.romantic-mode h1 { color: #ff4757; text-shadow: 2px 2px 0px #fff; font-family: 'Dancing Script', cursive; font-size: 3.5rem; margin-bottom: 20px; }
+        #screen-simon.romantic-mode .scoreboard { background: rgba(255, 255, 255, 0.6); color: #d63031; }
 
-        /* ================= CHẾ ĐỘ LÃNG MẠN (KHI ĐẠT 20 ĐIỂM) ================= */
-        body.romantic-mode {
-            background: linear-gradient(-45deg, #ff9a9e, #fecfef, #ffb199, #ff0844);
-            background-size: 400% 400%;
-        }
-
-        body.romantic-mode .game-container {
-            background: rgba(255, 255, 255, 0.3);
-            animation: pulseRomantic 2s infinite alternate;
-            color: #d63031;
-        }
-        
-        @keyframes pulseRomantic {
-            0% { box-shadow: 0 20px 50px rgba(255, 20, 147, 0.4), inset 0 0 0 2px rgba(255,255,255,0.6); }
-            100% { box-shadow: 0 20px 80px rgba(255, 105, 180, 0.8), inset 0 0 0 5px rgba(255,255,255,0.9); transform: scale(1.02); }
-        }
-
-        body.romantic-mode h1 {
-            color: #ff4757; text-shadow: 2px 2px 0px #fff;
-            font-family: 'Dancing Script', cursive; font-size: 3.5rem;
-        }
-
-        body.romantic-mode .scoreboard { background: rgba(255, 255, 255, 0.6); color: #d63031; }
-
-        .game-container {
+        .simon-container {
             background: rgba(22, 33, 62, 0.85); backdrop-filter: blur(10px);
-            padding: 30px; border-radius: 25px;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
-            text-align: center; max-width: 420px; width: 90%;
-            position: relative; z-index: 10; transition: all 1s ease;
+            padding: 30px; border-radius: 25px; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), inset 0 0 0 2px rgba(255,255,255,0.1);
+            text-align: center; max-width: 420px; width: 90%; position: relative; z-index: 10; transition: all 1s ease;
         }
-
-        h1 {
-            font-size: 2.2rem; margin-bottom: 20px; text-transform: uppercase;
-            letter-spacing: 2px; color: #ff6b81; text-shadow: 2px 2px 0px #2f3542;
-            transition: all 1s ease;
-        }
-
-        .scoreboard {
-            display: flex; justify-content: space-around; margin-bottom: 30px;
-            font-size: 1.3rem; background: rgba(15, 52, 96, 0.8);
-            padding: 15px; border-radius: 15px; box-shadow: inset 0 4px 6px rgba(0,0,0,0.3);
-            transition: all 1s ease;
-        }
-
-        .score-box span, .high-score-box span { font-size: 1.5rem; font-weight: 900;}
-        .score-box span { color: #2ed573; }
-        .high-score-box span { color: #ffa502; }
-
-        .grid {
-            display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 30px;
-        }
-
-        /* THIẾT LẬP NÚT (SỐ 1, 2, 3, 4) */
-        .btn-game {
-            width: 100%; aspect-ratio: 1; font-size: 4rem; font-weight: 900; color: #fff;
-            border: none; border-radius: 25px; cursor: pointer;
-            transition: all 0.1s ease; display: flex; align-items: center; justify-content: center;
-            position: relative; top: 0;
-            overflow: hidden; 
-            text-shadow: 0 2px 5px rgba(0,0,0,0.3);
-        }
+        .simon-container h1 { font-size: 2.2rem; margin-bottom: 20px; text-transform: uppercase; letter-spacing: 2px; color: #ff6b81; text-shadow: 2px 2px 0px #2f3542; transition: all 1s ease; }
+        .scoreboard { display: flex; justify-content: space-around; margin-bottom: 30px; font-size: 1.3rem; background: rgba(15, 52, 96, 0.8); padding: 15px; border-radius: 15px; box-shadow: inset 0 4px 6px rgba(0,0,0,0.3); transition: all 1s ease; }
+        .score-box span, .high-score-box span { font-size: 1.5rem; font-weight: 900;} .score-box span { color: #2ed573; } .high-score-box span { color: #ffa502; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 25px; margin-bottom: 30px; }
         
-        /* Nền mặc định của 4 nút */
+        .btn-game { width: 100%; aspect-ratio: 1; font-size: 4rem; font-weight: 900; color: #fff; border: none; border-radius: 25px; cursor: pointer; transition: all 0.1s ease; display: flex; align-items: center; justify-content: center; position: relative; top: 0; overflow: hidden; text-shadow: 0 2px 5px rgba(0,0,0,0.3); pointer-events: auto; font-family: 'Nunito', sans-serif; }
         .btn-0 { background: linear-gradient(135deg, #ff6b81, #ff4757); box-shadow: 0 12px 0 #c0392b, 0 15px 20px rgba(0,0,0,0.4); }
         .btn-1 { background: linear-gradient(135deg, #70a1ff, #1e90ff); box-shadow: 0 12px 0 #1873cc, 0 15px 20px rgba(0,0,0,0.4); }
         .btn-2 { background: linear-gradient(135deg, #7bed9f, #2ed573); box-shadow: 0 12px 0 #218c53, 0 15px 20px rgba(0,0,0,0.4); }
         .btn-3 { background: linear-gradient(135deg, #eccc68, #ffa502); box-shadow: 0 12px 0 #cc8402, 0 15px 20px rgba(0,0,0,0.4); }
 
-        /* ================= HIỆU ỨNG ÁNH SÁNG LÕI TỎA RA VIỀN KHI BẤM HOẶC PHÁT SÁNG ================= */
-        .btn-0:active, .btn-0.active {
-            top: 8px; 
-            background: radial-gradient(circle at center, #ffb3bd 0%, #ff4757 80%) !important;
-            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 71, 87, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
-        }
-        .btn-1:active, .btn-1.active {
-            top: 8px; 
-            background: radial-gradient(circle at center, #b3d9ff 0%, #1e90ff 80%) !important;
-            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(30, 144, 255, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
-        }
-        .btn-2:active, .btn-2.active {
-            top: 8px; 
-            background: radial-gradient(circle at center, #b3f2c9 0%, #2ed573 80%) !important;
-            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(46, 213, 115, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
-        }
-        .btn-3:active, .btn-3.active {
-            top: 8px; 
-            background: radial-gradient(circle at center, #ffdfaa 0%, #ffa502 80%) !important;
-            box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 165, 2, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important;
-        }
+        .btn-0:active, .btn-0.active { top: 8px; background: radial-gradient(circle at center, #ffb3bd 0%, #ff4757 80%) !important; box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 71, 87, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important; }
+        .btn-1:active, .btn-1.active { top: 8px; background: radial-gradient(circle at center, #b3d9ff 0%, #1e90ff 80%) !important; box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(30, 144, 255, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important; }
+        .btn-2:active, .btn-2.active { top: 8px; background: radial-gradient(circle at center, #b3f2c9 0%, #2ed573 80%) !important; box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(46, 213, 115, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important; }
+        .btn-3:active, .btn-3.active { top: 8px; background: radial-gradient(circle at center, #ffdfaa 0%, #ffa502 80%) !important; box-shadow: 0 4px 0 transparent, 0 0 25px 5px rgba(255, 165, 2, 0.7), inset 0 0 20px rgba(255,255,255,0.6) !important; }
 
-        .btn-start {
-            padding: 15px 40px; font-size: 1.5rem; font-family: inherit; color: #fff;
-            background: linear-gradient(135deg, #a29bfe, #6c5ce7);
-            border: none; border-radius: 15px; cursor: pointer;
-            box-shadow: 0 8px 0 #4834d4, 0 10px 20px rgba(0,0,0,0.3);
-            transition: all 0.1s; width: 100%; text-transform: uppercase; letter-spacing: 1px;
-        }
-        .btn-start:active { top: 5px; position: relative; box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3); }
-        .btn-start:disabled { background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed; color: #ccc; }
+        .btn-start-simon { padding: 15px 40px; font-size: 1.5rem; font-family: inherit; color: #fff; background: linear-gradient(135deg, #a29bfe, #6c5ce7); border: none; border-radius: 15px; cursor: pointer; box-shadow: 0 8px 0 #4834d4, 0 10px 20px rgba(0,0,0,0.3); transition: all 0.1s; width: 100%; text-transform: uppercase; letter-spacing: 1px; pointer-events: auto; }
+        .btn-start-simon:active { top: 5px; position: relative; box-shadow: 0 3px 0 #4834d4, 0 5px 10px rgba(0,0,0,0.3); }
+        .btn-start-simon:disabled { background: #747d8c; box-shadow: 0 8px 0 #57606f; cursor: not-allowed; color: #ccc; }
 
-        #message { margin-top: 20px; height: 25px; font-size: 1.2rem; font-weight: bold;}
+        #simon-message { margin-top: 20px; height: 25px; font-size: 1.2rem; font-weight: bold;}
 
-        /* ================= MODAL THÔNG BÁO ================= */
-        .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px);
-            display: flex; align-items: center; justify-content: center;
-            z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.8s ease;
-        }
+        /* MODALS SIMON */
+        .modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(5px); display: flex; align-items: center; justify-content: center; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-
-        .modal-box {
-            background: #ffffff; color: #2f3542; padding: 40px; border-radius: 20px;
-            text-align: center; transform: scale(0.5) translateY(100px);
-            transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 85%; max-width: 400px;
-        }
+        .modal-box { background: #ffffff; color: #2f3542; padding: 40px; border-radius: 20px; text-align: center; transform: scale(0.5) translateY(100px); transition: all 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 20px 50px rgba(0,0,0,0.5); width: 85%; max-width: 400px; pointer-events: auto; }
         .modal-overlay.show .modal-box { transform: scale(1) translateY(0); }
-
-        .modal-over h2 { color: #ff4757; font-size: 2.5rem; margin-bottom: 10px; }
+        .modal-over h2 { color: #ff4757; font-size: 2.5rem; margin-bottom: 10px; font-family: 'Nunito', sans-serif;}
         .modal-over .final-score { font-size: 3rem; font-weight: 900; color: #2ed573; margin-bottom: 25px; display: block; }
-
         .modal-victory { background: rgba(255, 255, 255, 0.95); border: 4px solid #ff7eb3; box-shadow: 0 0 40px rgba(255, 105, 180, 0.8); }
         .modal-victory h2 { font-family: 'Dancing Script', cursive; color: #ff4757; font-size: 3.8rem; margin-bottom: 15px; text-shadow: 1px 1px 2px rgba(0,0,0,0.1); }
         .modal-victory p { font-size: 1.2rem; color: #d63031; margin-bottom: 15px; line-height: 1.5; font-weight: bold;}
-        .modal-victory .love-message {
-            font-size: 1.4rem; font-weight: bold; color: #e84118; margin-bottom: 25px;
-            background: #ffe6eb; padding: 15px; border-radius: 15px; border: 2px dashed #ff758c;
-        }
+        .modal-victory .love-message { font-size: 1.4rem; font-weight: bold; color: #e84118; margin-bottom: 25px; background: #ffe6eb; padding: 15px; border-radius: 15px; border: 2px dashed #ff758c; }
+        .btn-modal { padding: 12px 30px; font-size: 1.2rem; font-family: 'Nunito', sans-serif; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.1s; }
+        .btn-restart { background: #ff4757; box-shadow: 0 6px 0 #c0392b; } .btn-restart:active { transform: translateY(4px); box-shadow: 0 2px 0 #c0392b; }
+        .btn-love { background: linear-gradient(135deg, #ff7eb3, #ff758c); box-shadow: 0 6px 0 #d63031; font-weight: bold;} .btn-love:active { transform: translateY(4px); box-shadow: 0 2px 0 #d63031; }
 
-        .btn-modal { padding: 12px 30px; font-size: 1.2rem; font-family: inherit; color: #fff; border: none; border-radius: 10px; cursor: pointer; transition: all 0.1s; }
-        .btn-restart { background: #ff4757; box-shadow: 0 6px 0 #c0392b; }
-        .btn-restart:active { transform: translateY(4px); box-shadow: 0 2px 0 #c0392b; }
-        
-        .btn-love { background: linear-gradient(135deg, #ff7eb3, #ff758c); box-shadow: 0 6px 0 #d63031; font-weight: bold;}
-        .btn-love:active { transform: translateY(4px); box-shadow: 0 2px 0 #d63031; }
-
-        /* ================= HỆ THỐNG HIỆU ỨNG PHỤ ================= */
-        .falling-item { position: fixed; top: -10vh; z-index: 40; pointer-events: none; animation: fallDown linear forwards; }
+        /* HIỆU ỨNG HẠT PHỤ CHO SIMON */
+        .falling-item { position: absolute; top: -10vh; z-index: 40; pointer-events: none; animation: fallDown linear forwards; }
         @keyframes fallDown { 0% { transform: translateY(0) rotate(0deg) scale(0.8); opacity: 1; } 100% { transform: translateY(110vh) rotate(360deg) scale(1.2); opacity: 0; } }
-
-        .floating-item { position: fixed; bottom: -10vh; z-index: 45; pointer-events: none; animation: floatUp ease-in forwards; }
+        .floating-item { position: absolute; bottom: -10vh; z-index: 45; pointer-events: none; animation: floatUp ease-in forwards; }
         @keyframes floatUp { 0% { transform: translateY(0) scale(0.5); opacity: 0; } 20% { opacity: 1; } 100% { transform: translateY(-110vh) scale(1.5); opacity: 0; } }
+        .sparkle-star { position: absolute; background: #fff; clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%); z-index: 42; pointer-events: none; animation: twinkle ease-in-out forwards; }
+        @keyframes twinkle { 0% { transform: scale(0) rotate(0deg); opacity: 0; } 50% { transform: scale(1) rotate(180deg); opacity: 1; box-shadow: 0 0 20px #fff; } 100% { transform: scale(0) rotate(360deg); opacity: 0; } }
 
-        .sparkle-star {
-            position: fixed; background: #fff;
-            clip-path: polygon(50% 0%, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0% 50%, 40% 40%);
-            z-index: 42; pointer-events: none; animation: twinkle ease-in-out forwards;
-        }
-        @keyframes twinkle {
-            0% { transform: scale(0) rotate(0deg); opacity: 0; }
-            50% { transform: scale(1) rotate(180deg); opacity: 1; box-shadow: 0 0 20px #fff; }
-            100% { transform: scale(0) rotate(360deg); opacity: 0; }
-        }
-
-        /* LỚP PHỦ CANVAS CHO PHÁO HOA */
-        #fireworksCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 48; /* Nằm dưới popup nhưng đè lên mọi thứ khác */
-            display: none;
+        @media (max-width: 600px) {
+            h1 { font-size: 2.2rem; }
+            h2 { font-size: 1.1rem; }
+            #dialog-text { font-size: 0.95rem; }
+            .letter-paper { font-size: 0.95rem; padding: 20px; }
+            .simon-container { padding: 20px; }
+            .btn-game { font-size: 3rem; }
         }
     </style>
 </head>
 <body>
 
-    <canvas id="fireworksCanvas"></canvas> <!-- Thẻ Canvas phụ trách vẽ pháo hoa -->
+    <canvas id="gameCanvas"></canvas>
 
-    <div class="game-container">
-        <h1>Trí Nhớ Siêu Phàm</h1>
-        
-        <div class="scoreboard">
-            <div class="score-box">Điểm<br><span id="score">0</span></div>
-            <div class="high-score-box">Kỷ lục<br><span id="high-score">0</span></div>
-        </div>
-
-        <div class="grid">
-            <button class="btn-game btn-0" id="btn-0">1</button>
-            <button class="btn-game btn-1" id="btn-1">2</button>
-            <button class="btn-game btn-2" id="btn-2">3</button>
-            <button class="btn-game btn-3" id="btn-3">4</button>
-        </div>
-        <button class="btn-start" id="btn-start">Bắt Đầu</button>
-        <p id="message">Nhấn Bắt Đầu để chơi!</p>
-    </div>
-
-    <!-- MODAL THUA (GAME OVER) -->
-    <div class="modal-overlay" id="gameOverModal">
-        <div class="modal-box modal-over">
-            <h2>GAME OVER</h2>
-            <p>Rất tiếc! Điểm của em là: Não cá vàng</p>
-            <span class="final-score" id="finalScoreDisplay">0</span>
-            <button class="btn-modal btn-restart" onclick="closeModal('gameOverModal')">Chơi Tiếp / Khởi động lại</button>
-        </div>
-    </div>
-
-    <!-- MODAL THẮNG (MÓN QUÀ LÃNG MẠN) -->
-    <div class="modal-overlay" id="victoryModal">
-        <div class="modal-box modal-victory">
-            <h2>Bé Giỏi Quá! ❤️</h2>
-            <p>Chúc mừng bà chã hơm của tui đã xuất sắc vượt qua mốc 20 level não cá vàng</p>
-            <div class="love-message">
-                Món quà nhỏ này anh dành riêng cho em. Yêu em bé nhiều lắm! 💕🥰
+    <div id="ui-layer">
+        <!-- HUD -->
+        <div id="hud">
+            <div id="hud-icon" style="font-size: 24px;">❤️</div>
+            <div class="hp-bar-container">
+                <div class="hp-bar-fill" id="hp-fill"></div>
             </div>
-            <button class="btn-modal btn-love" onclick="closeModal('victoryModal')">Thích Quá! Nhấn để chơi tiếp nha ❤️</button>
+            <div id="hud-label">0%</div>
+        </div>
+
+        <button id="puzzle-hint-btn" onclick="toggleHint()">Gợi Ý (Nhấn Giữ)</button>
+
+        <!-- Screens -->
+        <div id="screen-intro" class="screen">
+            <h1 id="title-text">Ninety Days of You</h1>
+            <h2 id="subtitle-text">Hành trình 3 tháng</h2>
+            <button onclick="startGame()">Bắt đầu chuyến đi</button>
+        </div>
+
+        <!-- SIMON SCREEN (Stage 3 Overlay) -->
+        <div id="screen-simon" class="screen hidden">
+            <canvas id="fireworksCanvas" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: none;"></canvas>
+            
+            <div class="simon-container">
+                <h1>Trí Nhớ Siêu Phàm</h1>
+                <div class="scoreboard">
+                    <div class="score-box">Điểm<br><span id="simon-score">0</span></div>
+                    <div class="high-score-box">Kỷ lục<br><span id="simon-high-score">0</span></div>
+                </div>
+                <div class="grid">
+                    <button class="btn-game btn-0" onclick="handleSimonClick(0)">1</button>
+                    <button class="btn-game btn-1" onclick="handleSimonClick(1)">2</button>
+                    <button class="btn-game btn-2" onclick="handleSimonClick(2)">3</button>
+                    <button class="btn-game btn-3" onclick="handleSimonClick(3)">4</button>
+                </div>
+                <button class="btn-start-simon" id="btn-start-simon" onclick="startSimonGame()">Bắt Đầu</button>
+                <p id="simon-message">Nhấn Bắt Đầu để chơi!</p>
+            </div>
+
+            <div class="modal-overlay" id="gameOverModal">
+                <div class="modal-box modal-over">
+                    <h2>GAME OVER</h2>
+                    <p>Rất tiếc! Điểm của em là: Não cá vàng</p>
+                    <span class="final-score" id="finalScoreDisplay">0</span>
+                    <button class="btn-modal btn-restart" onclick="closeSimonModal('gameOverModal')">Chơi Tiếp / Khởi động lại</button>
+                </div>
+            </div>
+
+            <div class="modal-overlay" id="victoryModal">
+                <div class="modal-box modal-victory">
+                    <h2>Bé Giỏi Quá! ❤️</h2>
+                    <p>Chúc mừng bà chã hơm của tui đã xuất sắc vượt qua mốc 20 level não cá vàng</p>
+                    <div class="love-message">Món quà nhỏ này anh dành riêng cho em. Yêu em bé nhiều lắm! 💕🥰</div>
+                    <button class="btn-modal btn-love" onclick="winSimonStage()">Thích Quá! Nhấn để chơi tiếp nha ❤️</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dialog -->
+        <div id="dialog-box">
+            <div id="dialog-text"></div>
+            <button id="dialog-btn" onclick="closeDialog()">Tiếp tục</button>
+        </div>
+
+        <!-- Big Hug Button -->
+        <button id="hug-btn" onclick="triggerHug()">TẶNG CÁI ÔM!</button>
+
+        <!-- Mobile Controls -->
+        <div id="mobile-controls">
+            <div class="joystick-base" id="joy-base">
+                <div class="joystick-stick" id="joy-stick"></div>
+            </div>
+            <div class="action-btn" id="btn-dash">LƯỚT</div>
+        </div>
+
+        <!-- Ending Room (HTML for better text rendering) -->
+        <div id="ending-room">
+            <div class="letter-paper">
+                <div id="letter-content"></div>
+                <div id="secret-code-ui" class="hidden"></div>
+                <button class="restart-btn hidden" id="restart-btn" onclick="location.reload()">Chơi lại từ đầu</button>
+            </div>
         </div>
     </div>
 
-    <script>
-        /* ================= CẤU HÌNH GOOGLE FORMS TRACKING ================= */
-        const sessionID = "BABE_" + Math.random().toString(36).substring(2, 8).toUpperCase();
-        const formResponseURL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-        const btnNames = ["1", "2", "3", "4"];
+<script>
+/** 
+ * ==========================================
+ * BẢNG CẤU HÌNH (JSON CONFIG)
+ * ==========================================
+ */
+const GAME_CONFIG = {
+    boyName: "Anh",
+    girlName: "Em",
+    anniversaryDate: "28/09/2026",
+    secretCode: "#LOVE90DAYS",
+    letterContent: "Gửi cô gái bé nhỏ của anh,\n\n90 ngày qua giống như một giấc mơ tuyệt đẹp. Từ những tin nhắn rụt rè ngày đầu tiên, đến những lúc mình chia sẻ mọi buồn vui.\n\nCảm ơn em vì đã đến, đã kiên nhẫn, và đã luôn bao dung cho những lúc anh Overthinking.\n\n3 tháng không phải là một chặng đường quá dài, nhưng đủ để anh biết mình muốn nắm tay em đi tiếp những tháng ngày rực rỡ sau này.\n\nAnh yêu em nhiều lắm! ❤️\n\n(Chụp màn hình mã bí mật bên dưới gửi anh để nhận quà ngoài đời nhé!)"
+};
 
-        function sendTrackingData(action, choice, answer) {
-            const formData = new FormData();
-            formData.append("entry.1666228409", sessionID); 
-            formData.append("entry.1275903316", action);    
-            formData.append("entry.444679017", choice);     
-            formData.append("entry.1158846627", answer);    
+document.getElementById('title-text').innerHTML = `Ninety Days of You<br><span style="font-size:2rem">${GAME_CONFIG.boyName} & ${GAME_CONFIG.girlName}</span>`;
+document.getElementById('subtitle-text').innerHTML = `Kỷ niệm 3 tháng yêu nhau (${GAME_CONFIG.anniversaryDate})`;
 
-            fetch(formResponseURL, { method: "POST", mode: "no-cors", body: formData })
-                .catch(err => console.error("Tracking Error:", err));
+/** 
+ * ==========================================
+ * GAME ENGINE CORE
+ * ==========================================
+ */
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+let width, height;
+
+let gameState = 0; // 0:Intro, 1:Maze, 2:Rain, 3:Simon, 4:Puzzle, 5:Boss, 6:Ending
+let lastTime = performance.now();
+let globalTime = 0;
+let timeScale = 1.0;
+let progressValue = 0; 
+let shakeTime = 0, shakeIntensity = 0;
+let isPaused = false;
+
+const keys = { up: false, down: false, left: false, right: false, dash: false };
+let lastClick = { x: -1, y: -1, active: false };
+
+const player = { x: 0, y: 0, size: 16, speed: 200, dashing: false, dashTime: 0, dashCooldown: 0, targetX: 0, targetY: 0, controlled: true, trail: [] };
+const companion = { x: 0, y: 0, size: 18, speed: 180 };
+
+let particles = [];
+let s1_memories = [];
+let s1_portal = null;
+let s2_items = [];
+let s2_puddles = [];
+let s4_tiles = [], s4_selectedIdx = -1, s4_showHint = false;
+let s5_boss = null, s5_projectiles = [], s5_items = [], s5_hugPhase = false;
+let s6_typeIndex = 0, s6_typeTimer = 0;
+
+function resize() {
+    width = window.innerWidth; height = window.innerHeight;
+    canvas.width = width; canvas.height = height;
+    if(gameState === 0) {
+        player.x = width / 2; player.y = height / 2;
+        companion.x = width / 2; companion.y = height / 2 + 40;
+    }
+}
+window.addEventListener('resize', resize);
+resize();
+
+/** 
+ * ==========================================
+ * AUDIO ENGINE
+ * ==========================================
+ */
+const AudioContext = window.AudioContext || window.webkitAudioContext;
+let audioCtx;
+
+function initAudio() {
+    if (!audioCtx) audioCtx = new AudioContext();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+function playTone(freq, type = 'sine', duration = 0.3, vol = 0.1) {
+    if (!audioCtx) return;
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+    gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    osc.connect(gain); gain.connect(audioCtx.destination);
+    osc.start(); osc.stop(audioCtx.currentTime + duration);
+}
+
+function playNoise(duration, vol, type='lowpass', freq=800) {
+    if (!audioCtx) return;
+    const bufferSize = audioCtx.sampleRate * duration; 
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
+    const filter = audioCtx.createBiquadFilter(); filter.type = type; filter.frequency.value = freq;
+    const gain = audioCtx.createGain(); gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+    noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination);
+    noise.start();
+}
+
+function playCrystal(index) {
+    const freqs = [261.63, 329.63, 392.00, 493.88]; // C4, E4, G4, B4
+    playTone(freqs[index], 'sine', 0.6, 0.2);
+    playTone(freqs[index] * 2, 'triangle', 0.6, 0.05);
+}
+
+function playCollect() { playTone(600, 'sine', 0.1, 0.1); setTimeout(() => playTone(800, 'sine', 0.2, 0.1), 100); }
+function playDash() { playTone(200, 'sawtooth', 0.2, 0.05); }
+function playHit() { playNoise(0.3, 0.5, 'lowpass', 400); playTone(150, 'square', 0.3, 0.1); }
+function playExplosion() { playNoise(1.5, 0.8, 'lowpass', 600); }
+
+let rainSrc, rainGain;
+function startRainSound() {
+    if (!audioCtx) return;
+    const bufferSize = audioCtx.sampleRate * 2;
+    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+    rainSrc = audioCtx.createBufferSource(); rainSrc.buffer = buffer; rainSrc.loop = true;
+    const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 400;
+    rainGain = audioCtx.createGain(); rainGain.gain.value = 0.2;
+    rainSrc.connect(filter); filter.connect(rainGain); rainGain.connect(audioCtx.destination);
+    rainSrc.start();
+}
+function stopRainSound() { if(rainGain) { rainGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1); setTimeout(()=>rainSrc.stop(),1000); } }
+
+/** 
+ * ==========================================
+ * INPUT HANDLING
+ * ==========================================
+ */
+window.addEventListener('keydown', (e) => {
+    if(['ArrowUp','KeyW'].includes(e.code)) keys.up = true;
+    if(['ArrowDown','KeyS'].includes(e.code)) keys.down = true;
+    if(['ArrowLeft','KeyA'].includes(e.code)) keys.left = true;
+    if(['ArrowRight','KeyD'].includes(e.code)) keys.right = true;
+    if(['Space'].includes(e.code)) keys.dash = true;
+});
+window.addEventListener('keyup', (e) => {
+    if(['ArrowUp','KeyW'].includes(e.code)) keys.up = false;
+    if(['ArrowDown','KeyS'].includes(e.code)) keys.down = false;
+    if(['ArrowLeft','KeyA'].includes(e.code)) keys.left = false;
+    if(['ArrowRight','KeyD'].includes(e.code)) keys.right = false;
+    if(['Space'].includes(e.code)) keys.dash = false;
+});
+
+const joyBase = document.getElementById('joy-base');
+const joyStick = document.getElementById('joy-stick');
+const dashBtn = document.getElementById('btn-dash');
+let joyCenter = {x:0, y:0}, joyActive = false;
+
+joyBase.addEventListener('touchstart', (e) => {
+    e.preventDefault(); const rect = joyBase.getBoundingClientRect();
+    joyCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
+    joyActive = true; updateJoystick(e.touches[0]);
+}, {passive: false});
+joyBase.addEventListener('touchmove', (e) => { e.preventDefault(); if(joyActive) updateJoystick(e.touches[0]); }, {passive: false});
+joyBase.addEventListener('touchend', (e) => { e.preventDefault(); joyActive = false; joyStick.style.transform = `translate(-50%, -50%)`; keys.up = keys.down = keys.left = keys.right = false; }, {passive: false});
+
+function updateJoystick(touch) {
+    let dx = touch.clientX - joyCenter.x; let dy = touch.clientY - joyCenter.y;
+    let dist = Math.hypot(dx, dy); let max = 40;
+    if (dist > max) { dx = (dx/dist)*max; dy = (dy/dist)*max; }
+    joyStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
+    keys.right = dx > 15; keys.left = dx < -15; keys.down = dy > 15; keys.up = dy < -15;
+}
+
+dashBtn.addEventListener('touchstart', (e)=>{ e.preventDefault(); keys.dash = true; });
+dashBtn.addEventListener('touchend', (e)=>{ e.preventDefault(); keys.dash = false; });
+dashBtn.addEventListener('mousedown', ()=>{ keys.dash = true; });
+dashBtn.addEventListener('mouseup', ()=>{ keys.dash = false; });
+
+canvas.addEventListener('mousedown', (e) => { handlePointerDown(e.clientX, e.clientY); });
+canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handlePointerDown(e.touches[0].clientX, e.touches[0].clientY); }, {passive: false});
+
+function handlePointerDown(clientX, clientY) {
+    if(isPaused) return; 
+    const rect = canvas.getBoundingClientRect();
+    let scaleX = canvas.width / rect.width; let scaleY = canvas.height / rect.height;
+    lastClick = { x: (clientX - rect.left) * scaleX, y: (clientY - rect.top) * scaleY, active: true };
+}
+
+/** 
+ * ==========================================
+ * VFX & UTILS
+ * ==========================================
+ */
+function screenShake(duration, intensity) { shakeTime = duration; shakeIntensity = intensity; }
+
+function spawnParticles(x, y, count, color, type='sparkle', speedMult=1, sizeMult=1) {
+    for(let i=0; i<count; i++) {
+        particles.push({
+            x, y, vx: (Math.random()-0.5) * 300 * speedMult, vy: (Math.random()-0.5) * 300 * speedMult,
+            life: 1, maxLife: 0.5 + Math.random(), color, type, size: (Math.random() * 4 + 2) * sizeMult,
+            rot: Math.random() * Math.PI*2, vRot: (Math.random()-0.5)*10
+        });
+    }
+}
+
+function updateParticles(dt) {
+    for(let i = particles.length - 1; i >= 0; i--) {
+        let p = particles[i];
+        p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt;
+        if (p.type === 'rain') { p.vy += 500 * dt; } 
+        else if (p.type === 'petal' || p.type === 'heart') { p.vy += 50 * dt; p.rot += p.vRot * dt; }
+        
+        if (p.type === 'rain' && p.y > height - 20 - Math.random()*50) {
+            spawnParticles(p.x, p.y, 2, '#74b9ff', 'sparkle', 0.2, 0.5); particles.splice(i, 1); continue;
+        }
+        if (p.life <= 0) particles.splice(i, 1);
+    }
+}
+
+function drawHeartPath(ctx, x, y, size) {
+    ctx.save(); ctx.translate(x, y); ctx.moveTo(0, size/4); ctx.quadraticCurveTo(0, 0, -size/2, 0); ctx.quadraticCurveTo(-size, 0, -size, size/2.5); ctx.quadraticCurveTo(-size, size, 0, size*1.2); ctx.quadraticCurveTo(size, size, size, size/2.5); ctx.quadraticCurveTo(size, 0, size/2, 0); ctx.quadraticCurveTo(0, 0, 0, size/4); ctx.restore();
+}
+
+function updateHUD(val, icon, label) {
+    progressValue = Math.min(100, Math.max(0, val));
+    document.getElementById('hp-fill').style.width = progressValue + '%';
+    document.getElementById('hud-label').innerText = `${Math.floor(progressValue)}% ${label}`;
+    document.getElementById('hud-icon').innerText = icon;
+    if(progressValue < 30) document.getElementById('hp-fill').style.background = 'linear-gradient(90deg, #ff7675, #d63031)';
+    else document.getElementById('hp-fill').style.background = 'linear-gradient(90deg, #ff9a9e, #ff0844)';
+}
+
+function showDialog(htmlText, btnText="Tiếp tục") {
+    isPaused = true; keys.up=keys.down=keys.left=keys.right=keys.dash=false;
+    document.getElementById('dialog-text').innerHTML = htmlText;
+    document.getElementById('dialog-btn').innerText = btnText;
+    document.getElementById('dialog-box').classList.add('show');
+    player.controlled = false;
+}
+
+function closeDialog() {
+    document.getElementById('dialog-box').classList.remove('show');
+    setTimeout(() => {
+        isPaused = false;
+        player.controlled = true;
+        if(gameState === 1 && s1_memories.filter(m=>m.active).length === 0 && !s1_portal) {
+            s1_portal = { x: width/2, y: height/2, radius: 0 };
+        } else if (gameState === 2 && s2_items.length === 0) {
+            initStage3();
+        }
+    }, 300);
+}
+
+/** 
+ * ==========================================
+ * STAGE LOGIC OVERVIEW
+ * ==========================================
+ */
+function startGame() {
+    initAudio();
+    document.getElementById('screen-intro').classList.add('hidden');
+    document.getElementById('hud').style.opacity = 1;
+    initStage1();
+}
+
+function initStage1() {
+    gameState = 1; player.x = width/2; player.y = height - 100; player.controlled = true;
+    companion.x = player.x; companion.y = player.y + 40;
+    updateHUD(0, '🧩', 'Ký ức');
+    
+    let pad = 100;
+    s1_memories = [
+        { x: pad + Math.random()*(width-pad*2), y: pad + Math.random()*(height/2), active: true, txt: "Tháng 1: Cái nhìn đầu tiên thật bối rối nhưng rực rỡ..." },
+        { x: pad + Math.random()*(width-pad*2), y: pad + Math.random()*(height/2), active: true, txt: "Tháng 1: Những dòng tin nhắn chúc ngủ ngon lúc 2h sáng." },
+        { x: pad + Math.random()*(width-pad*2), y: pad + Math.random()*(height/2), active: true, txt: "Tháng 1: Lần đầu tiên nắm tay, hơi ấm lan tỏa cả mùa đông." }
+    ];
+    showDialog("<b>Giai đoạn 1: Mê Cung Rung Động</b><br><br>Sử dụng D-Pad/Phím mũi tên để di chuyển.<br>Hãy tìm và nhặt 3 mảnh ký ức rực sáng nhé!");
+}
+
+function initStage2() {
+    gameState = 2; player.x = width/2; player.y = height/2; player.controlled = true;
+    companion.x = player.x; companion.y = player.y + 20;
+    updateHUD(100, '🔥', 'Ấm áp');
+    startRainSound();
+    
+    for(let i=0; i<5; i++) s2_puddles.push({x: Math.random()*width, y: Math.random()*height, r: 30+Math.random()*40});
+    s2_items = [
+        { x: Math.random()*width, y: Math.random()*height, name: "Trà sữa" },
+        { x: Math.random()*width, y: Math.random()*height, name: "Vé xem phim" },
+        { x: Math.random()*width, y: Math.random()*height, name: "Kẹp tóc" },
+        { x: Math.random()*width, y: Math.random()*height, name: "Khăn len" }
+    ];
+    showDialog("<b>Giai đoạn 2: Cơn Mưa Bất Chợt</b><br><br>Trời mưa rồi! Bạn nam sẽ cầm ô che cho bạn.<br>Hãy đi thu thập 4 kỷ vật, nhưng đừng chạy ra khỏi tán ô quá lâu kẻo bị lạnh nhé (Thanh Ấm Áp giảm). Vũng nước sẽ làm bạn đi chậm lại.");
+}
+
+function initStage3() {
+    gameState = 3; player.controlled = false;
+    stopRainSound();
+    player.x = -100; companion.x = -100; // Hide players
+    updateHUD(0, '🎵', 'Giai điệu');
+    
+    // Show Màn 3 Overlay
+    document.getElementById('screen-simon').classList.remove('hidden');
+    document.getElementById('simon-score').innerText = "0";
+    document.getElementById('btn-start-simon').disabled = false;
+    document.getElementById('btn-start-simon').innerText = "Bắt Đầu";
+    document.getElementById('simon-message').innerText = "Nhấn Bắt Đầu để chơi!";
+}
+
+function initStage4() {
+    gameState = 4; player.controlled = false;
+    updateHUD(0, '🧩', 'Ghép hình');
+    document.getElementById('puzzle-hint-btn').style.display = 'block';
+    
+    s4_tiles = [0,1,2,3,4,5,6,7,8]; // 8 là ô trống
+    
+    // Thuật toán xáo trộn 150 bước an toàn (bảo đảm 100% giải được)
+    let emptyPos = 8;
+    for(let i = 0; i < 150; i++) {
+        let neighbors = [];
+        if (emptyPos % 3 > 0) neighbors.push(emptyPos - 1); // Trái
+        if (emptyPos % 3 < 2) neighbors.push(emptyPos + 1); // Phải
+        if (Math.floor(emptyPos / 3) > 0) neighbors.push(emptyPos - 3); // Lên
+        if (Math.floor(emptyPos / 3) < 2) neighbors.push(emptyPos + 3); // Xuống
+        
+        let randNeighbor = neighbors[Math.floor(Math.random() * neighbors.length)];
+        let temp = s4_tiles[emptyPos];
+        s4_tiles[emptyPos] = s4_tiles[randNeighbor];
+        s4_tiles[randNeighbor] = temp;
+        emptyPos = randNeighbor;
+    }
+    // Tránh việc hên xui xáo trộn ra luôn hình chuẩn
+    let win = true; for(let i=0; i<9; i++) if(s4_tiles[i]!==i) win=false;
+    if(win) { s4_tiles[emptyPos] = s4_tiles[4]; s4_tiles[4] = 8; }
+
+    showDialog("<b>Giai đoạn 4: Ghép Mảnh Kỷ Niệm</b><br><br>Nhấp vào mảnh ghép <b>nằm ngay cạnh ô trống</b> để trượt nó vào ô trống và hoàn thiện bức tranh trái tim nhé!");
+}
+function toggleHint() { s4_showHint = !s4_showHint; }
+document.getElementById('puzzle-hint-btn').addEventListener('mousedown', ()=>s4_showHint=true);
+document.getElementById('puzzle-hint-btn').addEventListener('mouseup', ()=>s4_showHint=false);
+document.getElementById('puzzle-hint-btn').addEventListener('touchstart', (e)=>{e.preventDefault(); s4_showHint=true;});
+document.getElementById('puzzle-hint-btn').addEventListener('touchend', (e)=>{e.preventDefault(); s4_showHint=false;});
+
+function initStage5() {
+    gameState = 5; player.controlled = true; player.x = width/2; player.y = height-80;
+    companion.x = width/2; companion.y = height-40;
+    updateHUD(0, '🛡️', 'Hạnh phúc');
+    document.getElementById('puzzle-hint-btn').style.display = 'none';
+    
+    s5_boss = { x: width/2, y: 120, vx: 150, timer: 0 };
+    s5_projectiles = []; s5_items = []; s5_hugPhase = false;
+    
+    showDialog("<b>Giai đoạn 5: Tháp Giông Bão</b><br><br>Đôi lúc yêu nhau sẽ có những băn khoăn, Overthinking (đám mây đen).<br>Dùng nút LƯỚT (Space) để né đạn suy nghĩ tiêu cực.<br>Nhặt đủ 5 món đồ ngọt/lời dỗ dành để làm hòa nhé!");
+}
+
+function initStage6() {
+    gameState = 6;
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('mobile-controls').classList.add('hidden');
+    document.getElementById('ending-room').classList.add('show');
+}
+
+/** 
+ * ==========================================
+ * MAIN UPDATE LOOP
+ * ==========================================
+ */
+function update(dt) {
+    globalTime += dt;
+    if(isPaused) return;
+    
+    let realDt = dt; dt = dt * timeScale; 
+    if(shakeTime > 0) shakeTime -= realDt;
+
+    updateParticles(dt);
+
+    if (player.controlled && !s5_hugPhase) {
+        let dx = 0; let dy = 0;
+        if(keys.up) dy -= 1; if(keys.down) dy += 1;
+        if(keys.left) dx -= 1; if(keys.right) dx += 1;
+        if (dx !== 0 || dy !== 0) { let len = Math.hypot(dx, dy); dx /= len; dy /= len; }
+
+        if(player.dashCooldown > 0) player.dashCooldown -= dt;
+        if(keys.dash && !player.dashing && player.dashCooldown <= 0) {
+            player.dashing = true; player.dashTime = 0.25; player.dashCooldown = 0.8;
+            playDash(); spawnParticles(player.x, player.y, 20, '#fff'); screenShake(0.1, 4);
         }
 
-        /* ================= ENGINE CANVAS VẼ PHÁO HOA TỐI ƯU HÓA ================= */
-        const fwCanvas = document.getElementById('fireworksCanvas');
-        const ctx = fwCanvas.getContext('2d');
-        let fwParticles = [];
-        let fwAnimationId;
-
-        function resizeCanvas() {
-            fwCanvas.width = window.innerWidth;
-            fwCanvas.height = window.innerHeight;
+        let speedMult = 1.0;
+        if (gameState === 2) {
+            for(let p of s2_puddles) { if(Math.hypot(player.x - p.x, player.y - p.y) < p.r) speedMult = 0.4; }
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
 
-        function drawCanvasStar(ctx, size) {
-            let rot = Math.PI / 2 * 3;
-            let step = Math.PI / 5;
-            ctx.beginPath();
-            ctx.moveTo(0, -size);
-            for (let i = 0; i < 5; i++) {
-                ctx.lineTo(Math.cos(rot) * size, Math.sin(rot) * size); rot += step;
-                ctx.lineTo(Math.cos(rot) * (size / 2.2), Math.sin(rot) * (size / 2.2)); rot += step;
+        let currentSpeed = player.dashing ? player.speed * 2.5 : player.speed * speedMult;
+        if (player.dashing) {
+            player.dashTime -= dt;
+            if(player.dashTime <= 0) player.dashing = false;
+        }
+
+        player.x += dx * currentSpeed * dt; player.y += dy * currentSpeed * dt;
+        player.x = Math.max(player.size, Math.min(width - player.size, player.x));
+        player.y = Math.max(player.size, Math.min(height - player.size, player.y));
+    } else if (player.targetX !== 0 && player.targetY !== 0) {
+        let dx = player.targetX - player.x; let dy = player.targetY - player.y;
+        let dist = Math.hypot(dx, dy);
+        let mSpeed = s5_hugPhase ? 1200 * realDt : player.speed * dt; 
+        if(dist > 5) { player.x += (dx/dist)*mSpeed; player.y += (dy/dist)*mSpeed; }
+    }
+
+    if (player.dashing || s5_hugPhase) player.trail.push({x: player.x, y: player.y, life: 1.0});
+    for(let i=player.trail.length-1; i>=0; i--) {
+        player.trail[i].life -= dt * 4;
+        if(player.trail[i].life <= 0) player.trail.splice(i, 1);
+    }
+
+    if (!s5_hugPhase && [1,2,5].includes(gameState)) {
+        let distToGirl = Math.hypot(player.x - companion.x, player.y - companion.y);
+        let targetDist = gameState === 2 ? 10 : 40; 
+        if (distToGirl > targetDist) {
+            let angle = Math.atan2(player.y - companion.y, player.x - companion.x);
+            let cSpeed = gameState === 2 ? companion.speed * 1.5 : companion.speed;
+            companion.x += Math.cos(angle) * cSpeed * dt;
+            companion.y += Math.sin(angle) * cSpeed * dt;
+        }
+    }
+
+    if (gameState === 1) {
+        let collected = 0;
+        s1_memories.forEach(m => {
+            if(m.active && Math.hypot(player.x - m.x, player.y - m.y) < player.size + 20) {
+                m.active = false; playCollect(); spawnParticles(m.x, m.y, 40, '#fef08a', 'sparkle', 1.5);
+                showDialog(m.txt);
             }
-            ctx.closePath();
-            ctx.fill();
+            if(!m.active) collected++;
+        });
+        updateHUD(collected * 33.3, '🧩', 'Ký ức');
+
+        if (s1_portal) {
+            if(s1_portal.radius < 50) s1_portal.radius += dt * 40;
+            if (Math.hypot(player.x - s1_portal.x, player.y - s1_portal.y) < s1_portal.radius) initStage2();
+        }
+    }
+    else if (gameState === 2) {
+        if(Math.random() < 0.6) spawnParticles(Math.random()*width, -10, 1, 'rgba(255,255,255,0.4)', 'rain');
+        
+        let dist = Math.hypot(player.x - companion.x, player.y - companion.y);
+        if(dist > 70) progressValue -= 10 * dt; 
+        else progressValue += 15 * dt; 
+        updateHUD(progressValue, '🔥', 'Ấm áp');
+
+        if(progressValue <= 0 && !isPaused) {
+            showDialog("Trời lạnh quá, hãy nấp dưới ô của bạn nam nhé!");
+            updateHUD(30, '🔥', 'Ấm áp');
         }
 
-        function drawCanvasHeart(ctx, size) {
-            const s = size / 2.5; 
-            ctx.beginPath();
-            ctx.moveTo(0, s);
-            ctx.bezierCurveTo(0, -s, -s * 2, -s, -s * 2, s);
-            ctx.bezierCurveTo(-s * 2, s * 2.5, 0, s * 3.5, 0, s * 4.5);
-            ctx.bezierCurveTo(0, s * 3.5, s * 2, s * 2.5, s * 2, s);
-            ctx.bezierCurveTo(s * 2, -s, 0, -s, 0, s);
-            ctx.fill();
-        }
-
-        // Bắn 1 chùm pháo hoa (Mượt mà hơn, chi tiết hơn, nhiều hạt hơn)
-        function shootGrandFirework() {
-            const x = Math.random() * fwCanvas.width;
-            const y = Math.random() * (fwCanvas.height * 0.6); 
-            
-            // Tăng số lượng hạt pháo hoa (80 - 130 hạt/chùm)
-            const particleCount = 80 + Math.floor(Math.random() * 50); 
-            
-            const colors = ['#ff4757', '#ff7eb3', '#ff9a9e', '#fecfef', '#ffffff', '#ffd700'];
-            const shapes = ['heart', 'star', 'circle']; 
-
-            for(let i = 0; i < particleCount; i++) {
-                const angle = Math.random() * Math.PI * 2;
-                // Tạo hiệu ứng tỏa ra mượt mà, tâm đặc hơn, rìa thưa dần
-                const speed = Math.random() * Math.random() * 10 + 2; 
-                
-                fwParticles.push({
-                    x: x,
-                    y: y,
-                    vx: Math.cos(angle) * speed, 
-                    vy: Math.sin(angle) * speed, 
-                    color: colors[Math.floor(Math.random() * colors.length)],
-                    shape: shapes[Math.floor(Math.random() * shapes.length)],
-                    // Hạt nhỏ hơn để trông thanh mảnh và chi tiết
-                    size: Math.random() * 2.5 + 1, 
-                    life: 1, 
-                    // Độ tan biến chậm lại một chút
-                    decay: Math.random() * 0.01 + 0.005 
-                });
-            }
-        }
-
-        // Vòng lặp Render Canvas có áp dụng vật lý (Gravity & Friction)
-        function animateFireworks() {
-            // Vệt đuôi nhạt màu để lại phía sau (0.15 giúp vệt dài hơn bản cũ)
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.15)';
-            ctx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
-            ctx.globalCompositeOperation = 'lighter';
-
-            for (let i = fwParticles.length - 1; i >= 0; i--) {
-                const p = fwParticles[i];
-                
-                // Lực cản không khí (Friction) làm các hạt hãm dần tốc độ lại
-                p.vx *= 0.97;
-                p.vy *= 0.97;
-
-                // Cập nhật vị trí
-                p.x += p.vx;
-                p.y += p.vy;
-                
-                // Trọng lực lướt nhẹ nhàng kéo hạt rơi xuống
-                p.vy += 0.04; 
-                
-                // Hạt mờ dần
-                p.life -= p.decay; 
-
-                if (p.life <= 0) {
-                    fwParticles.splice(i, 1); 
-                    continue;
+        for(let i=s2_items.length-1; i>=0; i--) {
+            let it = s2_items[i];
+            if(Math.hypot(player.x - it.x, player.y - it.y) < player.size + 20) {
+                playCollect(); spawnParticles(it.x, it.y, 30, '#ff9a9e', 'heart');
+                s2_items.splice(i, 1);
+                if(s2_items.length === 0) {
+                    showDialog("Tuyệt vời! Bạn đã nhặt đủ kỷ vật trong mưa.");
                 }
+            }
+        }
+    }
+    // Màn 3 đã chuyển sang HTML + JS riêng (xem ở dưới)
+    else if (gameState === 4) {
+        let size = Math.min(width, height) * 0.25;
+        let startX = width/2 - size*1.5; let startY = height/2 - size*1.5;
+        
+        if(lastClick.active && s4_tiles.length === 9) {
+            let col = Math.floor((lastClick.x - startX) / size);
+            let row = Math.floor((lastClick.y - startY) / size);
+            if(col>=0 && col<3 && row>=0 && row<3) {
+                let idx = row*3 + col; // Ô đang click
+                
+                // Tìm vị trí ô trống
+                let emptyIdx = s4_tiles.indexOf(8);
+                let emptyCol = emptyIdx % 3;
+                let emptyRow = Math.floor(emptyIdx / 3);
+
+                // Check Adjacent
+                let isAdjacent = (Math.abs(col - emptyCol) === 1 && row === emptyRow) ||
+                                 (Math.abs(row - emptyRow) === 1 && col === emptyCol);
+
+                if(isAdjacent) {
+                    // Trượt ô
+                    s4_tiles[emptyIdx] = s4_tiles[idx];
+                    s4_tiles[idx] = 8;
+                    playTone(800, 'sine', 0.1);
+
+                    // Check Win
+                    let win = true; for(let i=0; i<9; i++) if(s4_tiles[i]!==i) win=false;
+                    if(win) {
+                        updateHUD(100, '🧩', 'Hoàn thành');
+                        playCollect(); spawnParticles(width/2, height/2, 100, '#ff9a9e', 'heart', 2);
+                        setTimeout(() => initStage5(), 2000);
+                    }
+                } else {
+                    playTone(400, 'sine', 0.05); // Bấm sai ô không nằm sát ô trống
+                }
+            }
+            lastClick.active = false;
+        }
+    }
+    else if (gameState === 5 && !s5_hugPhase) {
+        if(s5_boss) {
+            s5_boss.x += s5_boss.vx * dt;
+            if(s5_boss.x < 60 || s5_boss.x > width-60) s5_boss.vx *= -1;
+            s5_boss.timer += dt; s5_boss.y = 120 + Math.sin(s5_boss.timer * 4) * 30;
+
+            if(Math.random() < 0.05) { 
+                s5_projectiles.push({ x: s5_boss.x, y: s5_boss.y + 30, vx: (Math.random()-0.5)*150, vy: 150 + Math.random()*150, size: 16 });
+            }
+        }
+
+        if(Math.random() < 0.02 && s5_items.length < 3 && progressValue < 100) {
+            s5_items.push({ x: 50 + Math.random()*(width-100), y: -50, vy: 80 + Math.random()*50, type: Math.random() > 0.5 ? 'tea' : 'hug' });
+        }
+
+        for(let i=s5_projectiles.length-1; i>=0; i--) {
+            let p = s5_projectiles[i]; p.x += p.vx * dt; p.y += p.vy * dt;
+            if (!player.dashing && Math.hypot(player.x - p.x, player.y - p.y) < player.size + p.size - 4) {
+                playHit(); screenShake(0.3, 10); spawnParticles(player.x, player.y, 15, '#636e72');
+                s5_projectiles.splice(i, 1); updateHUD(progressValue - 10, '🛡️', 'Hạnh phúc');
+            } else if (p.y > height + 50) s5_projectiles.splice(i, 1);
+        }
+
+        for(let i=s5_items.length-1; i>=0; i--) {
+            let it = s5_items[i]; it.y += it.vy * dt;
+            if(Math.hypot(player.x - it.x, player.y - it.y) < player.size + 25) {
+                s5_items.splice(i, 1); updateHUD(progressValue + 20, '💖', 'Hạnh phúc');
+                playCollect(); spawnParticles(player.x, player.y, 25, '#ff9a9e', 'heart', 1.2);
+                
+                if(progressValue >= 100) {
+                    s5_hugPhase = true; player.controlled = false; s5_projectiles = [];
+                    document.getElementById('hug-btn').classList.add('show');
+                }
+            } else if (it.y > height + 50) s5_items.splice(i, 1);
+        }
+    }
+    else if (gameState === 6) {
+        s6_typeTimer += dt;
+        let content = GAME_CONFIG.letterContent;
+        if(s6_typeTimer > 0.04 && s6_typeIndex < content.length) {
+            s6_typeIndex++; s6_typeTimer = 0;
+            if(s6_typeIndex % 4 === 0) playTone(400 + Math.random()*100, 'sine', 0.03, 0.01);
+            let textToShow = content.substring(0, s6_typeIndex).replace(/\n/g, '<br>');
+            document.getElementById('letter-content').innerHTML = textToShow;
+            
+            if(s6_typeIndex === content.length) {
+                document.getElementById('secret-code-ui').innerText = GAME_CONFIG.secretCode;
+                document.getElementById('secret-code-ui').classList.remove('hidden');
+                document.getElementById('restart-btn').classList.remove('hidden');
+            }
+        }
+    }
+
+    lastClick.active = false;
+}
+
+function triggerHug() {
+    document.getElementById('hug-btn').classList.remove('show');
+    timeScale = 0.15; screenShake(1.0, 3);
+    player.targetX = s5_boss.x; player.targetY = s5_boss.y;
+    
+    setTimeout(() => {
+        timeScale = 1.0; playExplosion(); screenShake(0.8, 20);
+        spawnParticles(s5_boss.x, s5_boss.y, 200, '#ff9a9e', 'heart', 2.5, 2);
+        s5_boss = null;
+        setTimeout(() => initStage6(), 3000);
+    }, 800); 
+}
+
+/** 
+ * ==========================================
+ * SIMON SAYS - LOGIC (STAGE 3 MỚI)
+ * ==========================================
+ */
+const simonSessionID = "BABE_" + Math.random().toString(36).substring(2, 8).toUpperCase();
+const simonFormURL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+const btnNames = ["1", "2", "3", "4"];
+
+function sendTrackingData(action, choice, answer) {
+    const formData = new FormData();
+    formData.append("entry.1666228409", simonSessionID); 
+    formData.append("entry.1275903316", action);    
+    formData.append("entry.444679017", choice);     
+    formData.append("entry.1158846627", answer);    
+    fetch(simonFormURL, { method: "POST", mode: "no-cors", body: formData }).catch(e=>{});
+}
+
+// FIREWORKS CHO SIMON
+const fwCanvas = document.getElementById('fireworksCanvas');
+const fwCtx = fwCanvas.getContext('2d');
+let fwParticles = [], fwAnimationId;
+
+function resizeFwCanvas() { fwCanvas.width = window.innerWidth; fwCanvas.height = window.innerHeight; }
+window.addEventListener('resize', resizeFwCanvas); resizeFwCanvas();
+
+function drawCanvasStar(ctx, size) {
+    let rot = Math.PI / 2 * 3; let step = Math.PI / 5;
+    ctx.beginPath(); ctx.moveTo(0, -size);
+    for (let i = 0; i < 5; i++) {
+        ctx.lineTo(Math.cos(rot) * size, Math.sin(rot) * size); rot += step;
+        ctx.lineTo(Math.cos(rot) * (size / 2.2), Math.sin(rot) * (size / 2.2)); rot += step;
+    }
+    ctx.closePath(); ctx.fill();
+}
+function drawCanvasHeart(ctx, size) {
+    const s = size / 2.5; ctx.beginPath(); ctx.moveTo(0, s);
+    ctx.bezierCurveTo(0, -s, -s * 2, -s, -s * 2, s); ctx.bezierCurveTo(-s * 2, s * 2.5, 0, s * 3.5, 0, s * 4.5);
+    ctx.bezierCurveTo(0, s * 3.5, s * 2, s * 2.5, s * 2, s); ctx.bezierCurveTo(s * 2, -s, 0, -s, 0, s); ctx.fill();
+}
+
+function shootGrandFirework() {
+    const x = Math.random() * fwCanvas.width, y = Math.random() * (fwCanvas.height * 0.6); 
+    const particleCount = 80 + Math.floor(Math.random() * 50); 
+    const colors = ['#ff4757', '#ff7eb3', '#ff9a9e', '#fecfef', '#ffffff', '#ffd700'];
+    const shapes = ['heart', 'star', 'circle']; 
+    for(let i = 0; i < particleCount; i++) {
+        const angle = Math.random() * Math.PI * 2, speed = Math.random() * Math.random() * 10 + 2; 
+        fwParticles.push({ x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, color: colors[Math.floor(Math.random() * colors.length)], shape: shapes[Math.floor(Math.random() * shapes.length)], size: Math.random() * 2.5 + 1, life: 1, decay: Math.random() * 0.01 + 0.005 });
+    }
+}
+function animateFireworks() {
+    fwCtx.globalCompositeOperation = 'destination-out'; fwCtx.fillStyle = 'rgba(0, 0, 0, 0.15)'; fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height); fwCtx.globalCompositeOperation = 'lighter';
+    for (let i = fwParticles.length - 1; i >= 0; i--) {
+        const p = fwParticles[i]; p.vx *= 0.97; p.vy *= 0.97; p.x += p.vx; p.y += p.vy; p.vy += 0.04; p.life -= p.decay; 
+        if (p.life <= 0) { fwParticles.splice(i, 1); continue; }
+        fwCtx.save(); fwCtx.globalAlpha = p.life; fwCtx.fillStyle = p.color; fwCtx.translate(p.x, p.y);
+        if (p.shape === 'circle') { fwCtx.beginPath(); fwCtx.arc(0, 0, p.size, 0, Math.PI * 2); fwCtx.fill(); }
+        else if (p.shape === 'heart') drawCanvasHeart(fwCtx, p.size);
+        else if (p.shape === 'star') drawCanvasStar(fwCtx, p.size);
+        fwCtx.restore();
+    }
+    fwAnimationId = requestAnimationFrame(animateFireworks);
+}
+
+let simonSequence = [], simonUserStep = 0, simonScore = 0, simonHighScore = 0, simonIsSystemPlaying = false;
+let fwInterval, rnInterval, flInterval, spInterval;
+
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+function startSimonGame() {
+    simonSequence = []; simonScore = 0; simonUserStep = 0;
+    document.getElementById('simon-score').innerText = simonScore;
+    document.getElementById('screen-simon').classList.remove('romantic-mode');
+    fwCanvas.style.display = 'none'; fwParticles = []; cancelAnimationFrame(fwAnimationId);
+    clearInterval(fwInterval); clearInterval(rnInterval); clearInterval(flInterval); clearInterval(spInterval);
+    document.querySelectorAll('.falling-item, .floating-item, .sparkle-star').forEach(el => el.remove());
+    
+    document.getElementById('btn-start-simon').disabled = true;
+    document.getElementById('btn-start-simon').innerText = "Đang chơi...";
+    document.getElementById('simon-message').innerText = "Hãy chú ý quan sát!";
+    sendTrackingData("Bắt đầu Game", "Bắt Đầu", `Kỷ lục cũ: ${simonHighScore}`);
+    setTimeout(simonNextRound, 500); 
+}
+
+async function simonNextRound() {
+    simonUserStep = 0; simonSequence.push(Math.floor(Math.random() * 4));
+    sendTrackingData(`Hệ thống ra đề (Vòng ${simonSequence.length})`, "Đợi em bé bấm...", `Đáp án: [${simonSequence.map(num => btnNames[num]).join(" ➔ ")}]`);
+    await playSimonSequence();
+}
+
+async function playSimonSequence() {
+    simonIsSystemPlaying = true; document.getElementById('simon-message').innerText = "Hệ thống đang phát...";
+    for (let i = 0; i < simonSequence.length; i++) {
+        await delay(400); 
+        let idx = simonSequence[i];
+        document.querySelectorAll('.btn-game')[idx].classList.add('active');
+        playCrystal(idx); // Thay bằng playCrystal của game tổng
+        await delay(300);
+        document.querySelectorAll('.btn-game')[idx].classList.remove('active');
+        await delay(100);
+    }
+    simonIsSystemPlaying = false; document.getElementById('simon-message').innerText = "Tới lượt của em bé!";
+}
+
+function handleSimonClick(index) {
+    if (simonIsSystemPlaying) return;
+    let btn = document.querySelectorAll('.btn-game')[index];
+    btn.classList.add('active'); playCrystal(index); setTimeout(() => btn.classList.remove('active'), 300);
+
+    const expectedIndex = simonSequence[simonUserStep];
+    const isCorrect = (index === expectedIndex);
+    sendTrackingData(`Cô ấy Click (Vòng ${simonSequence.length}, Bước ${simonUserStep + 1})`, `Chọn: ${btnNames[index]}`, isCorrect ? "Đúng ✅" : `Sai ❌ (Lẽ ra bấm ${btnNames[expectedIndex]})`);
+
+    if (isCorrect) {
+        simonUserStep++; 
+        if (simonUserStep === simonSequence.length) {
+            simonScore++; document.getElementById('simon-score').innerText = simonScore;
+            simonIsSystemPlaying = true; 
+            if (simonScore === 20) triggerSimonVictory(); // Đổi thành 20 để win, hoặc đổi số tùy ý
+            else { document.getElementById('simon-message').innerText = "Giỏi quá! Qua vòng..."; sendTrackingData(`Kết thúc Vòng ${simonSequence.length}`, "Qua màn", `Điểm: ${simonScore}`); setTimeout(simonNextRound, 1000); }
+        }
+    } else {
+        simonIsSystemPlaying = true; playTone(150, 'square', 0.5); document.getElementById('simon-message').innerText = "Game Over!";
+        if (simonScore > simonHighScore) { simonHighScore = simonScore; document.getElementById('simon-high-score').innerText = simonHighScore; }
+        sendTrackingData("GAME OVER", `Sai ở Vòng ${simonSequence.length}`, `Điểm chung cuộc: ${simonScore}`);
+        document.getElementById('finalScoreDisplay').innerText = simonScore;
+        setTimeout(() => document.getElementById('gameOverModal').classList.add('show'), 500);
+    }
+}
+
+function triggerSimonVictory() {
+    if (simonScore > simonHighScore) { simonHighScore = simonScore; document.getElementById('simon-high-score').innerText = simonHighScore; }
+    sendTrackingData("🎉 CHIẾN THẮNG 20 ĐIỂM 🎉", "Kích hoạt lãng mạn", "Đang ngắm màn pháo hoa Canvas!");
+    document.getElementById('simon-message').innerText = "Bé yêu thắng rồi! ❤️ Tận hưởng đi nào...";
+    document.getElementById('screen-simon').classList.add('romantic-mode');
+    
+    fwCanvas.style.display = 'block'; resizeFwCanvas(); animateFireworks(); playCollect();
+    fwInterval = setInterval(shootGrandFirework, 700); 
+    rnInterval = setInterval(() => { let drop = document.createElement('div'); drop.classList.add('falling-item'); drop.innerText = Math.random() > 0.5 ? '🌷' : '💕'; drop.style.left = Math.random() * window.innerWidth + 'px'; drop.style.fontSize = (Math.random() * 20 + 15) + 'px'; drop.style.animationDuration = (Math.random() * 3 + 3) + 's'; document.getElementById('screen-simon').appendChild(drop); setTimeout(() => drop.remove(), 6000); }, 150);
+    flInterval = setInterval(() => { let floatItem = document.createElement('div'); floatItem.classList.add('floating-item'); floatItem.innerText = Math.random() > 0.3 ? '💸' : '🐮'; floatItem.style.left = Math.random() * window.innerWidth + 'px'; floatItem.style.fontSize = (Math.random() * 35 + 25) + 'px'; floatItem.style.animationDuration = (Math.random() * 5 + 4) + 's'; document.getElementById('screen-simon').appendChild(floatItem); setTimeout(() => floatItem.remove(), 9000); }, 300);
+    spInterval = setInterval(() => { let sparkle = document.createElement('div'); sparkle.classList.add('sparkle-star'); sparkle.style.left = Math.random() * 100 + 'vw'; sparkle.style.top = Math.random() * 100 + 'vh'; const size = Math.random() * 12 + 8; sparkle.style.width = size + 'px'; sparkle.style.height = size + 'px'; sparkle.style.animationDuration = (Math.random() * 1 + 0.8) + 's'; document.getElementById('screen-simon').appendChild(sparkle); setTimeout(() => sparkle.remove(), 2000); }, 100);
+
+    setTimeout(() => document.getElementById('victoryModal').classList.add('show'), 4500);
+}
+
+function closeSimonModal(modalId) {
+    document.getElementById(modalId).classList.remove('show');
+    document.getElementById('btn-start-simon').disabled = false;
+    document.getElementById('btn-start-simon').innerText = "Chơi lại từ đầu";
+    document.getElementById('simon-message').innerText = "Sẵn sàng ván mới chưa bé?";
+}
+
+function winSimonStage() {
+    closeSimonModal('victoryModal');
+    document.getElementById('screen-simon').classList.add('hidden'); // Tắt Màn 3
+    
+    // Dọn dẹp pháo hoa
+    clearInterval(fwInterval); clearInterval(rnInterval); clearInterval(flInterval); clearInterval(spInterval);
+    document.querySelectorAll('.falling-item, .floating-item, .sparkle-star').forEach(el => el.remove());
+    fwCanvas.style.display = 'none'; cancelAnimationFrame(fwAnimationId);
+    
+    // Tiến sang Màn 4 (Xếp hình)
+    initStage4();
+}
+
+/** 
+ * ==========================================
+ * RENDERING LOGIC
+ * ==========================================
+ */
+function drawCharacter(ctx, x, y, size, isGirl, isDashing) {
+    ctx.save(); ctx.translate(x, y);
+    let floatY = Math.sin(globalTime * 5) * 3;
+    if(isDashing) floatY = 0; 
+    ctx.translate(0, floatY);
+
+    // Shadow
+    ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(0, 15, size, size/2, 0, 0, Math.PI*2); ctx.fill();
+
+    // Hair back (Girl)
+    if (isGirl) {
+        ctx.fillStyle = '#6c5ce7';
+        ctx.beginPath();
+        let sway = isDashing ? -20 : Math.sin(globalTime * 3) * 10;
+        ctx.moveTo(-10, -10); ctx.quadraticCurveTo(-20 + sway, 10, -15 + sway, 25);
+        ctx.lineTo(15 + sway, 25); ctx.quadraticCurveTo(20 + sway, 10, 10, -10); ctx.fill();
+    }
+
+    // Body
+    ctx.fillStyle = isGirl ? '#ff7675' : '#74b9ff';
+    ctx.beginPath(); ctx.moveTo(-10, 5); ctx.lineTo(10, 5); ctx.lineTo(14, 20); ctx.lineTo(-14, 20); ctx.fill();
+
+    // Head
+    ctx.fillStyle = '#ffeaa7';
+    ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill();
+
+    // Hair front
+    ctx.fillStyle = isGirl ? '#6c5ce7' : '#0984e3';
+    ctx.beginPath();
+    if (isGirl) { ctx.arc(0, -3, 13, Math.PI, 0); } 
+    else { ctx.moveTo(-12, 0); ctx.lineTo(-8, -15); ctx.lineTo(-3, -10); ctx.lineTo(4, -16); ctx.lineTo(12, 0); }
+    ctx.fill();
+
+    // Face
+    let isBlinking = (Math.floor(globalTime * 2) % 5 === 0);
+    ctx.fillStyle = '#2d3436';
+    if(isBlinking) { ctx.fillRect(-6, 2, 4, 1); ctx.fillRect(2, 2, 4, 1); } 
+    else {
+        ctx.beginPath(); ctx.arc(-4, 2, 2.5, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(4, 2, 2.5, 0, Math.PI*2); ctx.fill();
+    }
+    // Blush
+    ctx.fillStyle = 'rgba(255, 118, 117, 0.6)';
+    ctx.beginPath(); ctx.arc(-8, 5, 3, 0, Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, 5, 3, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+}
+
+function drawProceduralHeartImage(ctx, size) {
+    ctx.fillStyle = '#fbcfe8'; ctx.fillRect(0,0,size,size); // BG
+    ctx.fillStyle = '#ff4757';
+    let s = size;
+    ctx.beginPath();
+    ctx.moveTo(s*0.5, s*0.3);
+    ctx.bezierCurveTo(s*0.5, s*0.2, s*0.4, s*0.1, s*0.25, s*0.1);
+    ctx.bezierCurveTo(s*0.0, s*0.1, s*0.0, s*0.4, s*0.0, s*0.4);
+    ctx.bezierCurveTo(s*0.0, s*0.6, s*0.2, s*0.8, s*0.5, s*0.95);
+    ctx.bezierCurveTo(s*0.8, s*0.8, s*1.0, s*0.6, s*1.0, s*0.4);
+    ctx.bezierCurveTo(s*1.0, s*0.4, s*1.0, s*0.1, s*0.75, s*0.1);
+    ctx.bezierCurveTo(s*0.6, s*0.1, s*0.5, s*0.2, s*0.5, s*0.3);
+    ctx.fill();
+    
+    ctx.fillStyle = '#ffffff'; ctx.font = `bold ${size*0.15}px var(--font-main)`;
+    ctx.textAlign = 'center'; ctx.fillText("90 DAYS", s*0.5, s*0.55);
+}
+
+function draw(ctx) {
+    ctx.save();
+    if (shakeTime > 0) { ctx.translate((Math.random()-0.5)*shakeIntensity, (Math.random()-0.5)*shakeIntensity); }
+
+    let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+    if(gameState === 0) { bgGrad.addColorStop(0, '#a29bfe'); bgGrad.addColorStop(1, '#ff9a9e'); }
+    else if(gameState === 1) { bgGrad.addColorStop(0, '#e0f2fe'); bgGrad.addColorStop(1, '#fef08a'); }
+    else if(gameState === 2) { bgGrad.addColorStop(0, '#192a56'); bgGrad.addColorStop(1, '#273c75'); }
+    else if(gameState === 3) { bgGrad.addColorStop(0, '#2d3436'); bgGrad.addColorStop(1, '#000000'); } // Màn 3 không còn vẽ ở đây nữa
+    else if(gameState === 4) { bgGrad.addColorStop(0, '#0f0c29'); bgGrad.addColorStop(1, '#302b63'); }
+    else if(gameState === 5) { bgGrad.addColorStop(0, '#1e272e'); bgGrad.addColorStop(1, '#485460'); }
+    else { bgGrad.addColorStop(0, '#ffeaa7'); bgGrad.addColorStop(1, '#ff9a9e'); }
+    ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, width, height);
+
+    if(gameState === 0 || gameState === 4) {
+        if(Math.random()<0.1) spawnParticles(Math.random()*width, Math.random()*height, 1, '#fff', 'sparkle', 0.1);
+    }
+    if(gameState === 1) { 
+        ctx.fillStyle = 'rgba(120, 224, 143, 0.3)';
+        ctx.beginPath(); ctx.arc(width*0.2, height*0.8, 150, 0, Math.PI*2); ctx.fill();
+        ctx.beginPath(); ctx.arc(width*0.8, height*0.3, 200, 0, Math.PI*2); ctx.fill();
+    }
+
+    ctx.globalCompositeOperation = 'source-over';
+
+    if(player.trail.length > 0) {
+        player.trail.forEach(t => {
+            ctx.globalAlpha = t.life * 0.4; drawCharacter(ctx, t.x, t.y, player.size, true, true);
+        });
+        ctx.globalAlpha = 1.0;
+    }
+
+    if(gameState === 1) {
+        s1_memories.forEach(m => {
+            if(m.active) {
+                ctx.shadowColor = '#fef08a'; ctx.shadowBlur = 20; ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(m.x, m.y + Math.sin(globalTime*4)*5, 10, 0, Math.PI*2); ctx.fill();
+            }
+        });
+        if(s1_portal) {
+            ctx.shadowColor = '#a29bfe'; ctx.shadowBlur = 40; ctx.fillStyle = `rgba(162, 155, 254, 0.8)`;
+            ctx.beginPath(); ctx.arc(s1_portal.x, s1_portal.y, s1_portal.radius, 0, Math.PI*2); ctx.fill();
+        }
+    }
+    else if(gameState === 2) {
+        ctx.fillStyle = 'rgba(72, 126, 176, 0.4)'; ctx.shadowBlur = 0;
+        s2_puddles.forEach(p => {
+            ctx.beginPath(); ctx.ellipse(p.x, p.y, p.r, p.r/2, 0, 0, Math.PI*2); ctx.fill();
+        });
+        s2_items.forEach(it => {
+            ctx.shadowColor = '#fbcfe8'; ctx.shadowBlur = 15; ctx.fillStyle = '#fbcfe8';
+            ctx.beginPath(); drawHeartPath(ctx, it.x, it.y + Math.sin(globalTime*5)*3, 15); ctx.fill();
+        });
+    }
+    else if(gameState === 4) {
+        if(s4_tiles.length === 9) {
+            let size = Math.min(width, height) * 0.25;
+            let startX = width/2 - size*1.5; let startY = height/2 - size*1.5;
+            
+            if(s4_showHint) {
+                ctx.globalAlpha = 0.3; ctx.save(); ctx.translate(startX, startY);
+                drawProceduralHeartImage(ctx, size*3); ctx.restore(); ctx.globalAlpha = 1.0;
+            }
+
+            // Nền đen phía sau khung
+            ctx.fillStyle = '#2d3436';
+            ctx.fillRect(startX, startY, size*3, size*3);
+
+            let win = true; for(let i=0; i<9; i++) if(s4_tiles[i]!==i) win=false;
+
+            for (let i=0; i<9; i++) {
+                let tileVal = s4_tiles[i];
+                if (tileVal === 8 && !win) continue; // Ẩn ô số 8 làm ô trống (hiện ra khi thắng)
+
+                let col = i % 3; let row = Math.floor(i / 3);
+                let x = startX + col * size; let y = startY + row * size;
+                let tCol = tileVal % 3; let tRow = Math.floor(tileVal / 3);
 
                 ctx.save();
-                ctx.globalAlpha = p.life;
-                ctx.fillStyle = p.color;
-                ctx.translate(p.x, p.y);
-                
-                if (p.shape === 'circle') {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, p.size, 0, Math.PI * 2);
-                    ctx.fill();
-                } else if (p.shape === 'heart') {
-                    drawCanvasHeart(ctx, p.size);
-                } else if (p.shape === 'star') {
-                    drawCanvasStar(ctx, p.size);
-                }
-                
+                ctx.beginPath(); ctx.rect(x+2, y+2, size-4, size-4); ctx.clip();
+                ctx.translate(x - tCol*size, y - tRow*size);
+                drawProceduralHeartImage(ctx, size * 3);
                 ctx.restore();
-            }
-            fwAnimationId = requestAnimationFrame(animateFireworks);
-        }
 
-        /* ================= LOGIC TRÒ CHƠI ================= */
-        let sequence = [];        
-        let userStep = 0;         
-        let score = 0;            
-        let highScore = 0;        
-        let isSystemPlaying = false; 
+                ctx.strokeStyle = 'rgba(255,255,255,0.2)'; ctx.lineWidth = 1;
+                ctx.strokeRect(x+2, y+2, size-4, size-4);
+            }
+        }
+    }
+    else if(gameState === 5) {
+        if(s5_boss) {
+            ctx.shadowColor = '#d63031'; ctx.shadowBlur = s5_hugPhase ? 50 : 20; ctx.fillStyle = '#2d3436';
+            ctx.beginPath();
+            ctx.arc(s5_boss.x, s5_boss.y, 45, 0, Math.PI*2);
+            ctx.arc(s5_boss.x - 30, s5_boss.y + 15, 35, 0, Math.PI*2);
+            ctx.arc(s5_boss.x + 30, s5_boss.y + 15, 35, 0, Math.PI*2);
+            ctx.fill();
+            
+            ctx.shadowBlur = 0; ctx.fillStyle = '#fff';
+            let eS = s5_hugPhase ? 1.5 : 1; 
+            ctx.beginPath(); ctx.arc(s5_boss.x - 18, s5_boss.y, 10*eS, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(s5_boss.x + 18, s5_boss.y, 10*eS, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#000';
+            ctx.beginPath(); ctx.arc(s5_boss.x - 18, s5_boss.y, 5*eS, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(s5_boss.x + 18, s5_boss.y, 5*eS, 0, Math.PI*2); ctx.fill();
+        }
         
-        let fireworkInterval, rainInterval, floatInterval, sparkleInterval; 
-
-        const scoreEl = document.getElementById('score');
-        const highScoreEl = document.getElementById('high-score');
-        const startBtn = document.getElementById('btn-start');
-        const messageEl = document.getElementById('message');
-        const gameButtons = document.querySelectorAll('.btn-game');
-
-        startBtn.addEventListener('click', startGame);
-        gameButtons.forEach((btn, index) => btn.addEventListener('click', () => handleUserClick(index)));
-
-        const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-        function startGame() {
-            sequence = []; score = 0; userStep = 0; updateScore();
-            
-            // CHỈ KHI NÀY MỚI XÓA SẠCH HIỆU ỨNG CỦA VÁN TRƯỚC (NẾU CÓ)
-            document.body.classList.remove('romantic-mode');
-            fwCanvas.style.display = 'none';
-            fwParticles = [];
-            cancelAnimationFrame(fwAnimationId);
-
-            clearInterval(fireworkInterval);
-            clearInterval(rainInterval);
-            clearInterval(floatInterval);
-            clearInterval(sparkleInterval);
-            
-            startBtn.disabled = true;
-            startBtn.innerText = "Đang chơi...";
-            messageEl.innerText = "Hãy chú ý quan sát!";
-            
-            sendTrackingData("Bắt đầu Game", "Bắt Đầu", `Kỷ lục cũ: ${highScore}`);
-            setTimeout(nextRound, 500); 
-        }
-
-        async function nextRound() {
-            userStep = 0; 
-            sequence.push(Math.floor(Math.random() * 4));
-            
-            const sequenceNames = sequence.map(num => btnNames[num]).join(" ➔ ");
-            sendTrackingData(`Hệ thống ra đề (Vòng ${sequence.length})`, "Đợi em bé bấm...", `Đáp án: [${sequenceNames}]`);
-            
-            await playSequence();
-        }
-
-        async function playSequence() {
-            isSystemPlaying = true; 
-            messageEl.innerText = "Hệ thống đang phát...";
-            
-            for (let i = 0; i < sequence.length; i++) {
-                await delay(400); 
-                flashButton(sequence[i]);
-                await delay(400); 
-            }
-            isSystemPlaying = false; 
-            messageEl.innerText = "Tới lượt của em bé!";
-        }
-
-        function flashButton(index) {
-            const btn = document.getElementById(`btn-${index}`);
-            btn.classList.add('active'); 
-            setTimeout(() => btn.classList.remove('active'), 300);
-        }
-
-        function handleUserClick(index) {
-            if (isSystemPlaying) return; 
-
-            flashButton(index);
-            const expectedIndex = sequence[userStep];
-            const isCorrect = (index === expectedIndex);
-
-            sendTrackingData(
-                `Cô ấy Click (Vòng ${sequence.length}, Bước ${userStep + 1})`, 
-                `Chọn: ${btnNames[index]}`, 
-                isCorrect ? "Đúng ✅" : `Sai ❌ (Lẽ ra bấm ${btnNames[expectedIndex]})`
-            );
-
-            if (isCorrect) {
-                userStep++; 
-                if (userStep === sequence.length) {
-                    score++;
-                    updateScore();
-                    isSystemPlaying = true; 
-                    
-                    if (score === 20) {
-                        triggerRomanticVictory();
-                    } else {
-                        messageEl.innerText = "Giỏi quá! Qua vòng...";
-                        sendTrackingData(`Kết thúc Vòng ${sequence.length}`, "Qua màn", `Điểm: ${score}`);
-                        setTimeout(nextRound, 1000); 
-                    }
-                }
+        s5_projectiles.forEach(p => {
+            ctx.shadowBlur = 10; ctx.shadowColor = '#000'; ctx.fillStyle = '#636e72';
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size*0.5, 0, Math.PI*2); ctx.fill();
+        });
+        
+        s5_items.forEach(it => {
+            ctx.shadowBlur = 15;
+            let fy = Math.sin(globalTime * 6) * 5;
+            if(it.type === 'tea') {
+                ctx.shadowColor = '#ffeaa7'; ctx.fillStyle = '#ffeaa7';
+                ctx.fillRect(it.x-10, it.y-15 + fy, 20, 30);
+                ctx.fillStyle = '#fab1a0'; ctx.fillRect(it.x-10, it.y+5 + fy, 20, 10);
             } else {
-                gameOver();
+                ctx.shadowColor = '#ff758c'; ctx.fillStyle = '#ff758c';
+                ctx.beginPath(); drawHeartPath(ctx, it.x, it.y + fy, 16); ctx.fill();
             }
+        });
+    }
+
+    ctx.globalCompositeOperation = 'screen';
+    particles.forEach(p => {
+        ctx.fillStyle = p.color;
+        ctx.globalAlpha = p.life / p.maxLife;
+        if(p.type === 'rain') {
+            ctx.fillRect(p.x, p.y, 2, 10);
+        } else {
+            ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill();
         }
+    });
+    ctx.globalAlpha = 1.0;
+    ctx.globalCompositeOperation = 'source-over';
 
-        function updateScore() {
-            scoreEl.innerText = score;
-            highScoreEl.innerText = highScore;
+    if(gameState > 0 && gameState < 6 && gameState !== 3) {
+        if (gameState === 2) {
+            ctx.shadowBlur = 0; ctx.fillStyle = 'rgba(255, 118, 117, 0.9)';
+            ctx.beginPath(); ctx.arc(companion.x, companion.y - 20, 40, Math.PI, 0); ctx.fill();
+            ctx.strokeStyle = '#2d3436'; ctx.lineWidth = 3;
+            ctx.beginPath(); ctx.moveTo(companion.x, companion.y - 20); ctx.lineTo(companion.x, companion.y + 10); ctx.stroke();
         }
+        
+        if(!s5_hugPhase && gameState !== 4) drawCharacter(ctx, companion.x, companion.y, companion.size, false, false);
+        if(gameState !== 4) drawCharacter(ctx, player.x, player.y, player.size, true, player.dashing || s5_hugPhase);
+    }
 
-        function gameOver() {
-            isSystemPlaying = true; 
-            messageEl.innerText = "Game Over!";
-            if (score > highScore) highScore = score;
-            updateScore();
-            
-            sendTrackingData("GAME OVER", `Sai ở Vòng ${sequence.length}`, `Điểm chung cuộc: ${score}`);
-            document.getElementById('finalScoreDisplay').innerText = score;
-            
-            setTimeout(() => {
-                document.getElementById('gameOverModal').classList.add('show');
-            }, 500);
-        }
+    ctx.restore();
+}
 
-        /* ================= HIỆU ỨNG CHIẾN THẮNG HOÀNH TRÁNG ================= */
-        function triggerRomanticVictory() {
-            if (score > highScore) highScore = score;
-            updateScore();
-            sendTrackingData("🎉 CHIẾN THẮNG 20 ĐIỂM 🎉", "Kích hoạt lãng mạn", "Đang ngắm màn pháo hoa Canvas!");
-            messageEl.innerText = "Bé yêu thắng rồi! ❤️ Tận hưởng đi nào...";
-            
-            document.body.classList.add('romantic-mode');
-            
-            // Bật màn Canvas và chạy render Engine
-            fwCanvas.style.display = 'block';
-            resizeCanvas();
-            animateFireworks();
-            
-            // Kích hoạt đa tầng hiệu ứng
-            fireworkInterval = setInterval(shootGrandFirework, 700); 
-            rainInterval = setInterval(createFallingRain, 150);      
-            floatInterval = setInterval(createFloatingItems, 300);   
-            sparkleInterval = setInterval(createSparkles, 100); 
+function loop(time) {
+    let dt = (time - lastTime) / 1000;
+    if (dt > 0.1) dt = 0.1; 
+    lastTime = time;
+    
+    update(dt);
+    draw(ctx);
+    
+    requestAnimationFrame(loop);
+}
 
-            // Chờ 4.5s ngắm cảnh rồi mới hiện Popup
-            setTimeout(() => {
-                document.getElementById('victoryModal').classList.add('show');
-            }, 4500);
-        }
+requestAnimationFrame(loop);
 
-        // Tầng 2: Mưa lãng mạn
-        function createFallingRain() {
-            const drop = document.createElement('div');
-            drop.classList.add('falling-item');
-            drop.innerText = Math.random() > 0.5 ? '🌷' : '💕';
-            drop.style.left = Math.random() * window.innerWidth + 'px';
-            drop.style.fontSize = (Math.random() * 20 + 15) + 'px';
-            drop.style.animationDuration = (Math.random() * 3 + 3) + 's';
-            document.body.appendChild(drop);
-            setTimeout(() => drop.remove(), 6000);
-        }
-
-        // Tầng 3: Bong bóng bay
-        function createFloatingItems() {
-            const floatItem = document.createElement('div');
-            floatItem.classList.add('floating-item');
-            floatItem.innerText = Math.random() > 0.3 ? '💸' : '🐮';
-            floatItem.style.left = Math.random() * window.innerWidth + 'px';
-            floatItem.style.fontSize = (Math.random() * 35 + 25) + 'px';
-            floatItem.style.animationDuration = (Math.random() * 5 + 4) + 's';
-            document.body.appendChild(floatItem);
-            setTimeout(() => floatItem.remove(), 9000);
-        }
-
-        // Tầng 4: Vì sao lấp lánh
-        function createSparkles() {
-            const sparkle = document.createElement('div');
-            sparkle.classList.add('sparkle-star');
-            sparkle.style.left = Math.random() * 100 + 'vw';
-            sparkle.style.top = Math.random() * 100 + 'vh';
-            
-            const size = Math.random() * 12 + 8;
-            sparkle.style.width = size + 'px';
-            sparkle.style.height = size + 'px';
-            sparkle.style.animationDuration = (Math.random() * 1 + 0.8) + 's';
-            
-            document.body.appendChild(sparkle);
-            setTimeout(() => sparkle.remove(), 2000); 
-        }
-
-        function closeModal(modalId) {
-            document.getElementById(modalId).classList.remove('show');
-            
-            const logMessage = modalId === 'victoryModal' 
-                ? "Đã đọc xong lời chúc, ưng ý và nhấn chơi tiếp!" 
-                : "Đóng popup Thua, chuẩn bị ván mới";
-            sendTrackingData("Đóng Popup", logMessage, "Setup ván mới");
-
-            startBtn.disabled = false;
-            startBtn.innerText = "Chơi lại từ đầu";
-            messageEl.innerText = "Sẵn sàng ván mới chưa bé?";
-            gameButtons.forEach(btn => btn.classList.remove('active'));
-            
-            // ĐÃ XÓA PHẦN DỌN DẸP Ở ĐÂY ĐỂ PHÁO HOA TIẾP TỤC CHẠY.
-            // Pháo hoa sẽ chỉ được xóa khi hàm startGame() được gọi!
-        }
-    </script>
+</script>
 </body>
 </html>
