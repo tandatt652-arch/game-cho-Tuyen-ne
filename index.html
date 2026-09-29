@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Ninety Days of You</title>
+    <title>Đat bị khùng</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
         
@@ -11,12 +11,6 @@
             --primary: #ff8fb3;
             --text-dark: #2d3436;
             --text-light: #fff;
-            
-            /* CSS Variables cho nhân vật DOM */
-            --ink: #2d3436;
-            --c-primary: #ff8fb3;
-            --c-secondary: #ff758c;
-            --c-accent: #fef08a;
         }
 
         body, html {
@@ -25,7 +19,7 @@
             overflow: hidden;
             background-color: #000;
             font-family: 'Quicksand', sans-serif;
-            touch-action: none;
+            touch-action: none; 
         }
 
         canvas {
@@ -59,7 +53,6 @@
             z-index: 100;
         }
 
-        /* Đảm bảo class hidden và mọi thứ bên trong nó đều không thể click */
         .hidden { opacity: 0 !important; pointer-events: none !important; }
         .hidden * { pointer-events: none !important; }
 
@@ -73,6 +66,8 @@
         h2 {
             color: #ffeaa7; font-size: 1.5rem;
             text-shadow: 0 0 10px #ffeaa7; margin-bottom: 40px;
+            text-align: center;
+            padding: 0 20px;
         }
 
         button {
@@ -112,78 +107,24 @@
         }
         .heart-icon { color: #ff4757; font-size: 24px; text-shadow: 0 0 10px #ff4757; }
         .hp-bar-container {
-            width: 200px; height: 15px; background: rgba(255,255,255,0.3);
+            width: 150px; height: 15px; background: rgba(255,255,255,0.3);
             border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(255,255,255,0.2);
         }
         .hp-bar-fill {
             height: 100%; width: 0%;
-            background: linear-gradient(90deg, #ff9a9e, #ff758c); transition: width 0.3s;
+            background: linear-gradient(90deg, #1e90ff, #ff9a9e); transition: width 0.3s;
+        }
+        .hs-box {
+            background: rgba(0,0,0,0.5);
+            padding: 5px 12px;
+            border-radius: 20px;
+            color: #ffeaa7;
+            font-weight: bold;
+            font-size: 14px;
+            border: 1px solid #ffeaa7;
+            box-shadow: 0 0 10px rgba(255,234,167,0.3);
         }
 
-        #mobile-controls {
-            position: absolute; bottom: 20px; left: 0;
-            width: 100%; height: 150px; display: none; pointer-events: none;
-            z-index: 40;
-        }
-        @media (hover: none) and (pointer: coarse) { #mobile-controls { display: block; } }
-
-        .joystick-base {
-            position: absolute; bottom: 20px; left: 20px; width: 120px; height: 120px;
-            background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 50%; pointer-events: auto;
-        }
-        .joystick-stick {
-            position: absolute; top: 50%; left: 50%; width: 50px; height: 50px;
-            background: rgba(255,255,255,0.5); border-radius: 50%; transform: translate(-50%, -50%);
-        }
-        .action-btn {
-            position: absolute; bottom: 35px; right: 30px; width: 80px; height: 80px;
-            background: rgba(255, 117, 140, 0.4); border: 2px solid rgba(255, 117, 140, 0.8);
-            border-radius: 50%; pointer-events: auto; display: flex; justify-content: center;
-            align-items: center; color: white; font-weight: bold; font-size: 0.9rem; text-shadow: 0 0 5px #000;
-        }
-        .action-btn:active { background: rgba(255, 117, 140, 0.8); transform: scale(0.95); }
-
-        #hug-btn {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
-            font-size: 2rem; padding: 20px 50px; background: linear-gradient(135deg, #ff0844 0%, #ffb199 100%);
-            color: white; border-radius: 50px; border: 4px solid white; opacity: 0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); pointer-events: auto;
-            z-index: 60;
-        }
-        #hug-btn.show {
-            transform: translate(-50%, -50%) scale(1); opacity: 1;
-            animation: pulseHug 1s infinite alternate;
-        }
-        @keyframes pulseHug {
-            0% { box-shadow: 0 0 20px #ff0844; }
-            100% { box-shadow: 0 0 50px #ff0844; transform: translate(-50%, -50%) scale(1.1); }
-        }
-
-        /* ------------------------------------- */
-        /* MODEL CỦA NHÂN VẬT NỮ */
-        /* ------------------------------------- */
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-        .player { position:absolute; width:56px; height:66px; z-index:20; transform-origin:center bottom; background:transparent; border:none; top: 0; left: 0; will-change: transform; pointer-events: none; }
-        .chibi { position:relative; width:100%; height:100%; animation:bounce 1.5s infinite ease-in-out; }
-        .cb-head { position:absolute; width:46px; height:46px; border:4px solid var(--ink); border-radius:45%; left:5px; top:0; z-index:2; background:#ffe6d5; box-sizing: border-box; }
-        .cb-hair { position:absolute; width:54px; height:25px; background:var(--ink); border-radius:25px 25px 0 0; top:-4px; left:-8px; z-index:3; box-sizing: border-box;}
-        .cb-backhair { position:absolute; width:56px; height:50px; background:var(--ink); border-radius:30px; top:10px; left:0; z-index:1; }
-        .cb-eye { position:absolute; top:20px; width:6px; height:10px; background:var(--ink); border-radius:50%; z-index:3; }
-        .cb-eye.e1 { left:8px; } .cb-eye.e2 { right:8px; }
-        .cb-blush { position:absolute; top:26px; width:8px; height:5px; background:#ff7ca8; border-radius:50%; opacity:0.6; z-index:3; }
-        .cb-blush.b1 { left:2px; } .cb-blush.b2 { right:2px; }
-        .cb-mouth { position:absolute; left:14px; top:30px; width:10px; height:5px; border-radius:0 0 10px 10px; background:var(--ink); z-index:3; }
-        .cb-body { position:absolute; width:34px; height:26px; background:var(--c-primary); border:4px solid var(--ink); border-radius:10px; bottom:0; left:11px; z-index:2; box-sizing: border-box;}
-        .avatar-acc { position:absolute; pointer-events:none; z-index:6; }
-        .acc-bow { left:23px; top:-2px; width:42px; height:26px; transform:rotate(6deg); }
-        .acc-bow::before, .acc-bow::after { content:""; position:absolute; top:3px; width:18px; height:14px; background:var(--c-secondary); border:3px solid var(--ink); box-shadow:inset 0 3px #ffffffa0; box-sizing: border-box;}
-        .acc-bow::before { left:1px; border-radius:80% 25% 65% 30%; transform:rotate(-12deg); }
-        .acc-bow::after { right:1px; border-radius:25% 80% 30% 65%; transform:rotate(12deg); }
-        .acc-bow i { position:absolute; left:16px; top:6px; width:10px; height:10px; background:var(--c-accent); border:3px solid var(--ink); border-radius:5px; z-index:3; box-sizing: border-box;}
-        .acc-bow span, .acc-bow b { position:absolute; display:block; width:7px; height:11px; background:var(--c-primary); border:3px solid var(--ink); border-top:none; border-radius:0 0 7px 7px; top:12px; z-index:2; box-sizing: border-box;}
-        .acc-bow span { left:10px; transform:rotate(10deg); }
-        .acc-bow b { right:10px; transform:rotate(-10deg); }
     </style>
 </head>
 <body>
@@ -192,64 +133,48 @@
 
     <div id="ui-layer">
         
-        <!-- NHÂN VẬT DOM CHÍNH -->
-        <div id="dom-player" class="player" style="display:none;">
-            <div class="chibi">
-                <div class="cb-backhair"></div>
-                <div class="cb-head">
-                    <div class="cb-hair"></div>
-                    <div class="cb-eye e1"></div><div class="cb-eye e2"></div>
-                    <div class="cb-blush b1"></div><div class="cb-blush b2"></div>
-                    <div class="cb-mouth"></div>
-                </div>
-                <div class="cb-body"></div>
-                <div class="avatar-acc acc-bow">
-                    <i></i><span></span><b></b>
-                </div>
-            </div>
-        </div>
-
+        <!-- HUD hiển thị tiến độ vòng chơi & Kỷ lục -->
         <div id="hud">
-            <div class="heart-icon">❤</div>
+            <div class="heart-icon">🎵</div>
             <div class="hp-bar-container"><div class="hp-bar-fill" id="hp-fill"></div></div>
-            <div style="color:white; font-weight:bold; text-shadow:0 0 5px #000;" id="hp-text">Hạnh phúc: 0%</div>
+            <div style="color:white; font-weight:bold; text-shadow:0 0 5px #000; width: 85px;" id="hp-text">Vòng: 1/10</div>
+            <div class="hs-box" id="hs-text">Kỷ lục: 0</div>
         </div>
 
+        <!-- Màn hình Intro -->
         <div id="screen-intro" class="screen">
-            <h1 id="intro-title">Ninety Days of You</h1>
-            <h2 id="intro-subtitle">Hành trình 3 tháng</h2>
-            <button onclick="startGame()">Bắt đầu choii</button>
+            <h1>Huhuhuhu tuyến bị khùng</h1>
+            <h2>Không khó.</h2>
+            <button onclick="startGame()">Bắt Đầu Chơi</button>
         </div>
 
-        <!-- Màn hình kết thúc: background trong suốt, không bị mờ -->
+        <!-- Màn hình Chiến Thắng -->
         <div id="screen-ending" class="screen hidden" style="background: transparent; backdrop-filter: none;">
-            <div style="position: absolute; bottom: 20px; text-align:center; pointer-events:none; width: 100%;">
-                <div id="end-secret" style="color:#fde68a; font-size: 1.5rem; letter-spacing: 5px; margin-bottom: 10px; font-weight: bold; text-shadow: 0 0 10px #fde68a;"></div>
-                <button onclick="location.reload()" style="pointer-events:auto;">Chơi lại từ đầu</button>
+            <div style="position: absolute; bottom: 20%; text-align:center; pointer-events:none; width: 100%;">
+                <h1 style="color:#fde68a; font-size: 3rem; text-shadow: 0 0 20px #fde68a; margin-bottom: 30px;">Bạn Đã Chiến Thắng!</h1>
+                <button onclick="location.reload()" style="pointer-events:auto;">Chơi Lại Lần Nữa</button>
             </div>
         </div>
 
+        <!-- Hộp thoại thông báo -->
         <div id="dialog-box">
             <div id="dialog-text">Text here...</div>
             <button onclick="closeDialog()">Tiếp tục</button>
         </div>
 
-        <button id="hug-btn" onclick="triggerHug()">TẶNG CÁI ÔM</button>
-
-        <div id="mobile-controls">
-            <div class="joystick-base" id="joy-base"><div class="joystick-stick" id="joy-stick"></div></div>
-            <div class="action-btn" id="btn-dash">DASH</div>
-        </div>
     </div>
 
 <script>
 /** 
  * ==========================================
- * GOOGLE FORM TELEMETRY (THEO DÕI THAO TÁC)
+ * GOOGLE FORM TELEMETRY & HIGH SCORE
  * ==========================================
  */
-const SESSION_ID = "S_" + Math.random().toString(36).substring(2, 8).toUpperCase() + "_" + Date.now().toString().slice(-4);
+const SESSION_ID = "SIMON_" + Math.random().toString(36).substring(2, 8).toUpperCase();
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
+
+// Lấy kỷ lục từ bộ nhớ trình duyệt
+let highScore = parseInt(localStorage.getItem('simonHighScore')) || 0;
 
 function trackAction(context, choice, result) {
     const formData = new URLSearchParams();
@@ -260,90 +185,66 @@ function trackAction(context, choice, result) {
 
     fetch(FORM_URL, {
         method: 'POST',
-        mode: 'no-cors', // Bỏ qua CORS để gửi ẩn danh
+        mode: 'no-cors',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: formData.toString()
-    }).catch(err => console.log("Tracker Note: ", err)); // Nuốt lỗi tránh sập game
+    }).catch(err => console.log("Tracker Note: ", err));
 }
 
 /** 
  * ==========================================
- * CẤU HÌNH NHÂN VẬT & NỘI DUNG (JSON CONFIG)
+ * CORE ENGINE
  * ==========================================
- */
-const GAME_CONFIG = {
-    boyName: "Đạt",
-    girlName: "Tuyến",
-    anniversaryDate: "Kỷ niệm 3 tháng iu nhau",
-    secretCode: "#LOVE90DAYS",
-    letterText: `Gửi em, cô gái nhỏ bé...\n\n90 ngày qua giống như một giấc mơ vậy.\nTừ những tin nhắn rụt rè ngày đầu,\nđến những lúc chia sẻ mọi buồn vui.\n\nCảm ơn em vì đã đến, đã kiên nhẫn,\nvà đã bao dung cho những lúc anh Overthinking.\n\n3 tháng không phải là dài,\nnhưng đủ để anh biết mình muốn cùng em\nđi tiếp những tháng ngày sau này.\n\nAnh yêu em nhiều lắm! ❤️`
-};
-
-document.getElementById('intro-title').innerText = `${GAME_CONFIG.boyName} & ${GAME_CONFIG.girlName}`;
-document.getElementById('intro-subtitle').innerText = GAME_CONFIG.anniversaryDate;
-document.getElementById('end-secret').innerText = GAME_CONFIG.secretCode;
-
-
-/** 
- * CORE ENGINE 
  */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
-const domPlayer = document.getElementById('dom-player');
 let width, height;
 
-// State Machine & Juice
 let gameState = 0; 
 let lastTime = 0;
-let happiness = 0;
-let timeScale = 1.0;
 let shakeTime = 0;
 let shakeMag = 0;
+let isPaused = false;
 
-// Input State
-const keys = { up: false, down: false, left: false, right: false, dash: false };
-
-// Player (Girl - Logic Bounds)
-const player = {
-    x: 0, y: 0, size: 15,
-    vx: 0, vy: 0, speed: 250,
-    isGirl: true,
-    dashing: false, dashTime: 0, dashCooldown: 0,
-    targetX: 0, targetY: 0,
-    controlled: true,
-    blinkTimer: 0
-};
-
-// Companion (Boy) Entity
-const companion = {
-    x: 0, y: 0, isGirl: false,
-    vx: 0, vy: 0, blinkTimer: 0
-};
+// Dữ liệu Simon
+let flowers = [];
+let simonSequence = [];
+let simonPlayerStep = 0;
+let simonRound = 0; 
+let simonState = 'init'; 
+let simonTimer = 0;
+const TOTAL_ROUNDS = 10;
+const COLOR_NAMES = ["Đỏ", "Xanh Lam", "Vàng", "Hồng"];
 
 let particles = [];
-let trails = [];
-let gameEntities = [];
-let boss = null;
-let projectiles = [];
 
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = width; canvas.height = height;
-    if(gameState === 0) {
-        player.x = width / 2; player.y = height / 2;
-        companion.x = player.x; companion.y = player.y + 30;
-    }
+    
+    let cx = width / 2; 
+    let cy = height / 2; 
+    let r = Math.min(width, height) * 0.25;
+    
+    flowers = [
+        { x: cx, y: cy - r, color: '#ff4757', glow: 0, radius: width < 500 ? 30 : 45 },
+        { x: cx + r, y: cy, color: '#1e90ff', glow: 0, radius: width < 500 ? 30 : 45 },
+        { x: cx, y: cy + r, color: '#ffa502', glow: 0, radius: width < 500 ? 30 : 45 },
+        { x: cx - r, y: cy, color: '#ff6b81', glow: 0, radius: width < 500 ? 30 : 45 }
+    ];
 }
 window.addEventListener('resize', resize);
 resize();
 
-// ==========================================
-// AUDIO ENGINE (Web Audio API)
-// ==========================================
+
+/** 
+ * ==========================================
+ * HỆ THỐNG ÂM THANH
+ * ==========================================
+ */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
-let melodyInterval = null;
 
 function initAudio() {
     if (!audioCtx) audioCtx = new AudioContext();
@@ -365,562 +266,301 @@ function playTone(freq, type = 'sine', duration = 0.3, vol = 0.1) {
 function playCrystal(index) {
     const freqs = [261.63, 329.63, 392.00, 523.25];
     playTone(freqs[index], 'sine', 0.6, 0.2);
-    playTone(freqs[index] * 2, 'triangle', 0.6, 0.05);
+    playTone(freqs[index] * 2, 'triangle', 0.6, 0.05); 
 }
 
-function playDash() { playTone(150, 'sawtooth', 0.2, 0.05); }
-function playCollect() { playTone(600, 'sine', 0.1, 0.1); setTimeout(() => playTone(800, 'sine', 0.2, 0.1), 100); }
-function playExplosion() {
-    if (!audioCtx) return;
-    const bufferSize = audioCtx.sampleRate * 1.5; 
-    const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-    const data = buffer.getChannelData(0);
-    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-    const noise = audioCtx.createBufferSource(); noise.buffer = buffer;
-    const filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 1000;
-    const gain = audioCtx.createGain();
-    gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1.5);
-    noise.connect(filter); filter.connect(gain); gain.connect(audioCtx.destination); noise.start();
+function playCollect() { 
+    playTone(600, 'sine', 0.1, 0.1); 
+    setTimeout(() => playTone(800, 'sine', 0.2, 0.1), 100); 
 }
-function startMelody() {
-    if(!audioCtx) return;
-    const notes = [261.63, 329.63, 392.00, 493.88, 523.25]; let noteIdx = 0;
-    melodyInterval = setInterval(() => {
-        playTone(notes[noteIdx], 'triangle', 0.8, 0.05); noteIdx = (noteIdx + 1) % notes.length;
-    }, 1000);
+function playError() {
+    playTone(150, 'sawtooth', 0.5, 0.15);
 }
-function stopMelody() { if(melodyInterval) clearInterval(melodyInterval); }
 
-// ==========================================
-// INPUT HANDLING
-// ==========================================
-window.addEventListener('keydown', (e) => {
-    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = true;
-    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = true;
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = true;
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = true;
-    if (e.code === 'Space') keys.dash = true;
-});
-window.addEventListener('keyup', (e) => {
-    if (e.code === 'ArrowUp' || e.code === 'KeyW') keys.up = false;
-    if (e.code === 'ArrowDown' || e.code === 'KeyS') keys.down = false;
-    if (e.code === 'ArrowLeft' || e.code === 'KeyA') keys.left = false;
-    if (e.code === 'ArrowRight' || e.code === 'KeyD') keys.right = false;
-    if (e.code === 'Space') keys.dash = false;
-});
 
-const joyBase = document.getElementById('joy-base'); const joyStick = document.getElementById('joy-stick'); const dashBtn = document.getElementById('btn-dash');
-let joyActive = false; let joyCenter = {x:0, y:0};
-
-joyBase.addEventListener('touchstart', (e) => {
-    e.preventDefault(); const rect = joyBase.getBoundingClientRect();
-    joyCenter = { x: rect.left + rect.width/2, y: rect.top + rect.height/2 };
-    joyActive = true; updateJoystick(e.touches[0]);
-}, {passive: false});
-joyBase.addEventListener('touchmove', (e) => { e.preventDefault(); if(joyActive) updateJoystick(e.touches[0]); }, {passive: false});
-joyBase.addEventListener('touchend', (e) => {
-    e.preventDefault(); joyActive = false; joyStick.style.transform = `translate(-50%, -50%)`;
-    keys.up = keys.down = keys.left = keys.right = false;
-}, {passive: false});
-
-function updateJoystick(touch) {
-    let dx = touch.clientX - joyCenter.x; let dy = touch.clientY - joyCenter.y;
-    let dist = Math.hypot(dx, dy); let maxDist = 40;
-    if (dist > maxDist) { dx = (dx/dist) * maxDist; dy = (dy/dist) * maxDist; }
-    joyStick.style.transform = `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px))`;
-    keys.right = dx > 15; keys.left = dx < -15; keys.down = dy > 15; keys.up = dy < -15;
-}
-dashBtn.addEventListener('touchstart', (e) => { e.preventDefault(); keys.dash = true; }); dashBtn.addEventListener('touchend', (e) => { e.preventDefault(); keys.dash = false; });
-dashBtn.addEventListener('mousedown', () => { keys.dash = true; }); dashBtn.addEventListener('mouseup', () => { keys.dash = false; });
-
+/** 
+ * ==========================================
+ * INPUT HANDLING
+ * ==========================================
+ */
 canvas.addEventListener('mousedown', handleCanvasClick);
-canvas.addEventListener('touchstart', (e) => { const touch = e.touches[0]; handleCanvasClick({clientX: touch.clientX, clientY: touch.clientY}); }, {passive: false});
+canvas.addEventListener('touchstart', (e) => { 
+    const touch = e.touches[0]; 
+    handleCanvasClick({clientX: touch.clientX, clientY: touch.clientY}); 
+}, {passive: false});
 
 function handleCanvasClick(e) {
-    if(gameState === 2 && simonState === 'player') {
+    if(gameState === 1 && simonState === 'player' && !isPaused) {
         const rect = canvas.getBoundingClientRect();
-        const x = e.clientX - rect.left; const y = e.clientY - rect.top;
-        s2Flowers.forEach((f, idx) => { if(Math.hypot(f.x - x, f.y - y) < f.radius + 20) onSimonClick(idx); });
-    } else if (gameState === 4 && s4State === 'envelope') {
-        s4State = 'reading'; playCollect(); startMelody();
-        spawnParticles(width/2, height/2, 50, '#ff9a9e', 'heart');
-        trackAction("Màn 4", "Mở thư", "Đọc thư"); // TRACKING
+        const x = e.clientX - rect.left; 
+        const y = e.clientY - rect.top;
+        
+        flowers.forEach((f, idx) => { 
+            if(Math.hypot(f.x - x, f.y - y) < f.radius + 20) {
+                onSimonClick(idx);
+            }
+        });
     }
 }
 
-// ==========================================
-// PARTICLES & UTILS
-// ==========================================
+
+/** 
+ * ==========================================
+ * PARTICLES & UTILS
+ * ==========================================
+ */
 function spawnParticles(x, y, count, color, type='sparkle') {
     for(let i=0; i<count; i++) {
         particles.push({
             x, y, vx: (Math.random()-0.5) * 300, vy: (Math.random()-0.5) * 300,
-            life: 1, maxLife: 0.5 + Math.random(), color: color, type: type, size: Math.random() * 3 + 2
+            life: 1, maxLife: 0.5 + Math.random(), color: color, type: type, size: Math.random() * 4 + 2
         });
     }
 }
 function updateParticles(dt) {
-    for(let i = particles.length - 1; i >= 0; i--) { let p = particles[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; if (p.life <= 0) particles.splice(i, 1); }
-    for(let i = trails.length - 1; i >= 0; i--) { trails[i].life -= dt * 2.5; if(trails[i].life <= 0) trails.splice(i, 1); }
+    for(let i = particles.length - 1; i >= 0; i--) { 
+        let p = particles[i]; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; 
+        if (p.life <= 0) particles.splice(i, 1); 
+    }
 }
 function drawParticles(ctx) {
     particles.forEach(p => {
         ctx.globalAlpha = Math.max(0, p.life / p.maxLife); ctx.fillStyle = p.color; ctx.beginPath();
         if(p.type === 'sparkle' || p.type === 'firefly') { ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); } 
         else if (p.type === 'petal') { ctx.ellipse(p.x, p.y, p.size, p.size/2, p.life*5, 0, Math.PI*2); ctx.fill(); } 
-        else if (p.type === 'heart') { drawHeartPath(ctx, p.x, p.y, p.size); ctx.fill(); }
     });
     ctx.globalAlpha = 1;
 }
-function drawHeartPath(ctx, x, y, size) {
-    ctx.moveTo(x, y + size/4); ctx.quadraticCurveTo(x, y, x - size/2, y); ctx.quadraticCurveTo(x - size, y, x - size, y + size/2.5);
-    ctx.quadraticCurveTo(x - size, y + size, x, y + size*1.2); ctx.quadraticCurveTo(x + size, y + size, x + size, y + size/2.5);
-    ctx.quadraticCurveTo(x + size, y, x + size/2, y); ctx.quadraticCurveTo(x, y, x, y + size/4);
+
+function updateProgress() {
+    let percent = (simonRound / TOTAL_ROUNDS) * 100;
+    document.getElementById('hp-fill').style.width = percent + '%'; 
+    document.getElementById('hp-text').innerText = `Vòng: ${simonRound + 1}/${TOTAL_ROUNDS}`;
 }
-function updateHappiness(amount) {
-    happiness = Math.min(100, Math.max(0, happiness + amount));
-    document.getElementById('hp-fill').style.width = happiness + '%'; document.getElementById('hp-text').innerText = `Hạnh phúc: ${Math.floor(happiness)}%`;
-}
+
 function triggerScreenShake(duration, magnitude) { shakeTime = duration; shakeMag = magnitude; }
 
-// ==========================================
-// SCENE SPECIFIC DATA
-// ==========================================
-let s1Memories = []; let s1Portal = null; let isPaused = false; let currentDialogContext = "";
-let s2Flowers = []; let simonSequence = []; let simonPlayerStep = 0; let simonRound = 0; let simonState = 'init'; let simonTimer = 0;
-let s3Items = []; let s3ItemScore = 0; let s3HugPhase = false;
-let s4State = 'envelope'; let typeIndex = 0; let typeTimer = 0;
 
+/** 
+ * ==========================================
+ * GAME LOGIC
+ * ==========================================
+ */
 function startGame() {
     initAudio();
     const introScreen = document.getElementById('screen-intro');
     introScreen.classList.add('hidden');
-    // Xóa hẳn khối intro ra khỏi luồng xử lý click sau khi nó mờ đi
     setTimeout(() => { introScreen.style.display = 'none'; }, 500); 
     
+    // Hiển thị Kỷ Lục đã lưu
+    document.getElementById('hs-text').innerText = `Kỷ lục: ${highScore}`;
     document.getElementById('hud').style.opacity = 1;
-    gameState = 1; initStage1(); playCollect();
-    trackAction("Intro", "Bấm Bắt đầu", "Vào Màn 1"); // TRACKING
+    
+    gameState = 1;
+    simonRound = 0;
+    simonState = 'init';
+    simonTimer = 1.0;
+    updateProgress();
+    trackAction("Hệ Thống", "Bấm Bắt Đầu", "Vào Game Simon");
 }
 
-function initStage1() {
-    player.x = width / 2; player.y = height - 100;
-    companion.x = player.x; companion.y = player.y + 40;
-    player.controlled = true;
-    s1Memories = [
-        { x: width*0.2, y: height*0.7, active: true, text: `Tháng 1: Gặp hơi nhìu khó khăn trong chuyện hiểu nhau nhưng vẫn vượt qua được` },
-        { x: width*0.8, y: height*0.4, active: true, text: "Tháng 1: Những dòng tin nhắn chúc ngủ ngoan trở thành thói quen hông thể thiếu.(có khi bỏ ngta đi ngủ luôn)" },
-        { x: width*0.5, y: height*0.2, active: true, text: "Tháng 1: Những dòng tin nhắn đầu tiên, rụt rè nhưng truyền hơi ấm len lỏi vào tim." }
-    ];
-}
-
-function initStage2() {
-    gameState = 2; player.x = width / 2; player.y = height - 100; player.controlled = false;
-    let cx = width/2; let cy = height/2 - 50; let r = Math.min(width, height)*0.25;
-    s2Flowers = [
-        { x: cx, y: cy - r, color: '#ff4757', glow: 0, radius: 40 },
-        { x: cx + r, y: cy, color: '#1e90ff', glow: 0, radius: 40 },
-        { x: cx, y: cy + r, color: '#ffa502', glow: 0, radius: 40 },
-        { x: cx - r, y: cy, color: '#ff6b81', glow: 0, radius: 40 }
-    ];
-    simonRound = 0; simonState = 'init'; simonTimer = 1; updateHappiness(30);
-    showDialog("Tháng 2: Khu Vườn Giai Điệu<br><br>Hãy lắng nghe và lặp lại giai điệu của những bông hoa pha lê để chúng nở rộ nhé!", "Dialog Màn 2");
-}
-
-function initStage3() {
-    gameState = 3; player.x = width / 2; player.y = height - 100; player.controlled = true;
-    s3ItemScore = 0; s3HugPhase = false;
-    boss = { x: width/2, y: 150, vx: 150, timer: 0 };
-    projectiles = []; s3Items = []; updateHappiness(30);
-    showDialog("Tháng 3: Tháp Giông Bão<br><br>Giai đoạn này mình thỉnh thoảng Overthinking và dỗi hờn.<br>Hãy né tránh cầu đen bằng nút DASH (Space) và thu thập Đồ ngọt/Cái ôm nhé!", "Dialog Màn 3");
-}
-
-function initStage4() {
-    gameState = 4;
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('mobile-controls').classList.add('hidden');
-    stopMelody();
-}
-
-function showDialog(htmlText, context = "Dialog System") {
-    isPaused = true; currentDialogContext = context;
+function showDialog(htmlText) {
+    isPaused = true;
     const db = document.getElementById('dialog-box');
     document.getElementById('dialog-text').innerHTML = htmlText;
     db.classList.add('show');
-    player.controlled = false;
-    keys.up = keys.down = keys.left = keys.right = keys.dash = false;
 }
+
 function closeDialog() {
     document.getElementById('dialog-box').classList.remove('show');
-    trackAction(currentDialogContext, "Click Tiếp tục", "Đóng Dialog"); // TRACKING
     setTimeout(() => {
         isPaused = false;
-        if(gameState === 1) {
-            player.controlled = true;
-            if (s1Memories.filter(m=>m.active).length === 0 && !s1Portal) {
-                s1Portal = { x: width/2, y: height/2, radius: 0 };
-                trackAction("Màn 1", "Nhặt đủ 3 mảnh", "Mở Cổng Không Gian"); // TRACKING
-            }
-        } else if (gameState === 2 && simonState === 'init') {
-            startSimonRound();
-        } else if (gameState === 3) {
-            player.controlled = true;
+        if (simonState === 'wait_transition') {
+            simonState = 'init';
+            simonTimer = 0.5;
         }
     }, 300);
 }
 
-// ==========================================
-// UPDATE LOGIC (with TimeScale)
-// ==========================================
-function update(realDt) {
-    if(isPaused) return;
-    let dt = realDt * timeScale;
-    updateParticles(realDt); 
-
-    // Player Update
-    if (player.controlled) {
-        let dx = 0; let dy = 0;
-        if(keys.up) dy -= 1; if(keys.down) dy += 1;
-        if(keys.left) dx -= 1; if(keys.right) dx += 1;
-        if (dx !== 0 || dy !== 0) { let len = Math.hypot(dx, dy); dx /= len; dy /= len; }
-
-        if(player.dashCooldown > 0) player.dashCooldown -= dt;
-        if(keys.dash && !player.dashing && player.dashCooldown <= 0) {
-            player.dashing = true; player.dashTime = 0.2; player.dashCooldown = 1.0;
-            playDash(); spawnParticles(player.x, player.y, 10, '#fff');
-        }
-
-        let currentSpeed = player.dashing ? player.speed * 3.5 : player.speed;
-        if (player.dashing) {
-            player.dashTime -= dt;
-            if(player.dashTime <= 0) player.dashing = false;
-            trails.push({x: player.x, y: player.y, isGirl: true, life: 0.8, vx: player.vx, vy: player.vy});
-        }
-
-        player.vx = dx * currentSpeed; player.vy = dy * currentSpeed;
-        player.x += player.vx * dt; player.y += player.vy * dt;
-        player.x = Math.max(player.size, Math.min(width - player.size, player.x));
-        player.y = Math.max(player.size, Math.min(height - player.size, player.y));
-    } else if(player.targetX !== 0 && player.targetY !== 0) {
-        let dx = player.targetX - player.x; let dy = player.targetY - player.y;
-        let dist = Math.hypot(dx, dy);
-        if(dist > 10) {
-            player.vx = (dx/dist) * player.speed; player.vy = (dy/dist) * player.speed;
-            player.x += player.vx * dt; player.y += player.vy * dt;
-            trails.push({x: player.x, y: player.y, isGirl: true, life: 0.5, vx: player.vx, vy: player.vy});
-        }
-    }
-
-    if(Math.random() < 0.01) player.blinkTimer = 0.2;
-    if(Math.random() < 0.01) companion.blinkTimer = 0.2;
-    if(player.blinkTimer > 0) player.blinkTimer -= realDt;
-    if(companion.blinkTimer > 0) companion.blinkTimer -= realDt;
-
-    // Companion Logic
-    let cx = player.x - (player.vx > 0 ? 30 : (player.vx < 0 ? -30 : 0)); let cy = player.y + 30;
-    let distC = Math.hypot(companion.x - cx, companion.y - cy);
-    if(distC > 5) {
-        companion.vx = (cx - companion.x) * 5; companion.vy = (cy - companion.y) * 5;
-        companion.x += companion.vx * dt; companion.y += companion.vy * dt;
-        if(Math.random() < 0.1 && distC > 15 && gameState > 0 && gameState < 4) spawnParticles(companion.x, companion.y + 10, 1, '#ff9a9e', 'heart');
-    } else { companion.vx = 0; companion.vy = 0; }
-
-    // --- STAGE LOGIC ---
-    if (gameState === 1) {
-        s1Memories.forEach((m, idx) => {
-            if(m.active && Math.hypot(player.x - m.x, player.y - m.y) < player.size + 20) {
-                m.active = false; playCollect(); spawnParticles(m.x, m.y, 30, '#fef08a');
-                showDialog(m.text, `Dialog Ký Ức ${idx+1}`); updateHappiness(10);
-                trackAction("Màn 1", `Nhặt mảnh ký ức ${idx+1}`, "+10 HP"); // TRACKING
-            }
-        });
-        if (s1Portal) {
-            if(s1Portal.radius < 40) s1Portal.radius += dt * 20;
-            if (Math.hypot(player.x - s1Portal.x, player.y - s1Portal.y) < s1Portal.radius) {
-                trackAction("Màn 1", "Chạm Cổng Không Gian", "Chuyển sang Màn 2"); // TRACKING
-                initStage2();
-            }
-        }
-    }
-
-    if (gameState === 2) {
-        s2Flowers.forEach(f => { if(f.glow > 0) f.glow -= dt * 2; });
-        if (simonState === 'playing') simonTimer -= dt;
-        else if (simonState === 'wait_transition') {
-            simonTimer -= dt;
-            if(simonTimer <= 0) {
-                simonRound++;
-                // THAY ĐỔI: Chuyển từ > 7 thành > 9 (Để được 10 vòng)
-                if(simonRound > 9) {
-                    trackAction("Màn 2", "Hoàn thành 10 Vòng", "Chuyển sang Màn 3"); // TRACKING
-                    initStage3();
-                } else startSimonRound();
-            }
-        }
-    }
-
-    if (gameState === 3 && boss) {
-        if (!s3HugPhase) {
-            boss.x += boss.vx * dt; if(boss.x < 50 || boss.x > width-50) boss.vx *= -1;
-            boss.timer += dt; boss.y = 150 + Math.sin(boss.timer * 3) * 30;
-
-            if(Math.random() < 0.05 + simonRound*0.01) {
-                projectiles.push({ x: boss.x, y: boss.y, vx: (Math.random()-0.5)*100, vy: 150 + Math.random()*100, size: 15 });
-                triggerScreenShake(0.1, 3);
-            }
-
-            if(Math.random() < 0.01 && s3Items.length < 3) {
-                s3Items.push({ x: 50 + Math.random()*(width-100), y: height + 50, vy: -100 - Math.random()*50, type: Math.random() > 0.5 ? 'tea' : 'hug' });
-            }
-
-            for(let i=projectiles.length-1; i>=0; i--) {
-                let p = projectiles[i]; p.x += p.vx * dt; p.y += p.vy * dt;
-                if (!player.dashing && Math.hypot(player.x - p.x, player.y - p.y) < player.size + p.size) {
-                    playTone(200, 'sawtooth', 0.2); projectiles.splice(i, 1);
-                    spawnParticles(player.x, player.y, 10, '#2d3436');
-                    player.y += 20; triggerScreenShake(0.3, 8);
-                    trackAction("Màn 3", "Bị trúng đạn Overthinking", "Bị đẩy lùi"); // TRACKING
-                } else if (p.y > height + 50) projectiles.splice(i, 1);
-            }
-
-            for(let i=s3Items.length-1; i>=0; i--) {
-                let it = s3Items[i]; it.y += it.vy * dt;
-                if(Math.hypot(player.x - it.x, player.y - it.y) < player.size + 20) {
-                    let typeHit = it.type;
-                    s3Items.splice(i, 1); s3ItemScore++; updateHappiness(10);
-                    playCollect(); spawnParticles(player.x, player.y, 20, '#ff9a9e', 'heart');
-                    trackAction("Màn 3", `Nhặt vật phẩm: ${typeHit}`, `Điểm Boss: ${s3ItemScore}/5`); // TRACKING
-                    
-                    if(s3ItemScore >= 5) {
-                        s3HugPhase = true; document.getElementById('hug-btn').classList.add('show');
-                        player.controlled = false; projectiles = [];
-                        trackAction("Màn 3", "Đủ 5 Vật Phẩm", "Hiện nút Tặng Cái Ôm"); // TRACKING
-                    }
-                } else if (it.y < -50) s3Items.splice(i, 1);
-            }
-        } else {
-            if(Math.hypot(player.x - boss.x, player.y - boss.y) < 30) {
-                if(timeScale > 0.5) { 
-                    timeScale = 0.1;
-                    setTimeout(() => {
-                        timeScale = 1.0; playExplosion(); triggerScreenShake(0.5, 15);
-                        spawnParticles(boss.x, boss.y, 150, '#ff9a9e', 'heart'); boss = null; updateHappiness(30);
-                        trackAction("Màn 3", "Ôm Boss thành công", "Chuyển sang Màn 4"); // TRACKING
-                        setTimeout(() => initStage4(), 2000);
-                    }, 500); 
-                }
-            }
-        }
-    }
-
-    if (gameState === 4 && s4State === 'reading') {
-        typeTimer += realDt;
-        if(typeTimer > 0.05 && typeIndex < GAME_CONFIG.letterText.length) { typeIndex++; typeTimer = 0; }
-        if(typeIndex === GAME_CONFIG.letterText.length) {
-            document.getElementById('screen-ending').classList.remove('hidden');
-        }
-    }
-}
-
-// ==========================================
-// SIMON SAYS 10 VÒNG
-// ==========================================
+// Bắt đầu vòng mới
 function startSimonRound() {
-    simonState = 'playing'; player.controlled = false;
-    // Bắt đầu từ 1, lên đến 10
-    let counts = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]; 
-    let n = counts[simonRound];
-    simonSequence = []; for(let i=0; i<n; i++) simonSequence.push(Math.floor(Math.random()*4));
+    simonState = 'playing'; 
+    updateProgress();
+
+    let n = simonRound + 1;
+    simonSequence = []; 
+    for(let i=0; i<n; i++) {
+        simonSequence.push(Math.floor(Math.random()*4));
+    }
     
-    // TRACKING: Gửi dữ liệu đáp án về Google Form mỗi khi máy ra đề
-    const colorNames = ["Đỏ", "Xanh Lam", "Vàng", "Hồng"];
-    const sequenceStr = simonSequence.map(idx => colorNames[idx]).join(", ");
-    trackAction("Màn 2", `Máy ra đáp án Vòng ${simonRound + 1}`, sequenceStr);
+    const sequenceStr = simonSequence.map(idx => COLOR_NAMES[idx]).join(", ");
+    trackAction("Vòng " + (simonRound + 1), "Máy ra đề", sequenceStr);
 
     playSimonSequence();
 }
 
 async function playSimonSequence() {
-    await sleep(500);
+    await sleep(600);
     for(let i=0; i<simonSequence.length; i++) {
-        let idx = simonSequence[i]; s2Flowers[idx].glow = 1.0; playCrystal(idx);
-        spawnParticles(s2Flowers[idx].x, s2Flowers[idx].y, 15, s2Flowers[idx].color, 'petal');
-        await sleep(600);
+        let idx = simonSequence[i]; 
+        flowers[idx].glow = 1.0; 
+        playCrystal(idx);
+        spawnParticles(flowers[idx].x, flowers[idx].y, 15, flowers[idx].color, 'petal');
+        await sleep(700);
     }
-    simonState = 'player'; simonPlayerStep = 0;
+    simonState = 'player'; 
+    simonPlayerStep = 0;
 }
 
+// Người chơi bấm
 function onSimonClick(idx) {
-    if(simonState !== 'player') return;
-    s2Flowers[idx].glow = 1.0; playCrystal(idx);
-    spawnParticles(s2Flowers[idx].x, s2Flowers[idx].y, 10, s2Flowers[idx].color, 'petal');
+    // GHI NHẬN TỪNG LẦN BẤM CỦA NGƯỜI CHƠI GỬI VỀ FORM
+    trackAction("Vòng " + (simonRound + 1), "Người chơi bấm nút", COLOR_NAMES[idx]);
+
+    flowers[idx].glow = 1.0; 
+    playCrystal(idx);
+    spawnParticles(flowers[idx].x, flowers[idx].y, 10, flowers[idx].color, 'petal');
     
+    // Đúng nốt
     if(idx === simonSequence[simonPlayerStep]) {
         simonPlayerStep++;
+        
+        // Hoàn thành cả chuỗi
         if(simonPlayerStep >= simonSequence.length) {
-            simonState = 'wait_transition'; simonTimer = 1.5; updateHappiness(10);
-            trackAction("Màn 2", `Thắng Vòng ${simonRound + 1}`, "+10 HP"); // TRACKING
-            setTimeout(() => { playCollect(); spawnParticles(width/2, height/2, 50, '#fbcfe8', 'sparkle'); }, 500);
+            simonState = 'wait_transition'; 
+            simonTimer = 1.0; 
+            trackAction("Vòng " + (simonRound + 1), "Kết quả vòng", "Đúng chuỗi -> Qua Vòng");
+            
+            // XỬ LÝ LƯU KỶ LỤC KHI QUA VÒNG
+            let currentScore = simonRound + 1;
+            if(currentScore > highScore) {
+                highScore = currentScore;
+                localStorage.setItem('simonHighScore', highScore);
+                document.getElementById('hs-text').innerText = `Kỷ lục: ${highScore}`;
+            }
+            
+            setTimeout(() => { 
+                playCollect(); 
+                spawnParticles(width/2, height/2, 60, '#fbcfe8', 'sparkle'); 
+            }, 300);
         }
-    } else {
-        playTone(150, 'sawtooth', 0.5); triggerScreenShake(0.3, 5);
-        simonState = 'wait_transition'; simonTimer = 1.0; 
-        trackAction("Màn 2", `Sai ở Vòng ${simonRound + 1}`, "Chơi lại vòng này"); // TRACKING
-        simonRound = Math.max(0, simonRound - 1); 
-        showDialog("Oái, sai nốt nhạc rồi.<br>Đừng vội, mình cùng thử lại nhé!", "Dialog Sai Nhạc");
+    } 
+    // Sai nốt
+    else {
+        playError(); 
+        triggerScreenShake(0.3, 5);
+        simonState = 'wait_transition'; 
+        simonTimer = 999; // Dừng logic tự động đợi tắt Dialog
+        
+        trackAction("Vòng " + (simonRound + 1), "Kết quả vòng", "Bấm sai -> Chơi lại vòng này");
+        
+        showDialog("Oái, sai nốt nhạc rồi.<br>Lắng nghe kỹ hơn và thử lại nhé!");
     }
 }
+
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
-function triggerHug() {
-    document.getElementById('hug-btn').classList.remove('show');
-    player.targetX = boss.x; player.targetY = boss.y + 10;
-    player.speed = 1000; player.dashing = true; 
-    trackAction("Màn 3", "Click Nút ÔM BOSS", "Lao nhanh tới Boss"); // TRACKING
+function winGame() {
+    gameState = 2; // Win State
+    document.getElementById('screen-ending').classList.remove('hidden');
+    document.getElementById('hud').classList.add('hidden');
+    spawnParticles(width/2, height/2, 200, '#fde68a', 'sparkle');
+    playCollect();
+    setTimeout(playCollect, 200);
+    setTimeout(playCollect, 400);
+    trackAction("Hệ Thống", "Hoàn Thành Game", "Chiến Thắng 10 Vòng");
 }
 
-// ==========================================
-// PROCEDURAL ART & RENDERING
-// ==========================================
-function drawCharacter(ctx, charObj, alpha = 1.0) {
-    // Canvas vẽ Companion (Boy) & Bóng mờ (Trails)
-    ctx.save(); ctx.globalAlpha = alpha; ctx.translate(charObj.x, charObj.y);
-    let bounce = (Math.abs(charObj.vx) > 5 || Math.abs(charObj.vy) > 5) ? Math.sin(Date.now()/50)*2 : Math.sin(Date.now()/200)*1;
-    let scaleX = charObj.vx < -5 ? -1 : 1; ctx.scale(scaleX, 1);
 
-    if (charObj.isGirl) {
-        // Chỉ dùng Canvas vẽ bóng mờ (dash trail) của Player Girl, không vẽ khung thật
-        if (alpha === 1.0) { ctx.restore(); return; } 
+/** 
+ * ==========================================
+ * RENDER LOOP
+ * ==========================================
+ */
+function update(dt) {
+    if(isPaused) return;
+    updateParticles(dt); 
 
-        ctx.fillStyle = '#6c5ce7'; let hairSway = charObj.vx * 0.05 + Math.sin(Date.now()/300)*2;
-        ctx.beginPath(); ctx.moveTo(0, -5); ctx.quadraticCurveTo(-15 - hairSway, 10, -10 - hairSway, 25); ctx.lineTo(10, -5); ctx.fill();
-        ctx.fillStyle = '#ff758c'; ctx.beginPath(); ctx.moveTo(0, 5 + bounce); ctx.lineTo(-8, 20 + bounce); ctx.lineTo(8, 20 + bounce); ctx.fill();
-        ctx.fillStyle = '#ffeaa7'; ctx.beginPath(); ctx.arc(0, 0 + bounce, 10, 0, Math.PI*2); ctx.fill();
-    } else {
-        ctx.fillStyle = '#74b9ff'; ctx.beginPath(); ctx.moveTo(-6, 5 + bounce); ctx.lineTo(-6, 18 + bounce); ctx.lineTo(6, 18 + bounce); ctx.lineTo(6, 5 + bounce); ctx.fill();
-        ctx.fillStyle = '#ffeaa7'; ctx.beginPath(); ctx.arc(0, 0 + bounce, 9, 0, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#2d3436'; ctx.beginPath(); ctx.arc(0, -2 + bounce, 9.5, Math.PI, Math.PI*2); ctx.fill();
-        ctx.fillStyle = '#2d3436';
-        if (charObj.blinkTimer > 0) { ctx.fillRect(-4, -2 + bounce, 2, 1); ctx.fillRect(2, -2 + bounce, 2, 1); } 
-        else { ctx.beginPath(); ctx.arc(-3, -2 + bounce, 1.2, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(3, -2 + bounce, 1.2, 0, Math.PI*2); ctx.fill(); }
+    if (gameState === 1) {
+        flowers.forEach(f => { if(f.glow > 0) f.glow -= dt * 2; });
+
+        if (simonState === 'init') {
+            simonTimer -= dt;
+            if (simonTimer <= 0) startSimonRound();
+        } 
+        else if (simonState === 'wait_transition') {
+            simonTimer -= dt;
+            if(simonTimer <= 0) {
+                simonRound++;
+                if(simonRound >= TOTAL_ROUNDS) {
+                    winGame();
+                } else {
+                    simonState = 'init';
+                    simonTimer = 0.5;
+                }
+            }
+        }
     }
-    ctx.restore();
 }
 
 function draw(ctx) {
     ctx.save();
-    if(shakeTime > 0 && gameState !== 4) {
+    
+    if(shakeTime > 0) {
         shakeTime -= 0.016;
         let sx = (Math.random()-0.5)*shakeMag; let sy = (Math.random()-0.5)*shakeMag;
         ctx.translate(sx, sy);
     }
 
     let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-    if (gameState === 1) { bgGrad.addColorStop(0, '#e0f2fe'); bgGrad.addColorStop(1, '#fef08a'); }
-    else if (gameState === 2) { bgGrad.addColorStop(0, '#e9d5ff'); bgGrad.addColorStop(1, '#fbcfe8'); }
-    else if (gameState === 3) { bgGrad.addColorStop(0, '#1e1b4b'); bgGrad.addColorStop(1, '#312e81'); }
-    else if (gameState === 4) { bgGrad.addColorStop(0, '#fef3c7'); bgGrad.addColorStop(1, '#fde68a'); }
-    else { bgGrad.addColorStop(0, '#000'); bgGrad.addColorStop(1, '#2d3436'); }
-    
-    ctx.fillStyle = bgGrad; ctx.fillRect(0, 0, width, height);
+    bgGrad.addColorStop(0, '#e9d5ff'); 
+    bgGrad.addColorStop(1, '#fbcfe8');
+    ctx.fillStyle = bgGrad; 
+    ctx.fillRect(0, 0, width, height);
 
-    if(gameState > 0 && gameState < 4 && Math.random() < 0.1) spawnParticles(Math.random()*width, Math.random()*height, 1, '#fff', 'firefly');
+    if(gameState === 1 && Math.random() < 0.1) {
+        spawnParticles(Math.random()*width, Math.random()*height, 1, '#fff', 'firefly');
+    }
     
     drawParticles(ctx);
 
-    ctx.shadowBlur = 0; 
-    if (gameState === 1) {
-        s1Memories.forEach(m => {
-            if(m.active) {
-                ctx.shadowColor = '#fef08a'; ctx.shadowBlur = 20; ctx.fillStyle = '#fef08a';
-                ctx.beginPath(); ctx.arc(m.x, m.y, 15, 0, Math.PI*2); ctx.fill();
-                ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(m.x, m.y, 5, 0, Math.PI*2); ctx.fill();
-            }
-        });
-        if (s1Portal) {
-            ctx.shadowColor = '#a29bfe'; ctx.shadowBlur = 30; ctx.fillStyle = `rgba(162, 155, 254, 0.5)`;
-            ctx.beginPath(); ctx.arc(s1Portal.x, s1Portal.y, s1Portal.radius, 0, Math.PI*2); ctx.fill();
-            ctx.beginPath(); ctx.arc(s1Portal.x, s1Portal.y, s1Portal.radius*0.6, 0, Math.PI*2); ctx.fillStyle = '#fff'; ctx.fill();
-        }
-    }
+    if (gameState === 1 || gameState === 2) {
+        ctx.fillStyle = 'rgba(255,255,255,0.15)'; 
+        ctx.beginPath(); 
+        ctx.ellipse(width/2, height/2 + 50, Math.min(width*0.4, 250), 120, 0, 0, Math.PI*2); 
+        ctx.fill();
 
-    if (gameState === 2) {
-        ctx.fillStyle = 'rgba(255,255,255,0.1)'; ctx.beginPath(); ctx.ellipse(width/2, height/2 + 50, 200, 100, 0, 0, Math.PI*2); ctx.fill();
-        s2Flowers.forEach((f, idx) => {
-            ctx.shadowColor = f.color; ctx.shadowBlur = 15 + f.glow * 30;
-            ctx.fillStyle = f.color; ctx.beginPath(); ctx.arc(f.x, f.y, f.radius, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#fff'; ctx.beginPath(); let size = f.radius * (0.4 + f.glow*0.2);
-            ctx.moveTo(f.x, f.y - size); ctx.lineTo(f.x + size, f.y); ctx.lineTo(f.x, f.y + size); ctx.lineTo(f.x - size, f.y); ctx.fill();
-        });
-    }
-
-    if (gameState === 3) {
-        if(boss) {
-            ctx.shadowColor = '#636e72'; ctx.shadowBlur = 20; ctx.fillStyle = '#2d3436';
-            ctx.beginPath(); ctx.arc(boss.x, boss.y, 40, 0, Math.PI*2); ctx.arc(boss.x - 25, boss.y + 10, 30, 0, Math.PI*2); ctx.arc(boss.x + 25, boss.y + 10, 30, 0, Math.PI*2); ctx.fill();
-            ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(boss.x - 15, boss.y, 8, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(boss.x + 15, boss.y, 8, 0, Math.PI*2); ctx.fill();
-            ctx.fillStyle = '#000'; ctx.beginPath(); ctx.arc(boss.x - 15, boss.y, 4, 0, Math.PI*2); ctx.fill(); ctx.beginPath(); ctx.arc(boss.x + 15, boss.y, 4, 0, Math.PI*2); ctx.fill();
-        }
-        projectiles.forEach(p => { ctx.shadowBlur = 10; ctx.shadowColor = '#000'; ctx.fillStyle = '#636e72'; ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, Math.PI*2); ctx.fill(); });
-        s3Items.forEach(it => {
-            ctx.shadowBlur = 15;
-            if(it.type === 'tea') { ctx.shadowColor = '#ffeaa7'; ctx.fillStyle = '#ffeaa7'; ctx.fillRect(it.x-10, it.y-15, 20, 30); ctx.fillStyle = '#fab1a0'; ctx.fillRect(it.x-10, it.y+5, 20, 10); } 
-            else { ctx.shadowColor = '#ff758c'; ctx.fillStyle = '#ff758c'; ctx.beginPath(); drawHeartPath(ctx, it.x, it.y, 15); ctx.fill(); }
+        flowers.forEach((f) => {
+            ctx.shadowColor = f.color; 
+            ctx.shadowBlur = 15 + f.glow * 35;
+            
+            ctx.fillStyle = f.color; 
+            ctx.beginPath(); 
+            ctx.arc(f.x, f.y, f.radius, 0, Math.PI*2); 
+            ctx.fill();
+            
+            ctx.fillStyle = '#ffffff'; 
+            ctx.beginPath(); 
+            let size = f.radius * (0.4 + f.glow*0.25);
+            ctx.moveTo(f.x, f.y - size); 
+            ctx.lineTo(f.x + size, f.y); 
+            ctx.lineTo(f.x, f.y + size); 
+            ctx.lineTo(f.x - size, f.y); 
+            ctx.fill();
         });
     }
 
-    if (gameState === 4) {
-        if (s4State === 'envelope') {
-            ctx.shadowColor = '#fff'; ctx.shadowBlur = 30;
-            let ex = width/2 - 150; let ey = height/2 - 100;
-            ctx.fillStyle = '#f5f6fa'; ctx.fillRect(ex, ey, 300, 200);
-            ctx.fillStyle = '#dcdde1'; ctx.beginPath(); ctx.moveTo(ex, ey); ctx.lineTo(ex + 150, ey + 100); ctx.lineTo(ex + 300, ey); ctx.fill();
-            ctx.fillStyle = '#ff4757'; ctx.beginPath(); drawHeartPath(ctx, width/2, ey + 100, 20); ctx.fill();
-            ctx.shadowBlur = 0; ctx.fillStyle = '#2d3436'; ctx.font = '20px Quicksand'; ctx.textAlign = 'center'; ctx.fillText("Nhấn để mở", width/2, height/2 + 130);
-        } else if (s4State === 'reading') {
-            ctx.shadowColor = 'rgba(0,0,0,0.2)'; ctx.shadowBlur = 20; ctx.fillStyle = '#fff';
-            let pw = Math.min(width*0.9, 600); let ph = Math.min(height*0.8, 800); let px = (width - pw)/2; let py = (height - ph)/2;
-            ctx.fillRect(px, py, pw, ph);
-            ctx.shadowBlur = 0; ctx.fillStyle = '#2d3436'; ctx.font = '18px Quicksand'; ctx.textAlign = 'left';
-            wrapText(ctx, GAME_CONFIG.letterText.substring(0, typeIndex), px + 40, py + 60, pw - 80, 30);
-        }
-    }
-
-    // Canvas Characters rendering
-    if (gameState > 0 && gameState < 4) {
-        trails.forEach(t => drawCharacter(ctx, t, t.life));
-        drawCharacter(ctx, companion, 1.0);
-    }
     ctx.restore(); 
-
-    // Gắn thẻ DOM Player khớp với tọa độ Canvas
-    if (gameState > 0 && gameState < 4 && (!s3HugPhase || boss)) {
-        domPlayer.style.display = 'block';
-        let flip = player.vx < -5 ? -1 : 1;
-        // -28 (nửa width thẻ player), -66 (height), điều chỉnh nhẹ dựa vào gốc transform-origin: bottom
-        domPlayer.style.transform = `translate(${player.x - 28}px, ${player.y - 66}px) scaleX(${flip})`;
-    } else {
-        domPlayer.style.display = 'none';
-    }
-}
-
-function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
-    let lines = text.split('\n');
-    for(let i = 0; i < lines.length; i++) {
-        let words = lines[i].split(' '); let line = '';
-        for(let n = 0; n < words.length; n++) {
-            let testLine = line + words[n] + ' ';
-            if (ctx.measureText(testLine).width > maxWidth && n > 0) { ctx.fillText(line, x, y); line = words[n] + ' '; y += lineHeight; } 
-            else { line = testLine; }
-        }
-        ctx.fillText(line, x, y); y += lineHeight;
-    }
 }
 
 function loop(time) {
     let dt = (time - lastTime) / 1000;
-    if (dt > 0.1) dt = 0.1; lastTime = time;
-    update(dt); draw(ctx);
+    if (dt > 0.1) dt = 0.1; 
+    lastTime = time;
+    
+    update(dt); 
+    draw(ctx);
+    
     requestAnimationFrame(loop);
 }
 
