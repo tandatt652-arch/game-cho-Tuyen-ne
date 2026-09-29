@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Đat bị khùng</title>
+    <title>Simon Says - Thử Thách Cảm Âm</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap');
         
@@ -19,7 +19,7 @@
             overflow: hidden;
             background-color: #000;
             font-family: 'Quicksand', sans-serif;
-            touch-action: none; 
+            touch-action: none;
         }
 
         canvas {
@@ -64,10 +64,11 @@
         }
         
         h2 {
-            color: #ffeaa7; font-size: 1.5rem;
+            color: #ffeaa7; font-size: 1.2rem;
             text-shadow: 0 0 10px #ffeaa7; margin-bottom: 40px;
             text-align: center;
             padding: 0 20px;
+            line-height: 1.5;
         }
 
         button {
@@ -83,47 +84,32 @@
         }
         button:hover { transform: scale(1.05); box-shadow: 0 5px 25px rgba(255, 154, 158, 0.8); }
 
-        #dialog-box {
-            position: absolute; bottom: 10%; width: 80%; max-width: 600px;
-            background: rgba(255, 255, 255, 0.9); padding: 20px;
-            border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            text-align: center; 
-            pointer-events: none; 
-            transform: translateY(100px); opacity: 0;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 50;
-        }
-        #dialog-box.show { 
-            transform: translateY(0); opacity: 1; 
-            pointer-events: auto; 
-        }
-        #dialog-text { font-size: 1.2rem; color: var(--text-dark); margin-bottom: 15px; font-weight: 600; }
-
         #hud {
             position: absolute; top: 20px; left: 20px;
-            display: flex; align-items: center; gap: 10px;
+            display: flex; align-items: center; gap: 15px;
             pointer-events: none; opacity: 0; transition: opacity 0.5s;
             z-index: 30;
+            background: rgba(0,0,0,0.4);
+            padding: 10px 25px;
+            border-radius: 30px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255,255,255,0.1);
         }
-        .heart-icon { color: #ff4757; font-size: 24px; text-shadow: 0 0 10px #ff4757; }
-        .hp-bar-container {
-            width: 150px; height: 15px; background: rgba(255,255,255,0.3);
-            border-radius: 10px; overflow: hidden; box-shadow: 0 0 10px rgba(255,255,255,0.2);
-        }
-        .hp-bar-fill {
-            height: 100%; width: 0%;
-            background: linear-gradient(90deg, #1e90ff, #ff9a9e); transition: width 0.3s;
-        }
-        .hs-box {
-            background: rgba(0,0,0,0.5);
-            padding: 5px 12px;
-            border-radius: 20px;
-            color: #ffeaa7;
+        .heart-icon { color: #ff4757; font-size: 30px; text-shadow: 0 0 10px #ff4757; }
+        .score-box { display: flex; flex-direction: column; }
+
+        /* Chỉ báo Lượt chơi */
+        #turn-indicator {
+            position: absolute;
+            top: 25%;
+            font-size: 1.5rem;
             font-weight: bold;
-            font-size: 14px;
-            border: 1px solid #ffeaa7;
-            box-shadow: 0 0 10px rgba(255,234,167,0.3);
+            color: #fff;
+            text-shadow: 0 0 10px #ff9a9e;
+            opacity: 0;
+            transition: opacity 0.3s;
         }
+        #turn-indicator.show { opacity: 1; }
 
     </style>
 </head>
@@ -133,33 +119,34 @@
 
     <div id="ui-layer">
         
-        <!-- HUD hiển thị tiến độ vòng chơi & Kỷ lục -->
+        <!-- HUD hiển thị Điểm & Kỷ Lục -->
         <div id="hud">
             <div class="heart-icon">🎵</div>
-            <div class="hp-bar-container"><div class="hp-bar-fill" id="hp-fill"></div></div>
-            <div style="color:white; font-weight:bold; text-shadow:0 0 5px #000; width: 85px;" id="hp-text">Vòng: 1/10</div>
-            <div class="hs-box" id="hs-text">Kỷ lục: 0</div>
-        </div>
-
-        <!-- Màn hình Intro -->
-        <div id="screen-intro" class="screen">
-            <h1>Huhuhuhu tuyến bị khùng</h1>
-            <h2>Không khó.</h2>
-            <button onclick="startGame()">Bắt Đầu Chơi</button>
-        </div>
-
-        <!-- Màn hình Chiến Thắng -->
-        <div id="screen-ending" class="screen hidden" style="background: transparent; backdrop-filter: none;">
-            <div style="position: absolute; bottom: 20%; text-align:center; pointer-events:none; width: 100%;">
-                <h1 style="color:#fde68a; font-size: 3rem; text-shadow: 0 0 20px #fde68a; margin-bottom: 30px;">Bạn Đã Chiến Thắng!</h1>
-                <button onclick="location.reload()" style="pointer-events:auto;">Chơi Lại Lần Nữa</button>
+            <div class="score-box">
+                <div style="color:white; font-weight:bold; font-size: 1.3rem; text-shadow:0 0 5px #000;" id="hp-text">Điểm: 0</div>
+                <div style="color:#ffeaa7; font-weight:bold; font-size: 0.9rem; text-shadow:0 0 5px #000; letter-spacing: 1px;" id="highscore-text">Kỷ lục: 0</div>
             </div>
         </div>
 
-        <!-- Hộp thoại thông báo -->
-        <div id="dialog-box">
-            <div id="dialog-text">Text here...</div>
-            <button onclick="closeDialog()">Tiếp tục</button>
+        <div id="turn-indicator">🎧 Máy đang phát...</div>
+
+        <!-- Màn hình Intro -->
+        <div id="screen-intro" class="screen">
+            <h1>Thử Thách Cảm Âm</h1>
+            <h2>Lắng nghe kỹ giai điệu! Sẽ không có gợi ý hình ảnh nào đâu.<br>4 nút được xếp từ Trái (âm thấp) sang Phải (âm cao).</h2>
+            <button onclick="startGame()">Bắt Đầu Chơi</button>
+        </div>
+
+        <!-- Màn hình Game Over -->
+        <div id="screen-gameover" class="screen hidden" style="background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);">
+            <div style="position: absolute; bottom: 30%; text-align:center; pointer-events:none; width: 100%;">
+                <h1 style="color:#ff758c; font-size: 3rem; text-shadow: 0 0 20px #ff758c; margin-bottom: 10px;">Oái, nhầm rồi!</h1>
+                <div id="final-score" style="color:#fde68a; font-size: 2rem; margin-bottom: 40px; text-shadow: 0 0 15px #fde68a; line-height: 1.6;">
+                    Điểm: 0<br>
+                    <span style="font-size: 1.3rem; color: #fff;">Kỷ lục: 0</span>
+                </div>
+                <button onclick="location.reload()" style="pointer-events:auto;">Chơi Lại</button>
+            </div>
         </div>
 
     </div>
@@ -167,14 +154,11 @@
 <script>
 /** 
  * ==========================================
- * GOOGLE FORM TELEMETRY & HIGH SCORE
+ * GOOGLE FORM TELEMETRY (THEO DÕI THAO TÁC)
  * ==========================================
  */
-const SESSION_ID = "SIMON_" + Math.random().toString(36).substring(2, 8).toUpperCase();
+const SESSION_ID = "SIMON_AUDIO_" + Math.random().toString(36).substring(2, 8).toUpperCase();
 const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSe4Jvx2uI27uJQTt9Xn6QdFj59c53kFNIRbxyFeirMOOEFE4g/formResponse";
-
-// Lấy kỷ lục từ bộ nhớ trình duyệt
-let highScore = parseInt(localStorage.getItem('simonHighScore')) || 0;
 
 function trackAction(context, choice, result) {
     const formData = new URLSearchParams();
@@ -193,45 +177,55 @@ function trackAction(context, choice, result) {
 
 /** 
  * ==========================================
- * CORE ENGINE
+ * CORE ENGINE & TÍNH ĐIỂM
  * ==========================================
  */
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 let width, height;
 
-let gameState = 0; 
+// Mảng quy đổi Tên Nút theo thứ tự từ Trái -> Phải (Thấp -> Cao)
+const noteNames = ["Nút 1 (Thấp nhất)", "Nút 2 (Hơi thấp)", "Nút 3 (Hơi cao)", "Nút 4 (Cao nhất)"];
+
+// Biến Trạng Thái
+let gameState = 0; // 0: Intro, 1: Playing, 2: GameOver
 let lastTime = 0;
 let shakeTime = 0;
 let shakeMag = 0;
-let isPaused = false;
 
-// Dữ liệu Simon
+// Hệ thống điểm và kỷ lục
+let score = 0; 
+let highScore = parseInt(localStorage.getItem('simonAudioHighScore')) || 0;
+
+// Dữ liệu Simon Bất Tận
 let flowers = [];
-let simonSequence = [];
+let simonSequence = []; 
 let simonPlayerStep = 0;
-let simonRound = 0; 
 let simonState = 'init'; 
 let simonTimer = 0;
-const TOTAL_ROUNDS = 10;
-const COLOR_NAMES = ["Đỏ", "Xanh Lam", "Vàng", "Hồng"];
 
 let particles = [];
+const turnIndicator = document.getElementById('turn-indicator');
 
+// Hàm Resize & Cập nhật vị trí 4 bông hoa THẲNG HÀNG
 function resize() {
     width = window.innerWidth;
     height = window.innerHeight;
     canvas.width = width; canvas.height = height;
     
     let cx = width / 2; 
-    let cy = height / 2; 
-    let r = Math.min(width, height) * 0.25;
+    let cy = height / 2 + 50; 
     
+    // Tính toán khoảng cách giữa các nút (tối đa 90px trên PC, thu nhỏ theo màn hình đt)
+    let spacing = Math.min(width / 4.5, 90); 
+    let r = Math.min(spacing * 0.45, 40);
+    
+    // Nằm thẳng hàng từ Trái sang Phải
     flowers = [
-        { x: cx, y: cy - r, color: '#ff4757', glow: 0, radius: width < 500 ? 30 : 45 },
-        { x: cx + r, y: cy, color: '#1e90ff', glow: 0, radius: width < 500 ? 30 : 45 },
-        { x: cx, y: cy + r, color: '#ffa502', glow: 0, radius: width < 500 ? 30 : 45 },
-        { x: cx - r, y: cy, color: '#ff6b81', glow: 0, radius: width < 500 ? 30 : 45 }
+        { x: cx - spacing * 1.5, y: cy, color: '#ff4757', glow: 0, radius: r }, // Trái cùng (Thấp)
+        { x: cx - spacing * 0.5, y: cy, color: '#ffa502', glow: 0, radius: r }, // Trái giữa
+        { x: cx + spacing * 0.5, y: cy, color: '#1e90ff', glow: 0, radius: r }, // Phải giữa
+        { x: cx + spacing * 1.5, y: cy, color: '#ff6b81', glow: 0, radius: r }  // Phải cùng (Cao)
     ];
 }
 window.addEventListener('resize', resize);
@@ -240,7 +234,7 @@ resize();
 
 /** 
  * ==========================================
- * HỆ THỐNG ÂM THANH
+ * HỆ THỐNG ÂM THANH (Web Audio API)
  * ==========================================
  */
 const AudioContext = window.AudioContext || window.webkitAudioContext;
@@ -263,10 +257,11 @@ function playTone(freq, type = 'sine', duration = 0.3, vol = 0.1) {
     osc.start(); osc.stop(audioCtx.currentTime + duration);
 }
 
+// 4 Cấp độ âm thanh từ Thấp tới Cao
 function playCrystal(index) {
-    const freqs = [261.63, 329.63, 392.00, 523.25];
+    const freqs = [261.63, 329.63, 392.00, 523.25]; // C4, E4, G4, C5 (Từ thấp đến cao)
     playTone(freqs[index], 'sine', 0.6, 0.2);
-    playTone(freqs[index] * 2, 'triangle', 0.6, 0.05); 
+    playTone(freqs[index] * 2, 'triangle', 0.6, 0.05); // Âm bồi vang
 }
 
 function playCollect() { 
@@ -274,7 +269,7 @@ function playCollect() {
     setTimeout(() => playTone(800, 'sine', 0.2, 0.1), 100); 
 }
 function playError() {
-    playTone(150, 'sawtooth', 0.5, 0.15);
+    playTone(150, 'sawtooth', 0.5, 0.2);
 }
 
 
@@ -290,7 +285,8 @@ canvas.addEventListener('touchstart', (e) => {
 }, {passive: false});
 
 function handleCanvasClick(e) {
-    if(gameState === 1 && simonState === 'player' && !isPaused) {
+    // CHỈ cho phép bấm khi đến lượt người chơi
+    if(gameState === 1 && simonState === 'player') {
         const rect = canvas.getBoundingClientRect();
         const x = e.clientX - rect.left; 
         const y = e.clientY - rect.top;
@@ -332,18 +328,26 @@ function drawParticles(ctx) {
     ctx.globalAlpha = 1;
 }
 
-function updateProgress() {
-    let percent = (simonRound / TOTAL_ROUNDS) * 100;
-    document.getElementById('hp-fill').style.width = percent + '%'; 
-    document.getElementById('hp-text').innerText = `Vòng: ${simonRound + 1}/${TOTAL_ROUNDS}`;
+function updateScoreUI() {
+    document.getElementById('hp-text').innerText = `Điểm: ${score}`;
+    document.getElementById('highscore-text').innerText = `Kỷ lục: ${highScore}`;
 }
 
 function triggerScreenShake(duration, magnitude) { shakeTime = duration; shakeMag = magnitude; }
 
+function setIndicator(text, color="#fff") {
+    turnIndicator.innerText = text;
+    turnIndicator.style.color = color;
+    turnIndicator.classList.add('show');
+}
+function hideIndicator() {
+    turnIndicator.classList.remove('show');
+}
+
 
 /** 
  * ==========================================
- * GAME LOGIC
+ * GAME LOGIC CẢM ÂM
  * ==========================================
  */
 function startGame() {
@@ -352,92 +356,83 @@ function startGame() {
     introScreen.classList.add('hidden');
     setTimeout(() => { introScreen.style.display = 'none'; }, 500); 
     
-    // Hiển thị Kỷ Lục đã lưu
-    document.getElementById('hs-text').innerText = `Kỷ lục: ${highScore}`;
     document.getElementById('hud').style.opacity = 1;
-    
     gameState = 1;
-    simonRound = 0;
+    
+    simonSequence = [];
+    score = 0;
+    
+    highScore = parseInt(localStorage.getItem('simonAudioHighScore')) || 0;
+    updateScoreUI();
+    
     simonState = 'init';
     simonTimer = 1.0;
-    updateProgress();
-    trackAction("Hệ Thống", "Bấm Bắt Đầu", "Vào Game Simon");
+    
+    trackAction("Hệ Thống", "Bắt Đầu Chơi", "Chế độ Audio-Only");
 }
 
-function showDialog(htmlText) {
-    isPaused = true;
-    const db = document.getElementById('dialog-box');
-    document.getElementById('dialog-text').innerHTML = htmlText;
-    db.classList.add('show');
-}
-
-function closeDialog() {
-    document.getElementById('dialog-box').classList.remove('show');
-    setTimeout(() => {
-        isPaused = false;
-        if (simonState === 'wait_transition') {
-            simonState = 'init';
-            simonTimer = 0.5;
-        }
-    }, 300);
-}
-
-// Bắt đầu vòng mới
 function startSimonRound() {
     simonState = 'playing'; 
-    updateProgress();
-
-    let n = simonRound + 1;
-    simonSequence = []; 
-    for(let i=0; i<n; i++) {
-        simonSequence.push(Math.floor(Math.random()*4));
-    }
+    setIndicator("🎧 Máy đang phát...", "#ffeaa7");
     
-    const sequenceStr = simonSequence.map(idx => COLOR_NAMES[idx]).join(", ");
-    trackAction("Vòng " + (simonRound + 1), "Máy ra đề", sequenceStr);
+    // Thêm 1 nốt mới vào chuỗi
+    simonSequence.push(Math.floor(Math.random() * 4));
+    
+    const sequenceStr = simonSequence.map(idx => noteNames[idx]).join(", ");
+    trackAction(`Vòng ${score + 1}`, "Máy phát âm thanh", sequenceStr);
 
     playSimonSequence();
 }
 
 async function playSimonSequence() {
     await sleep(600);
+    // Nhịp độ phát nhanh dần khi chuỗi dài ra
+    let playSpeed = Math.max(300, 700 - (score * 15)); 
+
     for(let i=0; i<simonSequence.length; i++) {
         let idx = simonSequence[i]; 
-        flowers[idx].glow = 1.0; 
+        
+        // KHÔNG LÀM SÁNG NÚT: Buộc người chơi phải nghe
         playCrystal(idx);
-        spawnParticles(flowers[idx].x, flowers[idx].y, 15, flowers[idx].color, 'petal');
-        await sleep(700);
+        
+        await sleep(playSpeed + 150);
     }
+    
     simonState = 'player'; 
     simonPlayerStep = 0;
+    setIndicator("✨ Tới lượt bạn!", "#55efc4");
 }
 
 // Người chơi bấm
 function onSimonClick(idx) {
-    // GHI NHẬN TỪNG LẦN BẤM CỦA NGƯỜI CHƠI GỬI VỀ FORM
-    trackAction("Vòng " + (simonRound + 1), "Người chơi bấm nút", COLOR_NAMES[idx]);
-
+    // Phát sáng khi người chơi bấm để có phản hồi UI
     flowers[idx].glow = 1.0; 
     playCrystal(idx);
     spawnParticles(flowers[idx].x, flowers[idx].y, 10, flowers[idx].color, 'petal');
     
-    // Đúng nốt
+    let clickedNote = noteNames[idx];
+    let expectedNote = noteNames[simonSequence[simonPlayerStep]];
+    
+    trackAction(`Vòng ${score + 1}`, `Bước ${simonPlayerStep + 1}`, `Người chơi bấm: ${clickedNote}`);
+
+    // Nếu bấm ĐÚNG
     if(idx === simonSequence[simonPlayerStep]) {
         simonPlayerStep++;
         
-        // Hoàn thành cả chuỗi
+        // Xong chuỗi hiện tại
         if(simonPlayerStep >= simonSequence.length) {
             simonState = 'wait_transition'; 
             simonTimer = 1.0; 
-            trackAction("Vòng " + (simonRound + 1), "Kết quả vòng", "Đúng chuỗi -> Qua Vòng");
             
-            // XỬ LÝ LƯU KỶ LỤC KHI QUA VÒNG
-            let currentScore = simonRound + 1;
-            if(currentScore > highScore) {
-                highScore = currentScore;
-                localStorage.setItem('simonHighScore', highScore);
-                document.getElementById('hs-text').innerText = `Kỷ lục: ${highScore}`;
+            score++;
+            if(score > highScore) {
+                highScore = score;
+                localStorage.setItem('simonAudioHighScore', highScore);
             }
+            updateScoreUI();
+            setIndicator("Chính xác! Chuẩn bị...", "#74b9ff");
+            
+            trackAction("Chuỗi Thành Công", `Vượt qua vòng ${score}`, "Chuẩn bị vòng tiếp theo");
             
             setTimeout(() => { 
                 playCollect(); 
@@ -445,31 +440,30 @@ function onSimonClick(idx) {
             }, 300);
         }
     } 
-    // Sai nốt
+    // Nếu bấm SAI -> GAME OVER
     else {
         playError(); 
-        triggerScreenShake(0.3, 5);
-        simonState = 'wait_transition'; 
-        simonTimer = 999; // Dừng logic tự động đợi tắt Dialog
+        triggerScreenShake(0.5, 8);
+        simonState = 'gameover'; // Khóa input
+        setIndicator("Oái! Nhầm rồi", "#ff4757");
         
-        trackAction("Vòng " + (simonRound + 1), "Kết quả vòng", "Bấm sai -> Chơi lại vòng này");
+        trackAction("Game Over", `Bấm sai ở Vòng ${score + 1} - Bước ${simonPlayerStep + 1}`, `Bấm: ${clickedNote} (Đáng lẽ là: ${expectedNote}) | Tổng Điểm: ${score}`);
         
-        showDialog("Oái, sai nốt nhạc rồi.<br>Lắng nghe kỹ hơn và thử lại nhé!");
+        setTimeout(() => {
+            hideIndicator();
+            showGameOver();
+        }, 1000);
     }
 }
 
-const sleep = ms => new Promise(r => setTimeout(r, ms));
-
-function winGame() {
-    gameState = 2; // Win State
-    document.getElementById('screen-ending').classList.remove('hidden');
+function showGameOver() {
+    gameState = 2; // Game Over state
+    document.getElementById('final-score').innerHTML = `Điểm của bạn: ${score}<br><span style="font-size: 1.3rem; color: #fff;">Kỷ lục cao nhất: ${highScore}</span>`;
+    document.getElementById('screen-gameover').classList.remove('hidden');
     document.getElementById('hud').classList.add('hidden');
-    spawnParticles(width/2, height/2, 200, '#fde68a', 'sparkle');
-    playCollect();
-    setTimeout(playCollect, 200);
-    setTimeout(playCollect, 400);
-    trackAction("Hệ Thống", "Hoàn Thành Game", "Chiến Thắng 10 Vòng");
 }
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 
 /** 
@@ -478,10 +472,10 @@ function winGame() {
  * ==========================================
  */
 function update(dt) {
-    if(isPaused) return;
     updateParticles(dt); 
 
     if (gameState === 1) {
+        // Phai hiệu ứng sáng của hoa
         flowers.forEach(f => { if(f.glow > 0) f.glow -= dt * 2; });
 
         if (simonState === 'init') {
@@ -491,13 +485,7 @@ function update(dt) {
         else if (simonState === 'wait_transition') {
             simonTimer -= dt;
             if(simonTimer <= 0) {
-                simonRound++;
-                if(simonRound >= TOTAL_ROUNDS) {
-                    winGame();
-                } else {
-                    simonState = 'init';
-                    simonTimer = 0.5;
-                }
+                startSimonRound();
             }
         }
     }
@@ -512,6 +500,7 @@ function draw(ctx) {
         ctx.translate(sx, sy);
     }
 
+    // Vẽ Background (Tím Sương Mù)
     let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
     bgGrad.addColorStop(0, '#e9d5ff'); 
     bgGrad.addColorStop(1, '#fbcfe8');
@@ -525,20 +514,24 @@ function draw(ctx) {
     drawParticles(ctx);
 
     if (gameState === 1 || gameState === 2) {
+        // Mặt hồ phản chiếu mở rộng (chiều ngang)
         ctx.fillStyle = 'rgba(255,255,255,0.15)'; 
         ctx.beginPath(); 
-        ctx.ellipse(width/2, height/2 + 50, Math.min(width*0.4, 250), 120, 0, 0, Math.PI*2); 
+        ctx.ellipse(width/2, height/2 + 50, Math.min(width*0.45, 350), 60, 0, 0, Math.PI*2); 
         ctx.fill();
 
+        // Vẽ 4 đóa hoa
         flowers.forEach((f) => {
             ctx.shadowColor = f.color; 
             ctx.shadowBlur = 15 + f.glow * 35;
             
+            // Cánh hoa (đế)
             ctx.fillStyle = f.color; 
             ctx.beginPath(); 
             ctx.arc(f.x, f.y, f.radius, 0, Math.PI*2); 
             ctx.fill();
             
+            // Tinh thể pha lê ở giữa
             ctx.fillStyle = '#ffffff'; 
             ctx.beginPath(); 
             let size = f.radius * (0.4 + f.glow*0.25);
