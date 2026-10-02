@@ -1,6 +1,385 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CyberBrawl - Online P2P Fighter</title>
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0f111a;
+      color: #e0e6ed;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 16px;
+    }
+    #lobby {
+      background: #1a1d2e;
+      border: 1px solid #2d334d;
+      border-radius: 8px;
+      padding: 14px 20px;
+      margin-bottom: 14px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+      font-size: 14px;
+    }
+    .badge {
+      background: #2a2f4c;
+      padding: 4px 8px;
+      border-radius: 4px;
+      user-select: all;
+      font-weight: bold;
+      color: #00d2d3;
+    }
+    input {
+      background: #111422;
+      border: 1px solid #3b4268;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      outline: none;
+    }
+    button {
+      background: #ff4757;
+      color: #fff;
+      border: none;
+      padding: 6px 14px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.85; }
+    #status {
+      font-weight: bold;
+      color: #ffa502;
+    }
+    #hud {
+      width: 800px;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
+    .hp-container {
+      width: 360px;
+      height: 22px;
+      background: #222;
+      border: 2px solid #57606f;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .hp-bar {
+      height: 100%;
+      width: 100%;
+      background: #2ed573;
+      transition: width 0.08s ease-out;
+    }
+    canvas {
+      border: 2px solid #2d334d;
+      border-radius: 6px;
+      background: #161824;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+    #guide {
+      margin-top: 12px;
+      font-size: 13px;
+      color: #8395a7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Menu kết nối P2P -->
+  <div id="lobby">
+    <div>ID của bạn: <span id="my-id" class="badge">Đang tạo ID...</span></div>
+    <div>
+      <input type="text" id="target-id" placeholder="Nhập ID đối thủ..." />
+      <button id="btn-connect">Kết nối</button>
+    </div>
+    <div id="status">Chế độ offline (Luyện tập)</div>
+  </div>
+
+  <!-- Thanh máu -->
+  <div id="hud">
+    <div>
+      <div style="color: #54a0ff; margin-bottom: 4px;">P1 (Xanh Dương)</div>
+      <div class="hp-container"><div id="p1-hp" class="hp-bar"></div></div>
+    </div>
+    <div>
+      <div style="color: #ff6b6b; text-align: right; margin-bottom: 4px;">P2 (Đỏ)</div>
+      <div class="hp-container"><div id="p2-hp" class="hp-bar"></div></div>
+    </div>
+  </div>
+
+  <canvas id="gameCanvas" width="800" height="420"></canvas>
+
+  <div id="guide">
+    <strong>Điều khiển P1 (Host / Offline):</strong> A / D (Di chuyển), W (Nhảy), F (Tấn công)<br/>
+    <strong>Điều khiển P2 (Client / Offline):</strong> Phím mũi tên (Di chuyển & Nhảy), Phím K (Tấn công)
+  </div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+    const GROUND_Y = 360;
+    const GRAVITY = 0.8;
+
+    // --- CẤU HÌNH NHÂN VẬT ---
+    class Fighter {
+      constructor(x, color, facingRight) {
+        this.x = x;
+        this.y = GROUND_Y - 80;
+        this.w = 40;
+        this.h = 80;
+        this.vx = 0;
+        this.vy = 0;
+        this.hp = 100;
+        this.color = color;
+        this.facingRight = facingRight;
+        this.isGrounded = false;
+        this.isAttacking = false;
+        this.attackFrame = 0;
+        this.hitstun = 0;
+      }
+
+      update(inputs) {
+        if (this.hitstun > 0) {
+          this.hitstun--;
+        } else {
+          this.vx = 0;
+          if (inputs.left) { this.vx = -5; this.facingRight = false; }
+          if (inputs.right) { this.vx = 5; this.facingRight = true; }
+          if (inputs.jump && this.isGrounded) this.vy = -15;
+          if (inputs.attack && !this.isAttacking) {
+            this.isAttacking = true;
+            this.attackFrame = 0;
+          }
+        }
+
+        // Tác động trọng lực & vật lý
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.y + this.h < GROUND_Y) {
+          this.vy += GRAVITY;
+          this.isGrounded = false;
+        } else {
+          this.y = GROUND_Y - this.h;
+          this.vy = 0;
+          this.isGrounded = true;
+        }
+
+        this.x = Math.max(0, Math.min(canvas.width - this.w, this.x));
+
+        if (this.isAttacking) {
+          this.attackFrame++;
+          if (this.attackFrame > 14) {
+            this.isAttacking = false;
+            this.attackFrame = 0;
+          }
+        }
+      }
+
+      draw() {
+        // Thân
+        ctx.fillStyle = this.hitstun > 0 ? "#ffffff" : this.color;
+        ctx.fillRect(this.x, this.y, this.w, this.h);
+
+        // Mắt chỉ hướng nhìn
+        ctx.fillStyle = "#fff";
+        const eyeX = this.facingRight ? this.x + 24 : this.x + 6;
+        ctx.fillRect(eyeX, this.y + 16, 10, 10);
+
+        // Đòn đánh (Hitbox)
+        if (this.isAttacking && this.attackFrame >= 4 && this.attackFrame <= 9) {
+          ctx.fillStyle = "rgba(255, 234, 167, 0.8)";
+          const hx = this.facingRight ? this.x + this.w : this.x - 45;
+          ctx.fillRect(hx, this.y + 25, 45, 25);
+        }
+      }
+
+      getHitbox() {
+        if (!this.isAttacking || this.attackFrame < 4 || this.attackFrame > 9) return null;
+        return {
+          x: this.facingRight ? this.x + this.w : this.x - 45,
+          y: this.y + 25,
+          w: 45,
+          h: 25
+        };
+      }
+    }
+
+    const p1 = new Fighter(120, "#54a0ff", true);
+    const p2 = new Fighter(640, "#ff6b6b", false);
+
+    // --- XỬ LÝ PHÍM BẤM ---
+    const rawKeys = {};
+    window.addEventListener("keydown", (e) => { rawKeys[e.key.toLowerCase()] = true; });
+    window.addEventListener("keyup", (e) => { rawKeys[e.key.toLowerCase()] = false; });
+
+    function getLocalInputs() {
+      return {
+        p1: {
+          left: !!rawKeys["a"],
+          right: !!rawKeys["d"],
+          jump: !!rawKeys["w"],
+          attack: !!rawKeys["f"]
+        },
+        p2: {
+          left: !!rawKeys["arrowleft"],
+          right: !!rawKeys["arrowright"],
+          jump: !!rawKeys["arrowup"],
+          attack: !!rawKeys["k"]
+        }
+      };
+    }
+
+    // --- MẠNG P2P BẰNG PEERJS ---
+    let role = "OFFLINE"; // "OFFLINE" | "HOST" | "CLIENT"
+    let conn = null;
+    let clientInputs = { left: false, right: false, jump: false, attack: false };
+
+    const peer = new Peer();
+
+    peer.on("open", (id) => {
+      document.getElementById("my-id").innerText = id;
+    });
+
+    // P1 (Host) nhận kết nối từ P2
+    peer.on("connection", (c) => {
+      conn = c;
+      role = "HOST";
+      document.getElementById("status").innerText = "Đã kết nối: Bạn là P1 (Host)";
+      document.getElementById("status").style.color = "#2ed573";
+      setupNetEvents();
+    });
+
+    // P2 bấm kết nối tới P1
+    document.getElementById("btn-connect").addEventListener("click", () => {
+      const target = document.getElementById("target-id").value.trim();
+      if (!target) return;
+      conn = peer.connect(target);
+      role = "CLIENT";
+      document.getElementById("status").innerText = "Đang kết nối...";
+      conn.on("open", () => {
+        document.getElementById("status").innerText = "Đã kết nối: Bạn là P2 (Khách)";
+        document.getElementById("status").style.color = "#2ed573";
+        setupNetEvents();
+      });
+    });
+
+    function setupNetEvents() {
+      conn.on("data", (data) => {
+        if (role === "HOST") {
+          clientInputs = data; // Host nhận input của Client
+        } else if (role === "CLIENT") {
+          // Client nhận toàn bộ trạng thái đồng bộ từ Host
+          p1.x = data.p1.x; p1.y = data.p1.y; p1.hp = data.p1.hp;
+          p1.facingRight = data.p1.f; p1.isAttacking = data.p1.a; p1.attackFrame = data.p1.af; p1.hitstun = data.p1.hs;
+
+          p2.x = data.p2.x; p2.y = data.p2.y; p2.hp = data.p2.hp;
+          p2.facingRight = data.p2.f; p2.isAttacking = data.p2.a; p2.attackFrame = data.p2.af; p2.hitstun = data.p2.hs;
+        }
+      });
+    }
+
+    function checkCollision(r1, r2) {
+      return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y;
+    }
+
+    let p1HasHit = false;
+    let p2HasHit = false;
+
+    // --- GAME LOOP ---
+    function loop() {
+      const inputs = getLocalInputs();
+
+      if (role === "OFFLINE") {
+        p1.update(inputs.p1);
+        p2.update(inputs.p2);
+      } else if (role === "HOST") {
+        p1.update(inputs.p1);
+        p2.update(clientInputs);
+
+        // Gửi state đồng bộ sang P2
+        if (conn && conn.open) {
+          conn.send({
+            p1: { x: p1.x, y: p1.y, hp: p1.hp, f: p1.facingRight, a: p1.isAttacking, af: p1.attackFrame, hs: p1.hitstun },
+            p2: { x: p2.x, y: p2.y, hp: p2.hp, f: p2.facingRight, a: p2.isAttacking, af: p2.attackFrame, hs: p2.hitstun }
+          });
+        }
+      } else if (role === "CLIENT") {
+        // Gửi input sang Host (chọn bộ phím mũi tên hoặc WASD đều điều khiển P2 khi làm khách)
+        if (conn && conn.open) {
+          const cInput = {
+            left: inputs.p1.left || inputs.p2.left,
+            right: inputs.p1.right || inputs.p2.right,
+            jump: inputs.p1.jump || inputs.p2.jump,
+            attack: inputs.p1.attack || inputs.p2.attack
+          };
+          conn.send(cInput);
+        }
+      }
+
+      // Xử lý đòn trúng (Chỉ Host hoặc Offline tính toán va chạm để chống lệch)
+      if (role !== "CLIENT") {
+        const h1 = p1.getHitbox();
+        if (h1 && !p1HasHit) {
+          if (checkCollision(h1, p2)) {
+            p2.hp = Math.max(0, p2.hp - 10);
+            p2.hitstun = 12;
+            p2.vx = p1.facingRight ? 9 : -9;
+            p1HasHit = true;
+          }
+        }
+        if (!p1.isAttacking) p1HasHit = false;
+
+        const h2 = p2.getHitbox();
+        if (h2 && !p2HasHit) {
+          if (checkCollision(h2, p1)) {
+            p1.hp = Math.max(0, p1.hp - 10);
+            p1.hitstun = 12;
+            p1.vx = p2.facingRight ? 9 : -9;
+            p2HasHit = true;
+          }
+        }
+        if (!p2.isAttacking) p2HasHit = false;
+      }
+
+      // Cập nhật giao diện máu
+      document.getElementById("p1-hp").style.width = p1.hp + "%";
+      document.getElementById("p2-hp").style.width = p2.hp + "%";
+
+      // Vẽ hình ảnh
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Sàn đấu
+      ctx.fillStyle = "#1e2235";
+      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+      ctx.fillStyle = "#ff4757";
+      ctx.fillRect(0, GROUND_Y, canvas.width, 3);
+
+      p1.draw();
+      p2.draw();
+
+      requestAnimationFrame(loop);
+    }
+
+    loop();
+  </script>
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="vi">
+<head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Simon Says - Thử Thách Cảm Âm</title>
