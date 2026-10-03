@@ -423,19 +423,22 @@
     }
 
     // --- MẠNG P2P BẰNG PEERJS (CẬP NHẬT XUYÊN TƯỜNG LỬA 4G) ---
+    // --- MẠNG P2P BẰNG PEERJS (NÂNG CẤP XUYÊN TƯỜNG LỬA) ---
     let role = "OFFLINE";
     let conn = null;
     let clientInputs = { left: false, right: false, jump: false, attack: false, shoot: false, heal: false, rm: false };
 
-    // Cấu hình mạng kết hợp STUN (cho Wifi) và TURN (cho 4G/CGNAT)
+    // Bổ sung cụm STUN Server đa luồng
     const peer = new Peer({
       config: {
         iceServers: [
-          // 1. STUN Server (Miễn phí từ Google - Tốc độ cao nhất, dành cho Wifi)
+          // 1. STUN Servers (Giải quyết 80% các loại mạng Wi-Fi)
+          { urls: "stun:stun.cloudflare.com:3478" },
           { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:stun1.l.google.com:19302" },
+          { urls: "stun:global.stun.twilio.com:3478" },
           
-          // 2. TURN Server (Dùng dự phòng khi dùng mạng di động 4G/5G)
+          // 2. TURN Server Công cộng (Dự phòng cho 4G hoặc mạng NAT nghiêm ngặt)
+          // Lưu ý: Nếu server này quá tải, kết nối sẽ báo lỗi.
           {
             urls: "turn:openrelay.metered.ca:80",
             username: "openrelayproject",
@@ -445,22 +448,20 @@
             urls: "turn:openrelay.metered.ca:443",
             username: "openrelayproject",
             credential: "openrelayproject"
-          },
-          {
-            urls: "turn:openrelay.metered.ca:443?transport=tcp",
-            username: "openrelayproject",
-            credential: "openrelayproject"
           }
-        ]
+        ],
+        iceCandidatePoolSize: 10 // Tăng tốc độ dò tìm đường truyền
       }
     });
 
     peer.on("error", (err) => { 
-      console.error("Lỗi:", err); 
-      document.getElementById("status").innerText = "Lỗi kết nối (Sai ID hoặc mạng chặn)!"; 
-      document.getElementById("status").style.color = "#ff4757";
+      console.error("Lỗi PeerJS:", err); 
+      const status = document.getElementById("status");
+      status.style.color = "#ff4757";
+      if(err.type === 'peer-unavailable') status.innerText = "Lỗi: Không tìm thấy ID đối thủ!";
+      else if(err.type === 'network') status.innerText = "Lỗi mạng: Không thể chạm tới Server báo hiệu!";
+      else status.innerText = "Lỗi kết nối (Mạng chặn P2P)!";
     });
-    
     peer.on("open", (id) => { document.getElementById("my-id").innerText = id; });
 
     // P1 (Host) nhận kết nối
