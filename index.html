@@ -6,7 +6,7 @@
   <title>CyberBrawl - Online P2P Fighter</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
       background: #0f111a;
       color: #e0e6ed;
@@ -38,9 +38,10 @@
       background: #2a2f4c;
       padding: 4px 8px;
       border-radius: 4px;
-      user-select: all;
       font-weight: bold;
       color: #00d2d3;
+      user-select: text;
+      -webkit-user-select: text;
     }
     input {
       background: #111422;
@@ -61,14 +62,11 @@
       font-weight: 600;
       transition: opacity 0.2s;
     }
-    button.btn-sec {
-      background: #3742fa;
-    }
+    button.btn-sec { background: #3742fa; }
     button.btn:hover { opacity: 0.85; }
-    #status {
-      font-weight: bold;
-      color: #ffa502;
-    }
+    #status { font-weight: bold; color: #ffa502; }
+    
+    /* Giao diện Máu & Kỹ năng */
     #hud {
       width: 100%;
       max-width: 800px;
@@ -78,9 +76,7 @@
       font-weight: bold;
       font-size: 13px;
     }
-    .player-hud {
-      width: 48%;
-    }
+    .player-hud { width: 48%; }
     .hp-container {
       width: 100%;
       height: 22px;
@@ -107,32 +103,63 @@
     }
     .cd-container {
       width: 100%;
-      height: 5px;
+      height: 4px;
       background: #222;
       border-radius: 2px;
       margin-top: 3px;
       overflow: hidden;
     }
-    .cd-bar {
-      height: 100%;
-      width: 100%;
-      background: #ffa502;
+    .cd-bar { height: 100%; width: 100%; background: #ffa502; }
+    .heal-cd-bar { background: #7bed9f; }
+
+    /* Container chứa Sàn đấu & Bảng Tỷ số */
+    #game-container {
+      position: relative;
+      max-width: 100%;
     }
     canvas {
       border: 2px solid #2d334d;
       border-radius: 6px;
       background: #161824;
       box-shadow: 0 8px 24px rgba(0,0,0,0.5);
-      max-width: 100%;
+      display: block;
+      width: 100%;
+      max-width: 800px;
       height: auto;
     }
-    #guide {
-      margin-top: 8px;
-      font-size: 12px;
-      color: #8395a7;
-      text-align: center;
-      line-height: 1.5;
+    #score-board {
+      position: absolute;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 26px;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+      z-index: 5;
     }
+    #game-over-overlay {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(15, 17, 26, 0.9);
+      padding: 24px 40px;
+      border-radius: 8px;
+      border: 2px solid #ff4757;
+      text-align: center;
+      z-index: 10;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.7);
+    }
+    #winner-text {
+      font-size: 28px;
+      margin-bottom: 15px;
+      color: #ffda79;
+      text-transform: uppercase;
+    }
+
+    #guide { margin-top: 8px; font-size: 12px; color: #8395a7; text-align: center; line-height: 1.6; }
 
     /* BÀN PHÍM ẢO CHO ĐIỆN THOẠI */
     #touch-panel {
@@ -142,22 +169,18 @@
       max-width: 800px;
       margin-top: 14px;
       padding: 0 8px;
-      gap: 16px;
-    }
-    .touch-group {
-      display: flex;
       gap: 10px;
-      align-items: center;
     }
+    .touch-group { display: flex; gap: 8px; align-items: center; }
     .t-btn {
-      width: 58px;
-      height: 58px;
+      width: 52px;
+      height: 52px;
       border-radius: 50%;
       background: #2d334d;
       color: #fff;
       border: 2px solid #57606f;
       font-weight: bold;
-      font-size: 16px;
+      font-size: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -165,18 +188,15 @@
       touch-action: none;
       box-shadow: 0 4px 10px rgba(0,0,0,0.4);
     }
-    .t-btn:active, .t-btn.active {
-      background: #57606f;
-      transform: scale(0.94);
-    }
+    .t-btn.active { background: #57606f; transform: scale(0.94); }
     .t-btn-jump { background: #3742fa; border-color: #70a1ff; }
-    .t-btn-atk { background: #ff4757; border-color: #ff6b81; font-size: 12px; }
-    .t-btn-shoot { background: #ffa502; border-color: #eccc68; font-size: 12px; color: #1e1e24; }
+    .t-btn-atk { background: #ff4757; border-color: #ff6b81; font-size: 11px; }
+    .t-btn-shoot { background: #ffa502; border-color: #eccc68; font-size: 11px; color: #1e1e24; }
+    .t-btn-heal { background: #2ed573; border-color: #7bed9f; font-size: 11px; color: #1e1e24; }
   </style>
 </head>
 <body>
 
-  <!-- Menu kết nối & Bật/Tắt phím ảo -->
   <div id="lobby">
     <div>ID của bạn: <span id="my-id" class="badge">Đang tạo ID...</span></div>
     <div>
@@ -187,7 +207,6 @@
     <div id="status">Chế độ offline (Luyện tập)</div>
   </div>
 
-  <!-- Thanh máu & Hồi chiêu đạn -->
   <div id="hud">
     <div class="player-hud">
       <div style="color: #54a0ff; margin-bottom: 2px;">P1 (Xanh)</div>
@@ -195,7 +214,8 @@
         <div id="p1-hp" class="hp-bar"></div>
         <div id="p1-hp-text" class="hp-text">200 / 200</div>
       </div>
-      <div class="cd-container"><div id="p1-cd" class="cd-bar"></div></div>
+      <div class="cd-container" title="Hồi chiêu Bắn"><div id="p1-cd" class="cd-bar"></div></div>
+      <div class="cd-container" title="Hồi chiêu Hồi máu"><div id="p1-heal-cd" class="cd-bar heal-cd-bar"></div></div>
     </div>
     <div class="player-hud">
       <div style="color: #ff6b6b; text-align: right; margin-bottom: 2px;">P2 (Đỏ)</div>
@@ -204,12 +224,22 @@
         <div id="p2-hp-text" class="hp-text">200 / 200</div>
       </div>
       <div class="cd-container"><div id="p2-cd" class="cd-bar" style="float: right;"></div></div>
+      <div class="cd-container"><div id="p2-heal-cd" class="cd-bar heal-cd-bar" style="float: right;"></div></div>
     </div>
   </div>
 
-  <canvas id="gameCanvas" width="800" height="420"></canvas>
+  <div id="game-container">
+    <div id="score-board"><span id="score-p1" style="color: #54a0ff;">0</span> - <span id="score-p2" style="color: #ff6b6b;">0</span></div>
+    
+    <div id="game-over-overlay">
+      <h2 id="winner-text">P1 THẮNG!</h2>
+      <button id="btn-rematch" class="btn" style="padding: 10px 20px; font-size: 16px;">Chơi tiếp</button>
+      <div id="rematch-status" style="margin-top: 12px; font-size: 13px; color: #ced6e0;"></div>
+    </div>
 
-  <!-- Cụm phím ảo cảm ứng -->
+    <canvas id="gameCanvas" width="800" height="420"></canvas>
+  </div>
+
   <div id="touch-panel">
     <div class="touch-group">
       <div class="t-btn" data-key="left">◀</div>
@@ -219,12 +249,13 @@
       <div class="t-btn t-btn-jump" data-key="jump">▲</div>
       <div class="t-btn t-btn-atk" data-key="attack">ĐẤM</div>
       <div class="t-btn t-btn-shoot" data-key="shoot">BẮN</div>
+      <div class="t-btn t-btn-heal" data-key="heal">HỒI</div>
     </div>
   </div>
 
   <div id="guide">
-    <strong>Bàn phím P1 (Host/Offline):</strong> A/D (Đi), W (Nhảy), F (Đấm), G (Bắn đạn)<br/>
-    <strong>Bàn phím P2 (Khách/Offline):</strong> Phím mũi tên (Đi/Nhảy), K (Đấm), L (Bắn đạn)
+    <strong>Bàn phím P1 (Host/Offline):</strong> A/D (Đi), W (Nhảy), F (Đấm), <strong>Phím Cách</strong> (Bắn), <strong>E</strong> (Hồi máu)<br/>
+    <strong>Bàn phím P2 (Khách/Offline):</strong> Phím mũi tên (Đi/Nhảy), K (Đấm), L (Bắn), <strong>U</strong> (Hồi máu)
   </div>
 
   <script>
@@ -233,170 +264,217 @@
     const GROUND_Y = 360;
     const GRAVITY = 0.8;
     const MAX_HP = 200;
-    const SHOOT_COOLDOWN = 90; // 90 frame = 1.5 giây
+    const SHOOT_COOLDOWN = 90;   // 1.5 giây
+    const HEAL_COOLDOWN = 480;   // 8 giây
+    const HEAL_AMOUNT = 50;
 
-    // --- CLASS ĐẠN NĂNG LƯỢNG ---
+    let gameState = "PLAYING"; 
+    let scoreP1 = 0; let scoreP2 = 0;
+    let localRematch = false; let p1Rematch = false; let p2Rematch = false;
+
+    // --- CLASS ĐẠN ---
     class Projectile {
       constructor(x, y, vx, color, owner) {
-        this.x = x;
-        this.y = y;
-        this.vx = vx;
-        this.r = 8;
-        this.color = color;
-        this.owner = owner; // 1 hoặc 2
-        this.active = true;
+        this.x = x; this.y = y; this.vx = vx; this.r = 8;
+        this.color = color; this.owner = owner; this.active = true;
       }
       update() {
         this.x += this.vx;
         if (this.x < 0 || this.x > canvas.width) this.active = false;
       }
       draw() {
-        ctx.save();
-        ctx.fillStyle = this.color;
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-        ctx.restore();
+        ctx.save(); ctx.fillStyle = this.color;
+        ctx.beginPath(); ctx.arc(this.x, this.y, this.r, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2; ctx.stroke(); ctx.restore();
       }
     }
-
     let projectiles = [];
 
-    // --- CẤU HÌNH NHÂN VẬT ---
+    // --- CLASS NHÂN VẬT ---
     class Fighter {
       constructor(x, color, facingRight, id) {
-        this.id = id;
-        this.x = x;
-        this.y = GROUND_Y - 80;
-        this.w = 40;
-        this.h = 80;
-        this.vx = 0;
-        this.vy = 0;
-        this.hp = MAX_HP;
-        this.color = color;
-        this.facingRight = facingRight;
-        this.isGrounded = false;
-        this.isAttacking = false;
-        this.attackFrame = 0;
-        this.hitstun = 0;
-        this.shootCd = 0;
+        this.id = id; this.x = x; this.y = GROUND_Y - 80;
+        this.w = 40; this.h = 80; this.vx = 0; this.vy = 0;
+        this.hp = MAX_HP; this.color = color; this.facingRight = facingRight;
+        this.isGrounded = false; this.isAttacking = false;
+        this.attackFrame = 0; this.hitstun = 0;
+        this.shootCd = 0; this.healCd = 0;
       }
-
       update(inputs) {
         if (this.shootCd > 0) this.shootCd--;
+        if (this.healCd > 0) this.healCd--;
 
-        if (this.hitstun > 0) {
-          this.hitstun--;
+        if (gameState === "PLAYING") {
+          if (this.hitstun > 0) {
+            this.hitstun--;
+          } else {
+            this.vx = 0;
+            // Xử lý di chuyển
+            if (inputs.left) { this.vx = -5; this.facingRight = false; }
+            if (inputs.right) { this.vx = 5; this.facingRight = true; }
+            if (inputs.jump && this.isGrounded) this.vy = -15;
+
+            // Xử lý tấn công
+            if (inputs.attack && !this.isAttacking) {
+              this.isAttacking = true; this.attackFrame = 0;
+            }
+            if (inputs.shoot && this.shootCd === 0) {
+              const spawnX = this.facingRight ? this.x + this.w + 10 : this.x - 10;
+              projectiles.push(new Projectile(spawnX, this.y + 35, this.facingRight ? 11 : -11, this.color, this.id));
+              this.shootCd = SHOOT_COOLDOWN;
+            }
+            if (inputs.heal && this.healCd === 0 && this.hp < MAX_HP) {
+              this.hp = Math.min(MAX_HP, this.hp + HEAL_AMOUNT);
+              this.healCd = HEAL_COOLDOWN;
+            }
+          }
         } else {
           this.vx = 0;
-          if (inputs.left) { this.vx = -5; this.facingRight = false; }
-          if (inputs.right) { this.vx = 5; this.facingRight = true; }
-          if (inputs.jump && this.isGrounded) this.vy = -15;
-
-          // Đòn đấm cận chiến
-          if (inputs.attack && !this.isAttacking) {
-            this.isAttacking = true;
-            this.attackFrame = 0;
-          }
-
-          // Bắn đạn tầm xa
-          if (inputs.shoot && this.shootCd === 0) {
-            const spawnX = this.facingRight ? this.x + this.w + 10 : this.x - 10;
-            const spawnY = this.y + 35;
-            const speed = this.facingRight ? 11 : -11;
-            projectiles.push(new Projectile(spawnX, spawnY, speed, this.color, this.id));
-            this.shootCd = SHOOT_COOLDOWN;
-          }
         }
 
-        this.x += this.vx;
-        this.y += this.vy;
-
+        this.x += this.vx; this.y += this.vy;
         if (this.y + this.h < GROUND_Y) {
-          this.vy += GRAVITY;
-          this.isGrounded = false;
+          this.vy += GRAVITY; this.isGrounded = false;
         } else {
-          this.y = GROUND_Y - this.h;
-          this.vy = 0;
-          this.isGrounded = true;
+          this.y = GROUND_Y - this.h; this.vy = 0; this.isGrounded = true;
         }
-
         this.x = Math.max(0, Math.min(canvas.width - this.w, this.x));
 
         if (this.isAttacking) {
           this.attackFrame++;
-          if (this.attackFrame > 14) {
-            this.isAttacking = false;
-            this.attackFrame = 0;
-          }
+          if (this.attackFrame > 14) { this.isAttacking = false; this.attackFrame = 0; }
         }
       }
-
       draw() {
         ctx.fillStyle = this.hitstun > 0 ? "#ffffff" : this.color;
         ctx.fillRect(this.x, this.y, this.w, this.h);
 
-        // Mắt chỉ hướng nhìn
-        ctx.fillStyle = "#fff";
-        const eyeX = this.facingRight ? this.x + 24 : this.x + 6;
-        ctx.fillRect(eyeX, this.y + 16, 10, 10);
+        if (this.healCd > HEAL_COOLDOWN - 15) {
+          ctx.strokeStyle = "#2ed573"; ctx.lineWidth = 3;
+          ctx.strokeRect(this.x - 4, this.y - 4, this.w + 8, this.h + 8);
+        }
 
-        // Hitbox đòn đấm
+        ctx.fillStyle = "#fff";
+        ctx.fillRect(this.facingRight ? this.x + 24 : this.x + 6, this.y + 16, 10, 10);
+
         if (this.isAttacking && this.attackFrame >= 4 && this.attackFrame <= 9) {
           ctx.fillStyle = "rgba(255, 234, 167, 0.8)";
-          const hx = this.facingRight ? this.x + this.w : this.x - 45;
-          ctx.fillRect(hx, this.y + 25, 45, 25);
+          ctx.fillRect(this.facingRight ? this.x + this.w : this.x - 45, this.y + 25, 45, 25);
         }
       }
-
       getHitbox() {
         if (!this.isAttacking || this.attackFrame < 4 || this.attackFrame > 9) return null;
-        return {
-          x: this.facingRight ? this.x + this.w : this.x - 45,
-          y: this.y + 25,
-          w: 45,
-          h: 25
-        };
+        return { x: this.facingRight ? this.x + this.w : this.x - 45, y: this.y + 25, w: 45, h: 25 };
       }
     }
 
     const p1 = new Fighter(120, "#54a0ff", true, 1);
     const p2 = new Fighter(640, "#ff6b6b", false, 2);
 
-    // --- ĐIỀU KHIỂN: BÀN PHÍM + CẢM ỨNG ---
+    // ==========================================
+    // HỆ THỐNG INPUT THÔNG MINH (CẢM ỨNG ĐỘNG + ƯU TIÊN)
+    // ==========================================
+    const inputState = {
+      p1: { stack: [], jump: false, attack: false, shoot: false, heal: false },
+      p2: { stack: [], jump: false, attack: false, shoot: false, heal: false }
+    };
     const rawKeys = {};
-    const touchInputs = { left: false, right: false, jump: false, attack: false, shoot: false };
 
-    window.addEventListener("keydown", (e) => { rawKeys[e.key.toLowerCase()] = true; });
-    window.addEventListener("keyup", (e) => { rawKeys[e.key.toLowerCase()] = false; });
+    function pressAction(player, action) {
+      if (action === 'left' || action === 'right') {
+        if (!inputState[player].stack.includes(action)) inputState[player].stack.push(action);
+      } else {
+        inputState[player][action] = true;
+      }
+    }
 
-    // Xử lý sự kiện chạm cho các nút ảo
-    document.querySelectorAll(".t-btn").forEach((btn) => {
-      const key = btn.getAttribute("data-key");
-      const activate = (e) => {
+    function releaseAction(player, action) {
+      if (action === 'left' || action === 'right') {
+        inputState[player].stack = inputState[player].stack.filter(a => a !== action);
+      } else {
+        inputState[player][action] = false;
+      }
+    }
+
+    const keyMap = {
+      'a': { p: 'p1', a: 'left' }, 'd': { p: 'p1', a: 'right' },
+      'w': { p: 'p1', a: 'jump' }, 'f': { p: 'p1', a: 'attack' },
+      ' ': { p: 'p1', a: 'shoot' }, 'e': { p: 'p1', a: 'heal' },
+      'arrowleft': { p: 'p2', a: 'left' }, 'arrowright': { p: 'p2', a: 'right' },
+      'arrowup': { p: 'p2', a: 'jump' }, 'k': { p: 'p2', a: 'attack' },
+      'l': { p: 'p2', a: 'shoot' }, 'u': { p: 'p2', a: 'heal' }
+    };
+
+    window.addEventListener("keydown", (e) => {
+      if ([" ", "arrowup", "arrowdown", "arrowleft", "arrowright"].includes(e.key.toLowerCase())) {
         e.preventDefault();
-        touchInputs[key] = true;
-        btn.classList.add("active");
-      };
-      const deactivate = (e) => {
-        e.preventDefault();
-        touchInputs[key] = false;
-        btn.classList.remove("active");
-      };
-
-      btn.addEventListener("touchstart", activate, { passive: false });
-      btn.addEventListener("touchend", deactivate, { passive: false });
-      btn.addEventListener("touchcancel", deactivate, { passive: false });
-      btn.addEventListener("mousedown", activate);
-      btn.addEventListener("mouseup", deactivate);
-      btn.addEventListener("mouseleave", deactivate);
+      }
+      const k = e.key.toLowerCase();
+      if (keyMap[k] && !rawKeys[k]) {
+        rawKeys[k] = true;
+        pressAction(keyMap[k].p, keyMap[k].a);
+      }
     });
 
-    // Bật/tắt thanh phím ảo
+    window.addEventListener("keyup", (e) => {
+      const k = e.key.toLowerCase();
+      if (keyMap[k]) {
+        rawKeys[k] = false;
+        releaseAction(keyMap[k].p, keyMap[k].a);
+      }
+    });
+
+    const activeTouchKeys = new Set();
     const touchPanel = document.getElementById("touch-panel");
+
+    function handleTouches(e) {
+      const currentKeys = new Set();
+      
+      for (let i = 0; i < e.touches.length; i++) {
+        const touch = e.touches[i];
+        const el = document.elementFromPoint(touch.clientX, touch.clientY);
+        if (el && el.classList.contains("t-btn")) {
+          currentKeys.add(el.getAttribute("data-key"));
+        }
+      }
+
+      ["left", "right", "jump", "attack", "shoot", "heal"].forEach(key => {
+        const isPressed = currentKeys.has(key);
+        const wasPressed = activeTouchKeys.has(key);
+        const btn = document.querySelector(`.t-btn[data-key="${key}"]`);
+        
+        if (isPressed && !wasPressed) {
+          activeTouchKeys.add(key);
+          pressAction('p1', key);
+          if (btn) btn.classList.add("active");
+        } else if (!isPressed && wasPressed) {
+          activeTouchKeys.delete(key);
+          releaseAction('p1', key);
+          if (btn) btn.classList.remove("active");
+        }
+      });
+    }
+
+    touchPanel.addEventListener("touchstart", (e) => { e.preventDefault(); handleTouches(e); }, { passive: false });
+    touchPanel.addEventListener("touchmove", (e) => { e.preventDefault(); handleTouches(e); }, { passive: false });
+    touchPanel.addEventListener("touchend", (e) => { e.preventDefault(); handleTouches(e); }, { passive: false });
+    touchPanel.addEventListener("touchcancel", (e) => { e.preventDefault(); handleTouches(e); }, { passive: false });
+
+    // Hỗ trợ chuột cho nút ảo
+    document.querySelectorAll(".t-btn").forEach((btn) => {
+      const key = btn.getAttribute("data-key");
+      btn.addEventListener("mousedown", (e) => {
+        if (activeTouchKeys.has(key)) return;
+        e.preventDefault(); btn.classList.add("active"); pressAction('p1', key);
+      });
+      const releaseMouse = (e) => {
+        if (activeTouchKeys.has(key)) return;
+        e.preventDefault(); btn.classList.remove("active"); releaseAction('p1', key);
+      };
+      btn.addEventListener("mouseup", releaseMouse);
+      btn.addEventListener("mouseleave", releaseMouse);
+    });
+
     let touchVisible = true;
     document.getElementById("btn-toggle-touch").addEventListener("click", () => {
       touchVisible = !touchVisible;
@@ -404,99 +482,103 @@
     });
 
     function getLocalInputs() {
+      const getDir = (p) => inputState[p].stack.length > 0 ? inputState[p].stack[inputState[p].stack.length - 1] : null;
+      const d1 = getDir('p1');
+      const d2 = getDir('p2');
+
       return {
-        p1: {
-          left: !!rawKeys["a"] || touchInputs.left,
-          right: !!rawKeys["d"] || touchInputs.right,
-          jump: !!rawKeys["w"] || touchInputs.jump,
-          attack: !!rawKeys["f"] || touchInputs.attack,
-          shoot: !!rawKeys["g"] || touchInputs.shoot
-        },
-        p2: {
-          left: !!rawKeys["arrowleft"],
-          right: !!rawKeys["arrowright"],
-          jump: !!rawKeys["arrowup"],
-          attack: !!rawKeys["k"],
-          shoot: !!rawKeys["l"]
-        }
+        p1: { left: d1 === 'left', right: d1 === 'right', jump: inputState.p1.jump, attack: inputState.p1.attack, shoot: inputState.p1.shoot, heal: inputState.p1.heal },
+        p2: { left: d2 === 'left', right: d2 === 'right', jump: inputState.p2.jump, attack: inputState.p2.attack, shoot: inputState.p2.shoot, heal: inputState.p2.heal }
       };
     }
 
-    // --- MẠNG P2P BẰNG PEERJS (CẬP NHẬT XUYÊN TƯỜNG LỬA 4G) ---
-    // --- MẠNG P2P BẰNG PEERJS (NÂNG CẤP XUYÊN TƯỜNG LỬA) ---
+    // --- XỬ LÝ CHƠI TIẾP (REMATCH) ---
+    document.getElementById("btn-rematch").addEventListener("click", () => {
+      localRematch = true;
+      if (role === "OFFLINE") resetGame();
+      if (role === "HOST") p1Rematch = true;
+    });
+
+    function resetGame() {
+      p1.hp = MAX_HP; p2.hp = MAX_HP;
+      p1.x = 120; p2.x = 640;
+      p1.vx = 0; p1.vy = 0; p2.vx = 0; p2.vy = 0;
+      p1.shootCd = 0; p2.shootCd = 0; p1.healCd = 0; p2.healCd = 0;
+      p1.isAttacking = false; p2.isAttacking = false;
+      projectiles = []; gameState = "PLAYING";
+      p1Rematch = false; p2Rematch = false; localRematch = false;
+      document.getElementById("game-over-overlay").style.display = "none";
+    }
+
+    // ==========================================
+    // MẠNG P2P BẰNG PEERJS (CẬP NHẬT STUN & TURN CHÍNH CHỦ)
+    // ==========================================
     let role = "OFFLINE";
     let conn = null;
     let clientInputs = { left: false, right: false, jump: false, attack: false, shoot: false, heal: false, rm: false };
 
-    // Bổ sung cụm STUN Server đa luồng
-    const peer = new Peer({
-      config: {
+    // Tích hợp mảng iceServers do bạn cung cấp
+    const peer = new Peer({ 
+      config: { 
         iceServers: [
-          // 1. STUN Servers (Giải quyết 80% các loại mạng Wi-Fi)
-          { urls: "stun:stun.cloudflare.com:3478" },
-          { urls: "stun:stun.l.google.com:19302" },
-          { urls: "stun:global.stun.twilio.com:3478" },
-          
-          // 2. TURN Server Công cộng (Dự phòng cho 4G hoặc mạng NAT nghiêm ngặt)
-          // Lưu ý: Nếu server này quá tải, kết nối sẽ báo lỗi.
           {
-            urls: "turn:openrelay.metered.ca:80",
-            username: "openrelayproject",
-            credential: "openrelayproject"
+            urls: "stun:stun.relay.metered.ca:80",
           },
           {
-            urls: "turn:openrelay.metered.ca:443",
-            username: "openrelayproject",
-            credential: "openrelayproject"
-          }
+            urls: "turn:global.relay.metered.ca:80",
+            username: "8a9147e70a62e057ae66290f",
+            credential: "GhlDl9OroRDzeCzf",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:80?transport=tcp",
+            username: "8a9147e70a62e057ae66290f",
+            credential: "GhlDl9OroRDzeCzf",
+          },
+          {
+            urls: "turn:global.relay.metered.ca:443",
+            username: "8a9147e70a62e057ae66290f",
+            credential: "GhlDl9OroRDzeCzf",
+          },
+          {
+            urls: "turns:global.relay.metered.ca:443?transport=tcp",
+            username: "8a9147e70a62e057ae66290f",
+            credential: "GhlDl9OroRDzeCzf",
+          },
         ],
-        iceCandidatePoolSize: 10 // Tăng tốc độ dò tìm đường truyền
-      }
+        iceCandidatePoolSize: 10
+      } 
     });
 
     peer.on("error", (err) => { 
       console.error("Lỗi PeerJS:", err); 
-      const status = document.getElementById("status");
-      status.style.color = "#ff4757";
-      if(err.type === 'peer-unavailable') status.innerText = "Lỗi: Không tìm thấy ID đối thủ!";
-      else if(err.type === 'network') status.innerText = "Lỗi mạng: Không thể chạm tới Server báo hiệu!";
-      else status.innerText = "Lỗi kết nối (Mạng chặn P2P)!";
+      const statusEl = document.getElementById("status");
+      statusEl.style.color = "#ff4757";
+      if(err.type === 'peer-unavailable') statusEl.innerText = "Lỗi: Sai ID đối thủ!";
+      else if(err.type === 'network') statusEl.innerText = "Lỗi mạng: Không kết nối được máy chủ báo hiệu!";
+      else statusEl.innerText = `Lỗi: ${err.type}`;
     });
+    
     peer.on("open", (id) => { document.getElementById("my-id").innerText = id; });
 
-    // P1 (Host) nhận kết nối
     peer.on("connection", (c) => {
-      conn = c;
-      role = "HOST";
-
+      conn = c; role = "HOST"; resetGame(); scoreP1 = 0; scoreP2 = 0;
       conn.on("open", () => {
         document.getElementById("status").innerText = "Đã kết nối: Bạn là P1 (Host)";
         document.getElementById("status").style.color = "#2ed573";
       });
-
       setupNetEvents();
     });
 
-    // P2 bấm kết nối tới P1
     document.getElementById("btn-connect").addEventListener("click", () => {
       const target = document.getElementById("target-id").value.trim();
-      if (!target) {
-        alert("Vui lòng nhập ID của đối thủ!");
-        return;
-      }
-      if (target === peer.id) {
-        alert("Bạn không thể tự kết nối với chính ID của mình!");
-        return;
-      }
-
+      if (!target || target === peer.id) return;
       if (conn) conn.close();
-
-      // Sử dụng chế độ reliable: false (chuẩn UDP - truyền nhanh, không bị treo bắt tay)
+      
       conn = peer.connect(target, { reliable: false });
-      role = "CLIENT";
-
+      role = "CLIENT"; resetGame(); scoreP1 = 0; scoreP2 = 0;
+      
       const statusEl = document.getElementById("status");
-      statusEl.innerText = "Đang bắt tay kết nối P2P...";
+      statusEl.innerText = "Đang bắt tay kết nối...";
       statusEl.style.color = "#ffa502";
 
       conn.on("open", () => {
@@ -506,8 +588,7 @@
       });
 
       conn.on("error", (err) => {
-        console.error("Lỗi DataConnection:", err);
-        statusEl.innerText = "Kết nối thất bại (Lỗi ICE/Mạng)!";
+        statusEl.innerText = "Kết nối thất bại (Lỗi tường lửa/NAT)!";
         statusEl.style.color = "#ff4757";
       });
     });
@@ -516,143 +597,138 @@
       conn.on("data", (data) => {
         if (role === "HOST") {
           clientInputs = data;
+          p2Rematch = data.rm;
         } else if (role === "CLIENT") {
+          gameState = data.state;
+          scoreP1 = data.score[0]; scoreP2 = data.score[1];
+          p1Rematch = data.rm[0]; p2Rematch = data.rm[1];
+          
           p1.x = data.p1.x; p1.y = data.p1.y; p1.hp = data.p1.hp;
           p1.facingRight = data.p1.f; p1.isAttacking = data.p1.a; p1.attackFrame = data.p1.af; 
-          p1.hitstun = data.p1.hs; p1.shootCd = data.p1.cd;
+          p1.hitstun = data.p1.hs; p1.shootCd = data.p1.cd; p1.healCd = data.p1.hcd;
 
           p2.x = data.p2.x; p2.y = data.p2.y; p2.hp = data.p2.hp;
           p2.facingRight = data.p2.f; p2.isAttacking = data.p2.a; p2.attackFrame = data.p2.af; 
-          p2.hitstun = data.p2.hs; p2.shootCd = data.p2.cd;
+          p2.hitstun = data.p2.hs; p2.shootCd = data.p2.cd; p2.healCd = data.p2.hcd;
 
           projectiles = data.projs.map(p => new Projectile(p.x, p.y, p.vx, p.c, p.o));
         }
       });
-
-      conn.on("close", () => {
-        document.getElementById("status").innerText = "Đối thủ đã ngắt kết nối!";
-        document.getElementById("status").style.color = "#ff4757";
-      });
+      conn.on("close", () => { document.getElementById("status").innerText = "Đối thủ thoát!"; });
     }
 
     function checkCollision(r1, r2) {
       return r1.x < r2.x + r2.w && r1.x + r1.w > r2.x && r1.y < r2.y + r2.h && r1.y + r1.h > r2.y;
     }
 
-    let p1HasHit = false;
-    let p2HasHit = false;
+    let p1HasHit = false; let p2HasHit = false;
 
     // --- GAME LOOP ---
     function loop() {
       const inputs = getLocalInputs();
 
       if (role === "OFFLINE") {
-        p1.update(inputs.p1);
-        p2.update(inputs.p2);
+        p1.update(inputs.p1); p2.update(inputs.p2);
       } else if (role === "HOST") {
-        p1.update(inputs.p1);
-        p2.update(clientInputs);
-
-        // Host phát tán State sang Client
+        p1.update(inputs.p1); p2.update(clientInputs);
         if (conn && conn.open) {
           conn.send({
-            p1: { x: p1.x, y: p1.y, hp: p1.hp, f: p1.facingRight, a: p1.isAttacking, af: p1.attackFrame, hs: p1.hitstun, cd: p1.shootCd },
-            p2: { x: p2.x, y: p2.y, hp: p2.hp, f: p2.facingRight, a: p2.isAttacking, af: p2.attackFrame, hs: p2.hitstun, cd: p2.shootCd },
+            state: gameState, score: [scoreP1, scoreP2], rm: [p1Rematch, p2Rematch],
+            p1: { x: p1.x, y: p1.y, hp: p1.hp, f: p1.facingRight, a: p1.isAttacking, af: p1.attackFrame, hs: p1.hitstun, cd: p1.shootCd, hcd: p1.healCd },
+            p2: { x: p2.x, y: p2.y, hp: p2.hp, f: p2.facingRight, a: p2.isAttacking, af: p2.attackFrame, hs: p2.hitstun, cd: p2.shootCd, hcd: p2.healCd },
             projs: projectiles.map(p => ({ x: p.x, y: p.y, vx: p.vx, c: p.color, o: p.owner }))
           });
         }
       } else if (role === "CLIENT") {
         if (conn && conn.open) {
           conn.send({
-            left: inputs.p1.left || inputs.p2.left,
-            right: inputs.p1.right || inputs.p2.right,
-            jump: inputs.p1.jump || inputs.p2.jump,
-            attack: inputs.p1.attack || inputs.p2.attack,
-            shoot: inputs.p1.shoot || inputs.p2.shoot
+            left: inputs.p1.left || inputs.p2.left, right: inputs.p1.right || inputs.p2.right,
+            jump: inputs.p1.jump || inputs.p2.jump, attack: inputs.p1.attack || inputs.p2.attack,
+            shoot: inputs.p1.shoot || inputs.p2.shoot, heal: inputs.p1.heal || inputs.p2.heal,
+            rm: localRematch
           });
         }
       }
 
-      // Xử lý đạn và va chạm (Host hoặc Offline giữ quyền quyết định)
-      if (role !== "CLIENT") {
-        // Cập nhật vị trí các viên đạn
+      if (role !== "CLIENT" && gameState === "PLAYING") {
         projectiles.forEach((proj) => {
           proj.update();
-
-          // Va chạm đạn với P2 (nếu P1 bắn)
-          if (proj.active && proj.owner === 1) {
-            if (checkCollision({ x: proj.x - proj.r, y: proj.y - proj.r, w: proj.r * 2, h: proj.r * 2 }, p2)) {
-              p2.hp = Math.max(0, p2.hp - 15);
-              p2.hitstun = 10;
-              p2.vx = proj.vx > 0 ? 6 : -6;
-              proj.active = false;
-            }
+          if (proj.active && proj.owner === 1 && checkCollision({ x: proj.x - proj.r, y: proj.y - proj.r, w: proj.r*2, h: proj.r*2 }, p2)) {
+            p2.hp = Math.max(0, p2.hp - 15); p2.hitstun = 10; p2.vx = proj.vx > 0 ? 6 : -6; proj.active = false;
           }
-
-          // Va chạm đạn với P1 (nếu P2 bắn)
-          if (proj.active && proj.owner === 2) {
-            if (checkCollision({ x: proj.x - proj.r, y: proj.y - proj.r, w: proj.r * 2, h: proj.r * 2 }, p1)) {
-              p1.hp = Math.max(0, p1.hp - 15);
-              p1.hitstun = 10;
-              p1.vx = proj.vx > 0 ? 6 : -6;
-              proj.active = false;
-            }
+          if (proj.active && proj.owner === 2 && checkCollision({ x: proj.x - proj.r, y: proj.y - proj.r, w: proj.r*2, h: proj.r*2 }, p1)) {
+            p1.hp = Math.max(0, p1.hp - 15); p1.hitstun = 10; p1.vx = proj.vx > 0 ? 6 : -6; proj.active = false;
           }
         });
         projectiles = projectiles.filter(p => p.active);
 
-        // Va chạm đòn đấm
         const h1 = p1.getHitbox();
         if (h1 && !p1HasHit) {
-          if (checkCollision(h1, p2)) {
-            p2.hp = Math.max(0, p2.hp - 10);
-            p2.hitstun = 12;
-            p2.vx = p1.facingRight ? 9 : -9;
-            p1HasHit = true;
-          }
+          if (checkCollision(h1, p2)) { p2.hp = Math.max(0, p2.hp - 10); p2.hitstun = 12; p2.vx = p1.facingRight ? 9 : -9; p1HasHit = true; }
         }
         if (!p1.isAttacking) p1HasHit = false;
 
         const h2 = p2.getHitbox();
         if (h2 && !p2HasHit) {
-          if (checkCollision(h2, p1)) {
-            p1.hp = Math.max(0, p1.hp - 10);
-            p1.hitstun = 12;
-            p1.vx = p2.facingRight ? 9 : -9;
-            p2HasHit = true;
-          }
+          if (checkCollision(h2, p1)) { p1.hp = Math.max(0, p1.hp - 10); p1.hitstun = 12; p1.vx = p2.facingRight ? 9 : -9; p2HasHit = true; }
         }
         if (!p2.isAttacking) p2HasHit = false;
+
+        if (p1.hp <= 0 || p2.hp <= 0) {
+          gameState = "GAMEOVER";
+          if (p1.hp <= 0 && p2.hp > 0) scoreP2++;
+          else if (p2.hp <= 0 && p1.hp > 0) scoreP1++;
+        }
       }
 
-      // CẬP NHẬT HUD
-      document.getElementById("p1-hp").style.width = (p1.hp / MAX_HP * 100) + "%";
-      document.getElementById("p2-hp").style.width = (p2.hp / MAX_HP * 100) + "%";
-      document.getElementById("p1-hp-text").innerText = `${p1.hp} / ${MAX_HP}`;
-      document.getElementById("p2-hp-text").innerText = `${p2.hp} / ${MAX_HP}`;
+      if (role !== "CLIENT" && gameState === "GAMEOVER") {
+        if (role === "HOST" && p1Rematch && p2Rematch) resetGame();
+      }
 
-      // Thanh hồi chiêu đạn (đầy = sẵn sàng)
-      const p1CdRatio = Math.max(0, 1 - (p1.shootCd / SHOOT_COOLDOWN));
-      const p2CdRatio = Math.max(0, 1 - (p2.shootCd / SHOOT_COOLDOWN));
-      document.getElementById("p1-cd").style.width = (p1CdRatio * 100) + "%";
-      document.getElementById("p2-cd").style.width = (p2CdRatio * 100) + "%";
+      document.getElementById("p1-hp").style.width = (Math.max(0, p1.hp) / MAX_HP * 100) + "%";
+      document.getElementById("p2-hp").style.width = (Math.max(0, p2.hp) / MAX_HP * 100) + "%";
+      document.getElementById("p1-hp-text").innerText = `${Math.max(0, p1.hp)} / ${MAX_HP}`;
+      document.getElementById("p2-hp-text").innerText = `${Math.max(0, p2.hp)} / ${MAX_HP}`;
+      
+      document.getElementById("p1-cd").style.width = (Math.max(0, 1 - p1.shootCd/SHOOT_COOLDOWN) * 100) + "%";
+      document.getElementById("p2-cd").style.width = (Math.max(0, 1 - p2.shootCd/SHOOT_COOLDOWN) * 100) + "%";
+      
+      document.getElementById("p1-heal-cd").style.width = (Math.max(0, 1 - p1.healCd/HEAL_COOLDOWN) * 100) + "%";
+      document.getElementById("p2-heal-cd").style.width = (Math.max(0, 1 - p2.healCd/HEAL_COOLDOWN) * 100) + "%";
 
-      // VẼ MÀN HÌNH
+      document.getElementById("score-p1").innerText = scoreP1;
+      document.getElementById("score-p2").innerText = scoreP2;
+
+      const overlay = document.getElementById("game-over-overlay");
+      if (gameState === "GAMEOVER") {
+        overlay.style.display = "block";
+        let winnerText = "HÒA NHAU!";
+        if (p1.hp > 0) winnerText = "P1 (XANH) THẮNG!";
+        if (p2.hp > 0) winnerText = "P2 (ĐỎ) THẮNG!";
+        document.getElementById("winner-text").innerText = winnerText;
+
+        let rStatus = "";
+        if (role === "HOST") {
+          if (p1Rematch && !p2Rematch) rStatus = "Đang chờ Khách bấm chơi tiếp...";
+          else if (!p1Rematch && p2Rematch) rStatus = "Khách đã sẵn sàng!";
+        } else if (role === "CLIENT") {
+          if (localRematch && !p1Rematch) rStatus = "Đang chờ Host bấm chơi tiếp...";
+          else if (!localRematch && p1Rematch) rStatus = "Host đã sẵn sàng!";
+        }
+        document.getElementById("rematch-status").innerText = rStatus;
+      } else {
+        overlay.style.display = "none";
+      }
+
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-      // Sàn đấu
-      ctx.fillStyle = "#1e2235";
-      ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
-      ctx.fillStyle = "#ff4757";
-      ctx.fillRect(0, GROUND_Y, canvas.width, 3);
-
-      p1.draw();
-      p2.draw();
+      ctx.fillStyle = "#1e2235"; ctx.fillRect(0, GROUND_Y, canvas.width, canvas.height - GROUND_Y);
+      ctx.fillStyle = "#ff4757"; ctx.fillRect(0, GROUND_Y, canvas.width, 3);
+      
+      p1.draw(); p2.draw();
       projectiles.forEach(p => p.draw());
 
       requestAnimationFrame(loop);
     }
-
     loop();
   </script>
 </body>
