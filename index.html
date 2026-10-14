@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Khu Vườn Bí Mật 20/10 - Co-op Adventure</title>
+  <title>Xoa dịu cơn đau của cục dàng💕</title>
   <!-- Font chữ nét mảnh & điệu đà (Great Vibes & Alex Brush) hỗ trợ đầy đủ tiếng Việt -->
   <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Great+Vibes&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
@@ -546,7 +546,7 @@
   <div id="top-bar">
     <div class="conn-group">
       <span>Mã: <span id="my-id" class="badge">Đang tạo...</span></span>
-      <input type="text" id="target-id" placeholder="Dán mã người yêu..." />
+      <input type="text" id="target-id" placeholder="Dán mã cho ăm chã" />
       <button id="btn-connect" class="btn">Ghép Đôi 💕</button>
     </div>
     <div class="conn-group">
@@ -555,7 +555,7 @@
         <button id="btn-bgm-toggle" class="music-btn">🎵</button>
         <input type="range" id="bgm-volume" min="0" max="100" value="45" />
       </div>
-      <span id="status" style="font-weight: 700; color: #ff758c;">Offline (Tab đổi NV)</span>
+      <span id="status" style="font-weight: 700; color: #ff758c;">Chưa ghép với ăm chã</span>
       <button id="btn-toggle-map" class="btn btn-purple">🗺️ Ẩn Map</button>
       <button id="btn-toggle-touch" class="btn btn-blue">📱 Phím Ảo</button>
     </div>
@@ -563,10 +563,10 @@
 
   <!-- Thanh Thông số Trận đấu -->
   <div id="hud">
-    <div class="hud-box" id="gift-counter">🎁 Quà 20/10: <span id="gift-count-text">0 / 5</span></div>
-    <div class="hud-box" id="timer-box">⏳ <span id="time-text">04:00</span></div>
+    <div class="hud-box" id="gift-counter">🎁 Trò chơi: <span id="gift-count-text">0 / 5</span></div>
+    <div class="hud-box" id="timer-box">⏳ <span id="time-text">60:00</span></div>
     <div class="hud-box">
-      <span style="color:#4facfe;">● Anh (Xanh)</span> &amp; <span style="color:#ff758c;">● Em (Hồng)</span>
+      <span style="color:#4facfe;">● Đạt</span> &amp; <span style="color:#ff758c;">● Tuyến</span>
     </div>
   </div>
 
@@ -578,7 +578,7 @@
     <div id="sprite-layer">
       <!-- Nhân vật Nam (P1 - Anh) -->
       <div id="dom-p1" class="player male">
-        <div class="player-name-tag">Anh 💙</div>
+        <div class="player-name-tag">Đạt 💙</div>
         <div class="player-shadow"></div>
         <div class="chibi">
           <div class="cb-backhair"></div>
@@ -754,7 +754,6 @@
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      // Bộ lọc làm mượt âm sắc 8-bit để nghe êm tai
       const filter = audioCtx.createBiquadFilter();
       filter.type = "lowpass";
       filter.frequency.setValueAtTime(2400, now);
@@ -777,7 +776,7 @@
     function startChiptuneBGM() {
       if (bgmPlaying) return;
       bgmPlaying = true;
-      const stepDurationMs = 135; // ~111 BPM vừa phải, vui tươi
+      const stepDurationMs = 135;
 
       bgmIntervalId = setInterval(() => {
         if (!audioCtx || bgmMuted || bgmVolume <= 0.01 || audioCtx.state !== "running") return;
@@ -930,7 +929,7 @@
     const MAZE_TILE = 28; // Kích thước mỗi ô mê cung (px)
 
     // =========================================================================
-    // 3. KHU VỰC CẤU HÌNH QUÀ TẶNG & HÌNH ẢNH
+    // 3. KHU VỰC CẤU HÌNH QUÀ TẶNG & HÌNH ẢNH (ĐÃ SỬA LỖI DẤU NGOẶC KÉP)
     // =========================================================================
     function createSvgIcon(emoji, bgColor) {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
@@ -944,54 +943,63 @@
     const GIFT_CONFIGS = [
       {
         id: 0,
-        name: "Bó Hoa Hồng Pastel",
+        name: "Trờ chơi 4",
         x: 360, y: 320,
-        imgUrl: createSvgIcon("💐", "#ffe5ec"), // <-- Thay link ảnh thật vào đây
+        imgUrl: "https://heraflower.vn/wp-content/uploads/2024/10/mau-hoa-1-10.png",
+        fallbackUrl: createSvgIcon("💐", "#ffe5ec"),
         message: "Tặng em bó hoa tươi thắm nhất! Chúc công chúa của anh luôn rạng rỡ và xinh đẹp như những đóa hoa này.",
         puzzleType: "PLATES",
         hint: "Hai bạn hãy cùng đứng vào 2 vòng tròn Xanh & Hồng cạnh hộp quà!"
       },
       {
         id: 1,
-        name: "Gấu Bông Ôm Ngủ",
+        name: "Trò chơi 1",
         x: 1240, y: 280,
-        imgUrl: createSvgIcon("🧸", "#e2ece9"), // <-- Thay link ảnh thật vào đây
-        message: "Vượt mê cung thành công! Một chú gấu bông mềm mại thay anh ôm em mỗi tối. Chúc em 20/10 luôn ấm áp!",
+        imgUrl: "https://png.pngtree.com/png-clipart/20240626/original/pngtree-maze-games-for-6-year-olds-png-image_15415350.png",
+        fallbackUrl: createSvgIcon("🧸", "#e2ece9"),
+        message: "Vượt mê cung thành công!",
         puzzleType: "MAZE_ESCAPE",
-        hint: "Dùng phím di chuyển tìm đường tới Cổng Ra (góc dưới phải). Cả 2 cùng tới lối ra mới qua ải!"
+        hint: "Dùng phím di chuyển tìm đường tới Cổng Ra . Cả 2 cùng tới lối ra mới qua ải!"
       },
       {
         id: 2,
-        name: "Tiệc Trà Sữa & Bánh Ngọt",
+        name: "Trò chơi 2",
         x: 340, y: 920,
-        imgUrl: createSvgIcon("🍰", "#fff1e6"), // <-- Thay link ảnh thật vào đây
-        message: "Trí nhớ siêu đỉnh! Hôm nay anh dẫn em đi ăn uống mọi món em thích nhé!",
+        imgUrl: "https://image.made-in-china.com/155f0j00udpTEhgcRRbf/Memory-Fun-Pad-Simon-Says-Game-Pad.webp",
+        fallbackUrl: createSvgIcon("🍰", "#fff1e6"),
+        message: "Chắc cái này quen lắm.",
         puzzleType: "SIMON_MEMORY",
-        hint: "Nhớ 8 lượt giai điệu 4 tone nhạc! Trong mỗi lượt, Em (Hồng) luôn bấm trước rồi tới Anh (Xanh) bấm xen kẽ!"
+        hint: "Nhớ 8 lượt giai điệu 4. Trong mỗi lượt, Tuyến luôn bấm trước rồi tới Đạt bấm xen kẽ!"
       },
       {
         id: 3,
-        name: "Hộp Quà Bí Ẩn Lấp Lánh",
+        name: "Trò chơi 3",
         x: 1280, y: 900,
-        imgUrl: createSvgIcon("💄", "#f3c4fb"), // <-- Thay link ảnh thật vào đây
-        message: "Tâm đầu ý hợp! Một món quà nhỏ xinh dành riêng cho người con gái tuyệt vời nhất thế gian!",
+        imgUrl: "https://ngonngucuabe.com/wp-content/uploads/2023/06/IMG_0085-2048x1536.jpg",
+        fallbackUrl: createSvgIcon("💄", "#f3c4fb"),
+        message: "Tâm đầu ý hợp! ",
         puzzleType: "MEMORY_CARDS",
-        hint: "16 thẻ (8 cặp): Anh chọn mở 1 thẻ, Em chọn mở 1 thẻ. Nếu giống nhau 2 thẻ sẽ biến mất!"
+        hint: "16 thẻ (8 cặp): Đạt chọn mở 1 thẻ, Tuyến chọn mở 1 thẻ. Nếu giống nhau 2 thẻ sẽ biến mất!"
       },
       {
         id: 4,
-        name: "Bức Thư Tình 20/10",
+        name: "Bức thư",
         x: 800, y: 600,
-        imgUrl: createSvgIcon("💌", "#ffccd5"), // <-- Thay link ảnh thật vào đây
-        message: "Cảm ơn em đã đến bên anh. Chúc người yêu của anh một ngày 20/10 thật hạnh phúc. Yêu em rất nhiều! ❤️",
+        imgUrl: "https://pixnio.com/free-images/2025/05/15/2025-05-15-04-10-53-1152x788.jpeg",
+        fallbackUrl: createSvgIcon("💌", "#ffccd5"),
+        message: "Cảm ơn em đã đến bên anh. Chúc cục dàng của anh một ngày 20/10 thật hạnh phúc. Yêu em rất nhìu! ❤️",
         puzzleType: "MASH_HEART",
-        hint: "Thanh năng lượng đang tuột dần! Hai người hãy nhấn XEN KẼ nhau (Xanh -> Anh, Hồng -> Em) để nạp đầy!"
+        hint: "Thanh năng lượng đang tuột dần! Hai người hãy nhấn XEN KẼ nhau để nạp đầy!"
       }
     ];
 
     const loadedGiftImages = {};
     GIFT_CONFIGS.forEach(g => {
       const img = new Image();
+      // Nếu đường dẫn không phải file ảnh trực tiếp và bị lỗi, tự động dùng icon dự phòng để không làm đơ bản đồ
+      img.onerror = () => {
+        if (img.src !== g.fallbackUrl) img.src = g.fallbackUrl;
+      };
       img.src = g.imgUrl;
       loadedGiftImages[g.id] = img;
     });
@@ -1029,7 +1037,7 @@
     }
 
     // =========================================================================
-    // 5. KHỞI TẠO BẢN ĐỒ MỞ, HOA ĐA SẮC & BƯỚM BAY LƯỢN
+    // 5. KHỞI TẠO BẢN ĐỒ MỞ, HOA ĐA SẮC & BƯỚM BAY LƯỢN (THỜI GIAN 1 TIẾNG = 3600s)
     // =========================================================================
     const canvas = document.getElementById("gameCanvas");
     const ctx = canvas.getContext("2d");
@@ -1038,13 +1046,13 @@
 
     let role = "OFFLINE"; // "OFFLINE" | "HOST" | "CLIENT"
     let offlineActiveId = 1;
-    let timeLeft = 240;
+    let timeLeft = 3600; // 1 tiếng = 3600 giây
     let gameEnded = false;
     let showMinimap = true;
     let fireworksActive = false;
 
-    const p1 = { id: 1, label: "Anh 💙", x: 740, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#4facfe" };
-    const p2 = { id: 2, label: "Em 💖", x: 860, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#ff758c" };
+    const p1 = { id: 1, label: "Ăm chã húi 💙", x: 740, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#4facfe" };
+    const p2 = { id: 2, label: "Bà chã hơm 💖", x: 860, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#ff758c" };
 
     let giftsState = GIFT_CONFIGS.map(g => ({
       id: g.id,
@@ -1127,24 +1135,20 @@
     let activePuzzle = {
       giftId: null,
       type: null,
-      // Maze Escape (30x30) kèm hướng nhìn và trạng thái bước đi cho 2 Chibi
       mzP1: { x: 14, y: 42, dx: 1, dy: 0, moving: false },
       mzP2: { x: 40, y: 42, dx: 1, dy: 0, moving: false },
-      // Simon Memory (8 lượt)
       simonRound: 1,
       simonStep: 0,
       simonPhase: "WATCH",
       simonSeq: [],
       simonLitPad: null,
       simonSoundTick: 0,
-      // Memory Cards (16 thẻ = 8 cặp)
       cards: [],
       cardTurn: 1,
       firstCardIdx: null,
       secondCardIdx: null,
       cardLock: false,
       matchedPairs: 0,
-      // Mash Heart (Nhấn xen kẽ + Tuột thanh năng lượng)
       mashPower: 20,
       mashTurn: 1
     };
@@ -1284,7 +1288,7 @@
 
     function restartFullGame() {
       clearSimonTimers();
-      timeLeft = 240;
+      timeLeft = 3600; // Reset về 1 tiếng (3600 giây)
       gameEnded = false;
       fireworksActive = false;
       p1.x = 740; p1.y = 680;
@@ -1335,7 +1339,9 @@
       playTone(880, 0.35, "triangle", 0.2);
 
       const cfg = GIFT_CONFIGS[giftId];
-      document.getElementById("reward-img").src = cfg.imgUrl;
+      const rewardImg = document.getElementById("reward-img");
+      rewardImg.onerror = () => { rewardImg.src = cfg.fallbackUrl; };
+      rewardImg.src = cfg.imgUrl;
       document.getElementById("reward-name").innerText = cfg.name;
       document.getElementById("reward-msg").innerText = cfg.message;
       document.getElementById("reward-modal").style.display = "flex";
@@ -1362,15 +1368,16 @@
 
       if (isWin) {
         title.innerText = "💖 Trọn Vẹn Yêu Thương 20/10! 💖";
-        desc.innerText = "Tuyệt vời! Hai bạn đã phối hợp ăn ý để mở khóa toàn bộ 5 món quà bí mật. Sau khi đọc xong, hãy bấm nút bên dưới để cùng ngắm bầu trời pháo hoa kỷ niệm nhé!";
+        desc.innerText = "Tuyệt vời! Hai bạn đã phối hợp ăn ý để mở khóa toàn bộ 5 mục tiêu. Sau khi đọc xong, hãy bấm nút bên dưới để cùng ngắm bầu trời pháo hoa kỷ niệm nhé!";
       } else {
-        title.innerText = "⏰ Hết Giờ Rồi Nhưng Tình Yêu Thì Vô Hạn! 💖";
+        title.innerText = "⏰ Hết Giờ Rồi 💖";
         desc.innerText = "Dù thời gian thử thách đã khép lại, những món quà và bầu trời pháo hoa rực rỡ nhất ngày 20/10 vẫn luôn dành trọn cho em!";
       }
 
       gallery.innerHTML = "";
       GIFT_CONFIGS.forEach(cfg => {
         const img = document.createElement("img");
+        img.onerror = () => { img.src = cfg.fallbackUrl; };
         img.src = cfg.imgUrl;
         img.className = "gallery-item";
         img.title = cfg.name;
@@ -1468,7 +1475,7 @@
         puzContent.innerHTML = `
           <div class="simon-header">
             <span style="color:#ff4d6d;">🃏 Đã ghép: <span id="mem-pair-txt">0 / 8</span> cặp</span>
-            <span id="mem-turn-txt" style="color:#4facfe;">Lượt Anh 💙 chọn thẻ 1</span>
+            <span id="mem-turn-txt" style="color:#4facfe;">Lượt Đạt 💙 chọn thẻ 1</span>
           </div>
           <div class="memory-grid">
             ${Array.from({ length: 16 }, (_, idx) => `
@@ -1619,11 +1626,9 @@
       const ch = mCanvas.height;
       const worldSize = MAZE_COLS * MAZE_TILE; // 840x840
 
-      // Đồng bộ tỷ lệ co giãn của lớp Chibi DOM theo kích thước thực tế của khung mê cung
       const stageScale = mCanvas.clientWidth / 420;
       mzSpriteLayer.style.transform = `scale(${stageScale})`;
 
-      // Camera mê cung bám theo nhân vật của người chơi hiện tại
       const myMazePos = (role === "CLIENT" || (role === "OFFLINE" && offlineActiveId === 2))
         ? activePuzzle.mzP2
         : activePuzzle.mzP1;
@@ -1678,7 +1683,6 @@
       ].forEach(({ mp, el }) => {
         if (!el) return;
         el.classList.toggle("moving", !!mp.moving);
-        // Căn chân của model Chibi (56x66) thu nhỏ 0.38 khớp đúng tâm ô mê cung (28px)
         const sx = mp.x - camX - 28;
         const sy = mp.y - camY - 60;
         el.style.transform = `translate3d(${sx}px, ${sy}px, 0) scale(0.38)`;
@@ -1694,7 +1698,7 @@
       // 4. Vẽ Lớp Sương Mù Giới Hạn Tầm Nhìn (Fog of War) lên trên
       fCtx.clearRect(0, 0, cw, ch);
       fCtx.globalCompositeOperation = "source-over";
-      fCtx.fillStyle = "rgba(15, 12, 26, 0.94)";
+      fCtx.fillStyle = "#000000"; // Màn đen đặc 100% theo thiết lập của bạn
       fCtx.fillRect(0, 0, cw, ch);
 
       fCtx.globalCompositeOperation = "destination-out";
@@ -1711,10 +1715,9 @@
         fCtx.fill();
       };
 
-      cutLight(myMazePos.x, myMazePos.y, 98);
+      cutLight(myMazePos.x, myMazePos.y, 70);
       const otherPos = (myMazePos === activePuzzle.mzP1) ? activePuzzle.mzP2 : activePuzzle.mzP1;
       cutLight(otherPos.x, otherPos.y, 75);
-      cutLight(exitX, exitY, 38);
     }
 
     function updateActivePuzzle(time, localIn, remoteIn) {
@@ -1765,7 +1768,7 @@
           const p2Out = (r2 === 28 && c2 >= 27);
           if (p1Out && !p2Out) stTxt.innerText = "💙 Anh đã tới cửa! Đang đợi Em 💖...";
           else if (!p1Out && p2Out) stTxt.innerText = "💖 Em đã tới cửa! Đang đợi Anh 💙...";
-          else stTxt.innerText = "Cả 2 hãy tìm đường tới góc dưới phải 🚪";
+          else stTxt.innerText = "Cả 2 hãy tìm đường ra.";
         }
       }
       else if (activePuzzle.type === "SIMON_MEMORY") {
@@ -1801,11 +1804,11 @@
             if (isGirlTurn) {
               banner.style.background = "#ffe5ec";
               banner.style.color = "#c9184a";
-              banner.innerText = `💖 Đến lượt EM (Hồng) bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
+              banner.innerText = `💖 Đến lượt Tuyến bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
             } else {
               banner.style.background = "#e0f2fe";
               banner.style.color = "#0369a1";
-              banner.innerText = `💙 Đến lượt ANH (Xanh) bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
+              banner.innerText = `💙 Đến lượt Đạt bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
             }
           }
         }
@@ -1861,14 +1864,14 @@
         if (btn && hint) {
           if (activePuzzle.mashTurn === 1) {
             btn.className = "mash-alt-btn turn-blue";
-            btn.innerText = "💙 LƯỢT ANH BẤM! (NÚT XANH) ⚡";
+            btn.innerText = "💙 LƯỢT ANH BẤM!  ⚡";
             hint.style.color = "#4facfe";
-            hint.innerText = "Nút đang màu XANH: Đến lượt ANH nhấn!";
+            hint.innerText = " Đến lượt ANH nhấn!";
           } else {
             btn.className = "mash-alt-btn turn-pink";
-            btn.innerText = "💖 LƯỢT EM BẤM! (NÚT HỒNG) ⚡";
+            btn.innerText = "💖 LƯỢT EM BẤM!  ⚡";
             hint.style.color = "#ff4d6d";
-            hint.innerText = "Nút đang màu HỒNG: Đến lượt EM nhấn!";
+            hint.innerText = " Đến lượt EM nhấn!";
           }
         }
       }
@@ -1880,7 +1883,6 @@
     const keys = {};
     const touchState = { up: false, down: false, left: false, right: false, action: false };
 
-    // Tự động mở khóa nhạc nền 8-bit ngay khi người chơi bấm chuột / chạm lần đầu
     window.addEventListener("pointerdown", () => initAudio(), { once: true });
 
     window.addEventListener("keydown", (e) => {
@@ -2002,7 +2004,7 @@
       role = "HOST";
       restartFullGame();
       conn.on("open", () => {
-        document.getElementById("status").innerText = "💑 Bạn là Anh (Xanh)";
+        document.getElementById("status").innerText = "💑 Bạn là Đạt";
         document.getElementById("status").style.color = "#2ed573";
       });
       setupConnEvents();
@@ -2018,7 +2020,7 @@
       role = "CLIENT";
       document.getElementById("status").innerText = "Đang kết nối...";
       conn.on("open", () => {
-        document.getElementById("status").innerText = "💑 Bạn là Em (Hồng)";
+        document.getElementById("status").innerText = "💑 Bạn là Tuyến (Bà chã hơm)";
         document.getElementById("status").style.color = "#ff4d6d";
         setupConnEvents();
       });
@@ -2364,7 +2366,7 @@
         }
       }
 
-      // 5. Vẽ các Hộp Quà
+      // 5. Vẽ các Hộp Quà (Kiểm tra naturalWidth > 0 để không bao giờ bị treo nếu link ảnh lỗi)
       GIFT_CONFIGS.forEach(cfg => {
         const st = giftsState[cfg.id];
         const floatY = Math.sin(timestamp * 0.004 + cfg.id) * 6;
@@ -2383,7 +2385,7 @@
         ctx.stroke();
 
         const imgObj = loadedGiftImages[cfg.id];
-        if (imgObj && imgObj.complete) {
+        if (imgObj && imgObj.complete && imgObj.naturalWidth > 0) {
           ctx.drawImage(imgObj, cfg.x - 22, cfg.y - 22 + floatY, 44, 44);
         }
 
@@ -2400,7 +2402,7 @@
           ctx.fill();
           ctx.fillStyle = "#fff";
           ctx.font = "bold 11px sans-serif";
-          const promptTxt = cfg.puzzleType === "PLATES" ? "Đứng vào 2 vòng tròn!" : "Bấm [Cách] để mở quà";
+          const promptTxt = cfg.puzzleType === "PLATES" ? "Đứng vào 2 vòng tròn!" : "Bấm [Cách] để chơi.";
           ctx.fillText(promptTxt, cfg.x, cfg.y - 42 + floatY);
         }
       });
