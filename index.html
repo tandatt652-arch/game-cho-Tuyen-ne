@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>P2P Voice Call</title>
+  <title>P2P Voice Call - Audio Booster</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
@@ -11,9 +11,9 @@
       background: radial-gradient(circle at center, #1b2038 0%, #0b0d17 100%);
       color: #f1f2f6;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      height: 100dvh;
+      min-height: 100dvh;
       width: 100vw;
-      overflow: hidden;
+      overflow-x: hidden;
       position: relative;
       display: flex;
       flex-direction: column;
@@ -25,7 +25,7 @@
     /* THANH KẾT NỐI TRÊN CÙNG */
     #top-bar {
       width: 100%;
-      max-width: 780px;
+      max-width: 820px;
       background: rgba(25, 30, 48, 0.85);
       backdrop-filter: blur(14px);
       -webkit-backdrop-filter: blur(14px);
@@ -86,56 +86,55 @@
       font-weight: 600;
     }
 
-    /* KHU VỰC HIỂN THỊ TRUNG TÂM (2 AVATAR ĐÀM THOẠI) */
+    /* KHU VỰC HIỂN THỊ TRUNG TÂM */
     #voice-stage {
       flex: 1;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 24px;
+      gap: 20px;
       width: 100%;
-      max-width: 680px;
+      max-width: 760px;
       text-align: center;
+      margin: 14px 0;
     }
     .avatars-row {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      gap: 36px;
+      gap: 28px;
       flex-wrap: wrap;
+      width: 100%;
     }
     .user-card {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
       border-radius: 24px;
-      padding: 26px 32px;
-      width: 210px;
+      padding: 22px 24px;
+      width: 265px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 12px;
-      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
-      transition: transform 0.2s;
+      gap: 10px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.35);
     }
     .avatar-circle {
-      width: 96px;
-      height: 96px;
+      width: 88px;
+      height: 88px;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 42px;
+      font-size: 38px;
       position: relative;
-      transition: box-shadow 0.08s ease, transform 0.08s ease;
+      transition: box-shadow 0.06s ease, transform 0.06s ease;
     }
     .avatar-me {
       background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-      box-shadow: 0 0 0 0 rgba(79, 172, 254, 0.5);
     }
     .avatar-peer {
       background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-      box-shadow: 0 0 0 0 rgba(255, 117, 140, 0.5);
     }
     .user-name {
       font-weight: 700;
@@ -149,8 +148,73 @@
       border-radius: 12px;
     }
 
+    /* THANH TRƯỢT KHUẾCH ĐẠI ÂM THANH (BOOSTER) */
+    .boost-box {
+      width: 100%;
+      background: rgba(0, 0, 0, 0.28);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-top: 6px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .boost-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 12px;
+      color: #ced6e0;
+      font-weight: 600;
+    }
+    .boost-val {
+      color: #2ed573;
+      font-weight: 800;
+    }
+    .boost-val.high {
+      color: #ffa502;
+    }
+    input[type="range"].boost-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #2f3542;
+      border-radius: 4px;
+      outline: none;
+    }
+    input[type="range"].boost-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #ff758c;
+      cursor: pointer;
+      border: 2px solid #fff;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    }
+    .boost-presets {
+      display: flex;
+      justify-content: space-between;
+      gap: 4px;
+      margin-top: 2px;
+    }
+    .preset-btn {
+      flex: 1;
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: #a4b0be;
+      font-size: 11px;
+      padding: 3px 0;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    .preset-btn:hover { background: rgba(255, 255, 255, 0.18); color: #fff; }
+
     #call-timer {
-      font-size: 28px;
+      font-size: 26px;
       font-weight: 800;
       color: #2ed573;
       letter-spacing: 2px;
@@ -164,7 +228,7 @@
     #sub-hint {
       font-size: 13px;
       color: #8395a7;
-      max-width: 400px;
+      max-width: 440px;
       line-height: 1.5;
     }
 
@@ -181,7 +245,6 @@
       gap: 16px;
       z-index: 15;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      margin-bottom: 6px;
     }
     .ctrl-btn {
       width: 52px;
@@ -213,7 +276,7 @@
 
     /* HỘP THOẠI ĐỔ CHUÔNG CUỘC GỌI ĐẾN */
     #incoming-modal {
-      position: absolute;
+      position: fixed;
       inset: 0;
       background: rgba(11, 13, 23, 0.82);
       backdrop-filter: blur(10px);
@@ -260,9 +323,8 @@
       cursor: pointer;
     }
 
-    /* Hiệu ứng thả tim bay */
     .floating-heart {
-      position: absolute;
+      position: fixed;
       bottom: 85px;
       font-size: 28px;
       pointer-events: none;
@@ -277,7 +339,7 @@
 </head>
 <body>
 
-  <!-- Phần tử phát âm thanh ẩn -->
+  <!-- Thẻ audio ẩn giữ luồng WebRTC luôn hoạt động -->
   <audio id="remote-audio" autoplay playsinline></audio>
 
   <!-- THANH KẾT NỐI TRÊN CÙNG -->
@@ -297,26 +359,54 @@
   <!-- SÂN KHẤU ĐÀM THOẠI TRUNG TÂM -->
   <div id="voice-stage">
     <div id="call-timer">00:00</div>
-    <div id="status-text">Đang khởi tạo Micro...</div>
+    <div id="status-text">Đang khởi tạo bộ khuếch đại Micro...</div>
 
     <div class="avatars-row">
-      <!-- Thẻ của bạn -->
+      <!-- Thẻ của bạn (Khuếch đại Mic đầu vào) -->
       <div class="user-card">
         <div id="local-avatar" class="avatar-circle avatar-me">🎧</div>
         <div class="user-name">Bạn</div>
         <div id="local-mic-label" class="mic-badge">🎤 Đang bật Mic</div>
+
+        <div class="boost-box">
+          <div class="boost-header">
+            <span>🎙️ Khuếch đại Mic:</span>
+            <span id="mic-boost-label" class="boost-val">100%</span>
+          </div>
+          <input type="range" id="mic-boost-slider" class="boost-slider" min="0" max="400" value="100" step="5" />
+          <div class="boost-presets">
+            <button class="preset-btn" onclick="setMicBoost(100)">100%</button>
+            <button class="preset-btn" onclick="setMicBoost(200)">200%</button>
+            <button class="preset-btn" onclick="setMicBoost(300)">300%</button>
+            <button class="preset-btn" onclick="setMicBoost(400)">400%</button>
+          </div>
+        </div>
       </div>
 
-      <!-- Thẻ của đối phương -->
+      <!-- Thẻ của đối phương (Khuếch đại Loa đầu ra) -->
       <div class="user-card">
         <div id="remote-avatar" class="avatar-circle avatar-peer">💖</div>
         <div class="user-name" id="remote-name">Người thương</div>
         <div id="remote-mic-label" class="mic-badge">⏳ Chưa kết nối</div>
+
+        <div class="boost-box">
+          <div class="boost-header">
+            <span>🔊 Khuếch đại Loa:</span>
+            <span id="spk-boost-label" class="boost-val">100%</span>
+          </div>
+          <input type="range" id="spk-boost-slider" class="boost-slider" min="0" max="400" value="100" step="5" />
+          <div class="boost-presets">
+            <button class="preset-btn" onclick="setSpkBoost(100)">100%</button>
+            <button class="preset-btn" onclick="setSpkBoost(200)">200%</button>
+            <button class="preset-btn" onclick="setSpkBoost(300)">300%</button>
+            <button class="preset-btn" onclick="setSpkBoost(400)">400%</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <p id="sub-hint">
-      Nhấn <strong>"🔗 Copy Link Mời"</strong> gửi cho người kia hoặc nhập mã ID rồi bấm <strong>Gọi Thoại</strong>.
+      Kéo thanh trượt lên <strong>200% - 400%</strong> nếu bạn muốn phóng đại giọng nói khi nói thầm hoặc khi ở xa điện thoại.
     </p>
   </div>
 
@@ -373,12 +463,21 @@
       config: { iceServers, iceCandidatePoolSize: 10 }
     });
 
-    let localStream = null;
+    // Biến quản lý luồng âm thanh & Khuếch đại (Web Audio API)
+    let audioCtx = null;
+    let rawMicStream = null;
+    let processedMicStream = null; // Luồng đã qua bộ phóng đại để gửi đi
+    let micGainNode = null;
+    let remoteGainNode = null;
+
     let currentCall = null;
     let dataConn = null;
     let incomingCallObj = null;
     let isMicOn = true;
     let isSpeakerOn = true;
+    let currentMicBoost = 1.0; // 1.0 = 100%, 4.0 = 400%
+    let currentSpkBoost = 1.0;
+
     let callTimerInterval = null;
     let callSeconds = 0;
     let ringtoneInterval = null;
@@ -388,12 +487,23 @@
     const localAvatar = document.getElementById("local-avatar");
     const remoteAvatar = document.getElementById("remote-avatar");
 
+    function ensureAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContextClass();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
     // =========================================================================
-    // 2. KHỞI TẠO MICRO (CHỈ THU ÂM THANH - KHÔNG DÙNG CAMERA)
+    // 2. KHỞI TẠO MICRO & BỘ PHÓNG ĐẠI TIẾNG NÓI ĐẦU VÀO
     // =========================================================================
-    async function initLocalAudio() {
+    async function initLocalAudioWithBooster() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({
+        const rawStream = await navigator.mediaDevices.getUserMedia({
           audio: {
             echoCancellation: true,
             noiseSuppression: true,
@@ -401,11 +511,38 @@
           },
           video: false
         });
-        localStream = stream;
-        statusText.innerText = "Sẵn sàng gọi thoại";
+        rawMicStream = rawStream;
+
+        const ctx = ensureAudioContext();
+        const source = ctx.createMediaStreamSource(rawStream);
+
+        // Bộ khuếch đại âm lượng Mic (0x -> 4x)
+        micGainNode = ctx.createGain();
+        micGainNode.gain.value = currentMicBoost;
+
+        // Bộ nén âm chống vỡ tiếng (Compressor) khi phóng đại lên 300-400%
+        const compressor = ctx.createDynamicsCompressor();
+        compressor.threshold.setValueAtTime(-18, ctx.currentTime);
+        compressor.knee.setValueAtTime(20, ctx.currentTime);
+        compressor.ratio.setValueAtTime(12, ctx.currentTime);
+        compressor.attack.setValueAtTime(0.003, ctx.currentTime);
+        compressor.release.setValueAtTime(0.25, ctx.currentTime);
+
+        // Đích xuất ra MediaStream mới đã được phóng đại
+        const destination = ctx.createMediaStreamDestination();
+
+        source.connect(micGainNode);
+        micGainNode.connect(compressor);
+        compressor.connect(destination);
+
+        processedMicStream = destination.stream;
+
+        statusText.innerText = "Sẵn sàng gọi thoại (Đã bật Bộ Khuếch Đại)";
         statusText.style.color = "#2ed573";
-        setupVoiceVisualizer(stream, localAvatar, "79, 172, 254");
-        return stream;
+
+        // Hiển thị sóng âm sau khi đã khuếch đại
+        setupVoiceVisualizer(processedMicStream, localAvatar, "79, 172, 254");
+        return processedMicStream;
       } catch (err) {
         console.error("Không mở được Micro:", err);
         statusText.innerText = "Vui lòng cấp quyền Micro trên trình duyệt!";
@@ -414,18 +551,86 @@
       }
     }
 
-    initLocalAudio();
+    initLocalAudioWithBooster();
 
     // =========================================================================
-    // 3. HIỆU ỨNG VÒNG SÁNG NHẤP NHÁY THEO GIỌNG NÓI
+    // 3. BỘ PHÓNG ĐẠI LOA NGHE ĐỐI PHƯƠNG (0% -> 400%)
+    // =========================================================================
+    function routeRemoteAudioWithBooster(remoteStream) {
+      const ctx = ensureAudioContext();
+
+      // Gắn vào thẻ <audio> ẩn ở trạng thái muted để trình duyệt luôn kéo gói tin WebRTC
+      remoteAudio.srcObject = remoteStream;
+      remoteAudio.muted = true;
+      remoteAudio.play().catch(() => {});
+
+      const source = ctx.createMediaStreamSource(remoteStream);
+      remoteGainNode = ctx.createGain();
+      remoteGainNode.gain.value = isSpeakerOn ? currentSpkBoost : 0;
+
+      // Bộ chống chói tai khi kích loa lên 400%
+      const limiter = ctx.createDynamicsCompressor();
+      limiter.threshold.setValueAtTime(-12, ctx.currentTime);
+      limiter.knee.setValueAtTime(15, ctx.currentTime);
+      limiter.ratio.setValueAtTime(15, ctx.currentTime);
+
+      source.connect(remoteGainNode);
+      remoteGainNode.connect(limiter);
+      limiter.connect(ctx.destination);
+
+      setupVoiceVisualizer(remoteStream, remoteAvatar, "255, 117, 140");
+    }
+
+    // Điều khiển thanh trượt Khuếch đại Mic
+    const micSlider = document.getElementById("mic-boost-slider");
+    const micLabel = document.getElementById("mic-boost-label");
+
+    window.setMicBoost = function(percent) {
+      micSlider.value = percent;
+      updateMicBoostValue(percent);
+    };
+
+    function updateMicBoostValue(percent) {
+      ensureAudioContext();
+      currentMicBoost = percent / 100;
+      if (micGainNode) {
+        micGainNode.gain.setTargetAtTime(isMicOn ? currentMicBoost : 0, audioCtx.currentTime, 0.02);
+      }
+      micLabel.innerText = percent + "%";
+      micLabel.classList.toggle("high", percent > 150);
+    }
+
+    micSlider.addEventListener("input", (e) => updateMicBoostValue(Number(e.target.value)));
+
+    // Điều khiển thanh trượt Khuếch đại Loa
+    const spkSlider = document.getElementById("spk-boost-slider");
+    const spkLabel = document.getElementById("spk-boost-label");
+
+    window.setSpkBoost = function(percent) {
+      spkSlider.value = percent;
+      updateSpkBoostValue(percent);
+    };
+
+    function updateSpkBoostValue(percent) {
+      ensureAudioContext();
+      currentSpkBoost = percent / 100;
+      if (remoteGainNode) {
+        remoteGainNode.gain.setTargetAtTime(isSpeakerOn ? currentSpkBoost : 0, audioCtx.currentTime, 0.02);
+      }
+      spkLabel.innerText = percent + "%";
+      spkLabel.classList.toggle("high", percent > 150);
+    }
+
+    spkSlider.addEventListener("input", (e) => updateSpkBoostValue(Number(e.target.value)));
+
+    // =========================================================================
+    // 4. HIỆU ỨNG VÒNG SÁNG NHẤP NHÁY THEO GIỌNG NÓI
     // =========================================================================
     function setupVoiceVisualizer(stream, avatarEl, rgbColor) {
       try {
-        const AudioCtx = window.AudioContext || window.webkitAudioContext;
-        if (!AudioCtx) return;
-        const audioCtx = new AudioCtx();
-        const source = audioCtx.createMediaStreamSource(stream);
-        const analyser = audioCtx.createAnalyser();
+        const ctx = ensureAudioContext();
+        const source = ctx.createMediaStreamSource(stream);
+        const analyser = ctx.createAnalyser();
         analyser.fftSize = 256;
         source.connect(analyser);
         const dataArray = new Uint8Array(analyser.frequencyBinCount);
@@ -441,10 +646,10 @@
           for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
           const avg = sum / dataArray.length;
 
-          if (avg > 12) {
-            const radius = Math.min(35, avg * 0.6);
-            avatarEl.style.boxShadow = `0 0 ${radius}px ${radius * 0.4}px rgba(${rgbColor}, 0.75)`;
-            avatarEl.style.transform = `scale(${1 + Math.min(0.08, avg * 0.0012)})`;
+          if (avg > 10) {
+            const radius = Math.min(42, avg * 0.65);
+            avatarEl.style.boxShadow = `0 0 ${radius}px ${radius * 0.45}px rgba(${rgbColor}, 0.8)`;
+            avatarEl.style.transform = `scale(${1 + Math.min(0.1, avg * 0.0014)})`;
           } else {
             avatarEl.style.boxShadow = `0 0 0 0 rgba(${rgbColor}, 0)`;
             avatarEl.style.transform = "scale(1)";
@@ -453,21 +658,17 @@
         }
         updateMeter();
       } catch (e) {
-        console.warn("Không tạo được hiệu ứng sóng âm:", e);
+        console.warn("Lỗi Visualizer:", e);
       }
     }
 
     // =========================================================================
-    // 4. CHUÔNG BÁO CUỘC GỌI ĐẾN (WEB AUDIO API)
+    // 5. CHUÔNG BÁO CUỘC GỌI ĐẾN
     // =========================================================================
     function startRingtone() {
       stopRingtone();
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-
+      const ctx = ensureAudioContext();
       ringtoneInterval = setInterval(() => {
-        if (ctx.state === "suspended") ctx.resume();
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.type = "sine";
@@ -490,7 +691,7 @@
     }
 
     // =========================================================================
-    // 5. XỬ LÝ SỰ KIỆN PEERJS (TẠO ID, GỌI ĐI, NHẬN CUỘC GỌI)
+    // 6. XỬ LÝ SỰ KIỆN PEERJS
     // =========================================================================
     peer.on("open", (id) => {
       document.getElementById("my-id").innerText = id;
@@ -523,10 +724,11 @@
 
     document.getElementById("btn-accept").addEventListener("click", async () => {
       stopRingtone();
+      ensureAudioContext();
       document.getElementById("incoming-modal").style.display = "none";
-      if (!localStream) await initLocalAudio();
+      if (!processedMicStream) await initLocalAudioWithBooster();
       if (incomingCallObj) {
-        incomingCallObj.answer(localStream);
+        incomingCallObj.answer(processedMicStream);
         handleActiveCall(incomingCallObj);
       }
     });
@@ -552,14 +754,15 @@
         return;
       }
 
-      if (!localStream) await initLocalAudio();
+      ensureAudioContext();
+      if (!processedMicStream) await initLocalAudioWithBooster();
       statusText.innerText = "Đang đổ chuông...";
       statusText.style.color = "#ffa502";
 
       dataConn = peer.connect(targetId);
       setupDataChannel();
 
-      const call = peer.call(targetId, localStream);
+      const call = peer.call(targetId, processedMicStream);
       handleActiveCall(call);
     });
 
@@ -568,8 +771,7 @@
       currentCall = call;
 
       call.on("stream", (remoteStream) => {
-        remoteAudio.srcObject = remoteStream;
-        setupVoiceVisualizer(remoteStream, remoteAvatar, "255, 117, 140");
+        routeRemoteAudioWithBooster(remoteStream);
 
         statusText.innerText = "Đang trong cuộc gọi thoại";
         statusText.style.color = "#2ed573";
@@ -615,26 +817,31 @@
     }
 
     // =========================================================================
-    // 6. CÁC NÚT ĐIỀU KHIỂN TRONG CUỘC GỌI
+    // 7. CÁC NÚT ĐIỀU KHIỂN DƯỚI CÙNG
     // =========================================================================
     // Bật / Tắt Micro
     document.getElementById("btn-mic").addEventListener("click", (e) => {
-      if (!localStream) return;
-      const audioTracks = localStream.getAudioTracks();
-      if (audioTracks.length > 0) {
-        isMicOn = !isMicOn;
-        audioTracks[0].enabled = isMicOn;
-        e.currentTarget.classList.toggle("off", !isMicOn);
-        e.currentTarget.innerText = isMicOn ? "🎤" : "🔇";
-        document.getElementById("local-mic-label").innerText = isMicOn ? "🎤 Đang bật Mic" : "🔇 Đã tắt Mic";
-        if (dataConn && dataConn.open) dataConn.send({ type: "MIC_STATE", isMicOn });
+      ensureAudioContext();
+      isMicOn = !isMicOn;
+      if (rawMicStream) {
+        rawMicStream.getAudioTracks().forEach(t => (t.enabled = isMicOn));
       }
+      if (micGainNode) {
+        micGainNode.gain.setTargetAtTime(isMicOn ? currentMicBoost : 0, audioCtx.currentTime, 0.02);
+      }
+      e.currentTarget.classList.toggle("off", !isMicOn);
+      e.currentTarget.innerText = isMicOn ? "🎤" : "🔇";
+      document.getElementById("local-mic-label").innerText = isMicOn ? "🎤 Đang bật Mic" : "🔇 Đã tắt Mic";
+      if (dataConn && dataConn.open) dataConn.send({ type: "MIC_STATE", isMicOn });
     });
 
     // Bật / Tắt Loa
     document.getElementById("btn-speaker").addEventListener("click", (e) => {
+      ensureAudioContext();
       isSpeakerOn = !isSpeakerOn;
-      remoteAudio.muted = !isSpeakerOn;
+      if (remoteGainNode) {
+        remoteGainNode.gain.setTargetAtTime(isSpeakerOn ? currentSpkBoost : 0, audioCtx.currentTime, 0.02);
+      }
       e.currentTarget.classList.toggle("off", !isSpeakerOn);
       e.currentTarget.innerText = isSpeakerOn ? "🔊" : "🔈";
     });
@@ -671,7 +878,6 @@
       setTimeout(() => { btn.innerText = oldText; }, 2000);
     });
 
-    // Bộ đếm thời gian cuộc gọi
     function startCallTimer() {
       stopCallTimer();
       callSeconds = 0;
