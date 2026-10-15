@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>P2P Voice Call - Audio Booster</title>
+  <title>P2P Voice Call - Chạy Nền & Khuếch Đại</title>
   <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
@@ -93,11 +93,23 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 20px;
+      gap: 18px;
       width: 100%;
       max-width: 760px;
       text-align: center;
       margin: 14px 0;
+    }
+    .bg-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(46, 213, 115, 0.14);
+      border: 1px solid rgba(46, 213, 115, 0.4);
+      color: #2ed573;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
     }
     .avatars-row {
       display: flex;
@@ -228,7 +240,7 @@
     #sub-hint {
       font-size: 13px;
       color: #8395a7;
-      max-width: 440px;
+      max-width: 460px;
       line-height: 1.5;
     }
 
@@ -339,8 +351,10 @@
 </head>
 <body>
 
-  <!-- Thẻ audio ẩn giữ luồng WebRTC luôn hoạt động -->
-  <audio id="remote-audio" autoplay playsinline></audio>
+  <!-- 1. Thẻ audio kéo gói tin thô từ WebRTC -->
+  <audio id="remote-raw-puller" autoplay playsinline muted></audio>
+  <!-- 2. Thẻ audio chính phát âm thanh đã khuếch đại (Giúp hệ điều hành giữ chạy nền) -->
+  <audio id="remote-boosted-player" autoplay playsinline></audio>
 
   <!-- THANH KẾT NỐI TRÊN CÙNG -->
   <div id="top-bar">
@@ -358,8 +372,9 @@
 
   <!-- SÂN KHẤU ĐÀM THOẠI TRUNG TÂM -->
   <div id="voice-stage">
+    <div class="bg-badge">🛡️ Chế độ Chạy Nền: Bật (Chỉ ngắt khi đóng Tab)</div>
     <div id="call-timer">00:00</div>
-    <div id="status-text">Đang khởi tạo bộ khuếch đại Micro...</div>
+    <div id="status-text">Đang khởi tạo Micro &amp; Chế độ chạy nền...</div>
 
     <div class="avatars-row">
       <!-- Thẻ của bạn (Khuếch đại Mic đầu vào) -->
@@ -406,7 +421,7 @@
     </div>
 
     <p id="sub-hint">
-      Kéo thanh trượt lên <strong>200% - 400%</strong> nếu bạn muốn phóng đại giọng nói khi nói thầm hoặc khi ở xa điện thoại.
+      Bạn có thể ẩn trình duyệt, mở ứng dụng khác hoặc tắt màn hình điện thoại mà cuộc gọi vẫn duy trì bình thường.
     </p>
   </div>
 
@@ -460,13 +475,13 @@
     ];
 
     const peer = new Peer({
-      config: { iceServers, iceCandidatePoolSize: 10 }
+      config: { iceServers, iceCandidatePoolSize: 10 },
+      pingInterval: 5000 // Giữ kết nối tới máy chủ báo hiệu không bị ngủ đông
     });
 
-    // Biến quản lý luồng âm thanh & Khuếch đại (Web Audio API)
     let audioCtx = null;
     let rawMicStream = null;
-    let processedMicStream = null; // Luồng đã qua bộ phóng đại để gửi đi
+    let processedMicStream = null;
     let micGainNode = null;
     let remoteGainNode = null;
 
@@ -475,31 +490,86 @@
     let incomingCallObj = null;
     let isMicOn = true;
     let isSpeakerOn = true;
-    let currentMicBoost = 1.0; // 1.0 = 100%, 4.0 = 400%
+    let currentMicBoost = 1.0;
     let currentSpkBoost = 1.0;
 
     let callTimerInterval = null;
+    let heartbeatInterval = null;
     let callSeconds = 0;
     let ringtoneInterval = null;
+    let wakeLockSentinel = null;
 
-    const remoteAudio = document.getElementById("remote-audio");
+    const remoteRawPuller = document.getElementById("remote-raw-puller");
+    const remoteBoostedPlayer = document.getElementById("remote-boosted-player");
     const statusText = document.getElementById("status-text");
     const localAvatar = document.getElementById("local-avatar");
     const remoteAvatar = document.getElementById("remote-avatar");
+
+    // =========================================================================
+    // 2. CƠ CHẾ GIỮ TAB CHẠY NỀN (WEB LOCKS + MEDIA SESSION + WAKE LOCK)
+    // =========================================================================
+    function activateBackgroundPersistence() {
+      // 1. Web Locks API: Ngăn trình duyệt đóng băng (freeze) tab khi ẩn xuống nền
+      if (navigator.locks && navigator.locks.request) {
+        navigator.locks.request("p2p_voice_call_active_lock", () => {
+          return new Promise(() => {}); // Giữ khóa vĩnh viễn cho tới khi đóng tab
+        });
+      }
+
+      // 2. Media Session API: Báo với hệ điều hành điện thoại đây là cuộc gọi đang phát
+      if ("mediaSession" in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: "Cuộc gọi thoại P2P đang kết nối",
+          artist: "Đang chạy nền (Chỉ ngắt khi đóng Tab)",
+          album: "P2P Voice Call"
+        });
+        navigator.mediaSession.playbackState = "playing";
+      }
+
+      // 3. Screen Wake Lock: Giữ thiết bị không tự ngắt CPU khi đang mở
+      requestWakeLock();
+    }
+
+    async function requestWakeLock() {
+      if ("wakeLock" in navigator) {
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request("screen");
+        } catch (e) {}
+      }
+    }
+
+    // Tự động đánh thức lại AudioContext nếu hệ điều hành cố tình tạm dừng khi chuyển app
+    document.addEventListener("visibilitychange", () => {
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      if (document.visibilityState === "visible") {
+        requestWakeLock();
+      }
+      if (remoteBoostedPlayer.paused && remoteBoostedPlayer.srcObject) {
+        remoteBoostedPlayer.play().catch(() => {});
+      }
+    });
 
     function ensureAudioContext() {
       if (!audioCtx) {
         const AudioContextClass = window.AudioContext || window.webkitAudioContext;
         audioCtx = new AudioContextClass();
+        // Tự động resume ngay lập tức nếu bị hệ điều hành chuyển sang trạng thái suspended
+        audioCtx.onstatechange = () => {
+          if (audioCtx.state === "suspended" || audioCtx.state === "interrupted") {
+            audioCtx.resume();
+          }
+        };
       }
-      if (audioCtx.state === "suspended") {
+      if (audioCtx.state === "suspended" || audioCtx.state === "interrupted") {
         audioCtx.resume();
       }
       return audioCtx;
     }
 
     // =========================================================================
-    // 2. KHỞI TẠO MICRO & BỘ PHÓNG ĐẠI TIẾNG NÓI ĐẦU VÀO
+    // 3. KHỞI TẠO MICRO & BỘ PHÓNG ĐẠI TIẾNG NÓI ĐẦU VÀO
     // =========================================================================
     async function initLocalAudioWithBooster() {
       try {
@@ -516,11 +586,9 @@
         const ctx = ensureAudioContext();
         const source = ctx.createMediaStreamSource(rawStream);
 
-        // Bộ khuếch đại âm lượng Mic (0x -> 4x)
         micGainNode = ctx.createGain();
         micGainNode.gain.value = currentMicBoost;
 
-        // Bộ nén âm chống vỡ tiếng (Compressor) khi phóng đại lên 300-400%
         const compressor = ctx.createDynamicsCompressor();
         compressor.threshold.setValueAtTime(-18, ctx.currentTime);
         compressor.knee.setValueAtTime(20, ctx.currentTime);
@@ -528,7 +596,6 @@
         compressor.attack.setValueAtTime(0.003, ctx.currentTime);
         compressor.release.setValueAtTime(0.25, ctx.currentTime);
 
-        // Đích xuất ra MediaStream mới đã được phóng đại
         const destination = ctx.createMediaStreamDestination();
 
         source.connect(micGainNode);
@@ -537,10 +604,10 @@
 
         processedMicStream = destination.stream;
 
-        statusText.innerText = "Sẵn sàng gọi thoại (Đã bật Bộ Khuếch Đại)";
+        statusText.innerText = "Sẵn sàng gọi thoại (Hỗ trợ chạy nền)";
         statusText.style.color = "#2ed573";
 
-        // Hiển thị sóng âm sau khi đã khuếch đại
+        activateBackgroundPersistence();
         setupVoiceVisualizer(processedMicStream, localAvatar, "79, 172, 254");
         return processedMicStream;
       } catch (err) {
@@ -554,29 +621,39 @@
     initLocalAudioWithBooster();
 
     // =========================================================================
-    // 3. BỘ PHÓNG ĐẠI LOA NGHE ĐỐI PHƯƠNG (0% -> 400%)
+    // 4. BỘ PHÓNG ĐẠI LOA NGHE ĐỐI PHƯƠNG (XUẤT RA THẺ <AUDIO> CHẠY NỀN)
     // =========================================================================
     function routeRemoteAudioWithBooster(remoteStream) {
       const ctx = ensureAudioContext();
 
-      // Gắn vào thẻ <audio> ẩn ở trạng thái muted để trình duyệt luôn kéo gói tin WebRTC
-      remoteAudio.srcObject = remoteStream;
-      remoteAudio.muted = true;
-      remoteAudio.play().catch(() => {});
+      // Bước 1: Gắn vào thẻ puller ẩn để bắt buộc trình duyệt giải mã gói tin WebRTC
+      remoteRawPuller.srcObject = remoteStream;
+      remoteRawPuller.muted = true;
+      remoteRawPuller.play().catch(() => {});
 
+      // Bước 2: Đưa qua bộ khuếch đại 400% và bộ chống vỡ tiếng
       const source = ctx.createMediaStreamSource(remoteStream);
       remoteGainNode = ctx.createGain();
       remoteGainNode.gain.value = isSpeakerOn ? currentSpkBoost : 0;
 
-      // Bộ chống chói tai khi kích loa lên 400%
       const limiter = ctx.createDynamicsCompressor();
       limiter.threshold.setValueAtTime(-12, ctx.currentTime);
       limiter.knee.setValueAtTime(15, ctx.currentTime);
       limiter.ratio.setValueAtTime(15, ctx.currentTime);
 
+      // Bước 3: Xuất luồng đã khuếch đại sang thẻ <audio> chính để chạy ngầm khi tắt màn hình
+      const boostedDestination = ctx.createMediaStreamDestination();
+
       source.connect(remoteGainNode);
       remoteGainNode.connect(limiter);
-      limiter.connect(ctx.destination);
+      limiter.connect(boostedDestination);
+
+      remoteBoostedPlayer.srcObject = boostedDestination.stream;
+      remoteBoostedPlayer.muted = false;
+      remoteBoostedPlayer.play().catch(() => {
+        // Fallback nếu trình duyệt chặn play tự động: phát trực tiếp ra destination
+        limiter.connect(ctx.destination);
+      });
 
       setupVoiceVisualizer(remoteStream, remoteAvatar, "255, 117, 140");
     }
@@ -624,7 +701,7 @@
     spkSlider.addEventListener("input", (e) => updateSpkBoostValue(Number(e.target.value)));
 
     // =========================================================================
-    // 4. HIỆU ỨNG VÒNG SÁNG NHẤP NHÁY THEO GIỌNG NÓI
+    // 5. HIỆU ỨNG VÒNG SÁNG NHẤP NHÁY THEO GIỌNG NÓI
     // =========================================================================
     function setupVoiceVisualizer(stream, avatarEl, rgbColor) {
       try {
@@ -641,29 +718,30 @@
             avatarEl.style.transform = "scale(1)";
             return;
           }
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-          const avg = sum / dataArray.length;
+          // Chỉ vẽ hiệu ứng khi tab đang hiển thị để tiết kiệm pin khi chạy nền
+          if (document.visibilityState === "visible") {
+            analyser.getByteFrequencyData(dataArray);
+            let sum = 0;
+            for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
+            const avg = sum / dataArray.length;
 
-          if (avg > 10) {
-            const radius = Math.min(42, avg * 0.65);
-            avatarEl.style.boxShadow = `0 0 ${radius}px ${radius * 0.45}px rgba(${rgbColor}, 0.8)`;
-            avatarEl.style.transform = `scale(${1 + Math.min(0.1, avg * 0.0014)})`;
-          } else {
-            avatarEl.style.boxShadow = `0 0 0 0 rgba(${rgbColor}, 0)`;
-            avatarEl.style.transform = "scale(1)";
+            if (avg > 10) {
+              const radius = Math.min(42, avg * 0.65);
+              avatarEl.style.boxShadow = `0 0 ${radius}px ${radius * 0.45}px rgba(${rgbColor}, 0.8)`;
+              avatarEl.style.transform = `scale(${1 + Math.min(0.1, avg * 0.0014)})`;
+            } else {
+              avatarEl.style.boxShadow = `0 0 0 0 rgba(${rgbColor}, 0)`;
+              avatarEl.style.transform = "scale(1)";
+            }
           }
           requestAnimationFrame(updateMeter);
         }
         updateMeter();
-      } catch (e) {
-        console.warn("Lỗi Visualizer:", e);
-      }
+      } catch (e) {}
     }
 
     // =========================================================================
-    // 5. CHUÔNG BÁO CUỘC GỌI ĐẾN
+    // 6. CHUÔNG BÁO CUỘC GỌI ĐẾN
     // =========================================================================
     function startRingtone() {
       stopRingtone();
@@ -691,7 +769,7 @@
     }
 
     // =========================================================================
-    // 6. XỬ LÝ SỰ KIỆN PEERJS
+    // 7. XỬ LÝ SỰ KIỆN PEERJS & GIỮ KẾT NỐI CHỈ NGẮT KHI ĐÓNG TAB
     // =========================================================================
     peer.on("open", (id) => {
       document.getElementById("my-id").innerText = id;
@@ -701,6 +779,11 @@
         document.getElementById("remote-id-input").value = targetFromUrl;
         statusText.innerText = "Đã điền sẵn ID người nhận! Bấm Gọi Thoại ngay nhé.";
       }
+    });
+
+    // Tự động kết nối lại tới máy chủ báo hiệu nếu mạng chập chờn khi chạy nền
+    peer.on("disconnected", () => {
+      peer.reconnect();
     });
 
     peer.on("error", (err) => {
@@ -725,6 +808,7 @@
     document.getElementById("btn-accept").addEventListener("click", async () => {
       stopRingtone();
       ensureAudioContext();
+      activateBackgroundPersistence();
       document.getElementById("incoming-modal").style.display = "none";
       if (!processedMicStream) await initLocalAudioWithBooster();
       if (incomingCallObj) {
@@ -755,6 +839,7 @@
       }
 
       ensureAudioContext();
+      activateBackgroundPersistence();
       if (!processedMicStream) await initLocalAudioWithBooster();
       statusText.innerText = "Đang đổ chuông...";
       statusText.style.color = "#ffa502";
@@ -773,12 +858,13 @@
       call.on("stream", (remoteStream) => {
         routeRemoteAudioWithBooster(remoteStream);
 
-        statusText.innerText = "Đang trong cuộc gọi thoại";
+        statusText.innerText = "Đang trong cuộc gọi (Đã khóa chạy nền)";
         statusText.style.color = "#2ed573";
         document.getElementById("remote-mic-label").innerText = "🎤 Đang kết nối";
         document.getElementById("dial-box").style.display = "none";
         document.getElementById("btn-hangup").style.display = "flex";
         startCallTimer();
+        startHeartbeat();
       });
 
       call.on("close", () => endCallCleanup("Cuộc gọi đã kết thúc"));
@@ -792,20 +878,53 @@
       });
       dataConn.on("data", (data) => {
         if (data.type === "HEART") spawnFloatingHeart();
-        else if (data.type === "HANGUP") endCallCleanup("Đối phương đã kết thúc cuộc gọi");
+        else if (data.type === "HANGUP") endCallCleanup("Đối phương đã đóng tab hoặc kết thúc cuộc gọi");
         else if (data.type === "REJECTED") endCallCleanup("Đối phương đang bận / Từ chối cuộc gọi");
         else if (data.type === "MIC_STATE") {
           document.getElementById("remote-mic-label").innerText = data.isMicOn ? "🎤 Đang bật Mic" : "🔇 Đã tắt Mic";
         }
+        else if (data.type === "PING") {
+          // Giữ luồng mạng và AudioContext luôn thức khi chạy ngầm
+          if (audioCtx && audioCtx.state === "suspended") audioCtx.resume();
+        }
       });
     }
 
+    // Xung nhịp tim mỗi 4 giây giúp Router Wi-Fi/4G không ngắt kết nối khi im lặng
+    function startHeartbeat() {
+      stopHeartbeat();
+      heartbeatInterval = setInterval(() => {
+        if (dataConn && dataConn.open) {
+          dataConn.send({ type: "PING", t: Date.now() });
+        }
+        if (audioCtx && audioCtx.state === "suspended") {
+          audioCtx.resume();
+        }
+      }, 4000);
+    }
+
+    function stopHeartbeat() {
+      if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+      }
+    }
+
+    // Chỉ ngắt kết nối khi người dùng thực sự ĐÓNG TAB / TẮT TRÌNH DUYỆT
+    window.addEventListener("pagehide", () => {
+      if (dataConn && dataConn.open) dataConn.send({ type: "HANGUP" });
+      if (currentCall) currentCall.close();
+      peer.destroy();
+    });
+
     function endCallCleanup(reasonText) {
       stopRingtone();
+      stopHeartbeat();
       if (currentCall) { currentCall.close(); currentCall = null; }
       if (dataConn) { dataConn.close(); dataConn = null; }
 
-      remoteAudio.srcObject = null;
+      remoteRawPuller.srcObject = null;
+      remoteBoostedPlayer.srcObject = null;
       remoteAvatar.style.boxShadow = "none";
       document.getElementById("remote-mic-label").innerText = "⏳ Chưa kết nối";
 
@@ -817,9 +936,8 @@
     }
 
     // =========================================================================
-    // 7. CÁC NÚT ĐIỀU KHIỂN DƯỚI CÙNG
+    // 8. CÁC NÚT ĐIỀU KHIỂN DƯỚI CÙNG
     // =========================================================================
-    // Bật / Tắt Micro
     document.getElementById("btn-mic").addEventListener("click", (e) => {
       ensureAudioContext();
       isMicOn = !isMicOn;
@@ -835,18 +953,17 @@
       if (dataConn && dataConn.open) dataConn.send({ type: "MIC_STATE", isMicOn });
     });
 
-    // Bật / Tắt Loa
     document.getElementById("btn-speaker").addEventListener("click", (e) => {
       ensureAudioContext();
       isSpeakerOn = !isSpeakerOn;
       if (remoteGainNode) {
         remoteGainNode.gain.setTargetAtTime(isSpeakerOn ? currentSpkBoost : 0, audioCtx.currentTime, 0.02);
       }
+      remoteBoostedPlayer.muted = !isSpeakerOn;
       e.currentTarget.classList.toggle("off", !isSpeakerOn);
       e.currentTarget.innerText = isSpeakerOn ? "🔊" : "🔈";
     });
 
-    // Thả tim bay
     function spawnFloatingHeart() {
       const heart = document.createElement("div");
       heart.className = "floating-heart";
@@ -861,13 +978,11 @@
       if (dataConn && dataConn.open) dataConn.send({ type: "HEART" });
     });
 
-    // Kết thúc cuộc gọi
     document.getElementById("btn-hangup").addEventListener("click", () => {
       if (dataConn && dataConn.open) dataConn.send({ type: "HANGUP" });
       endCallCleanup("Bạn đã kết thúc cuộc gọi");
     });
 
-    // Sao chép Link mời nhanh
     document.getElementById("btn-copy-link").addEventListener("click", (e) => {
       if (!peer.id) return;
       const inviteUrl = `${window.location.origin}${window.location.pathname}?id=${peer.id}`;
