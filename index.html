@@ -8,13 +8,34 @@
   <style>
     :root {
       --ink: #2b2d42;
-      --card-bg: rgba(255, 255, 255, 0.88);
+      --card-bg: rgba(255, 255, 255, 0.9);
       --pink: #ff758c;
       --pink-light: #ffe5ec;
       --blue: #4facfe;
       --blue-light: #e0f4ff;
       --green: #2ed573;
       --yellow: #ffe066;
+
+      /* Biến màu tùy chỉnh độc lập cho 5 khu vực (Nền, Viền, Chữ) */
+      --local-card-bg: rgba(255, 255, 255, 0.9);
+      --local-card-border: #2b2d42;
+      --local-card-text: #2b2d42;
+
+      --remote-card-bg: rgba(255, 255, 255, 0.9);
+      --remote-card-border: #2b2d42;
+      --remote-card-text: #2b2d42;
+
+      --chat-bg: rgba(255, 255, 255, 0.9);
+      --chat-border: #2b2d42;
+      --chat-text: #2b2d42;
+
+      --ctrl-bg: rgba(255, 255, 255, 0.9);
+      --ctrl-border: #2b2d42;
+      --ctrl-text: #2b2d42;
+
+      --top-bg: rgba(255, 255, 255, 0.9);
+      --top-border: #2b2d42;
+      --top-text: #2b2d42;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
@@ -30,8 +51,8 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 10px;
-      transition: background 0.8s ease;
+      padding: 8px 10px;
+      transition: background 0.4s ease;
     }
 
     /* Giao diện nền khi chuyển sang Trời Đêm */
@@ -39,7 +60,7 @@
       background: linear-gradient(180deg, #070b19 0%, #16193b 62%, #0f292f 100%);
     }
 
-    /* NỀN TRANG TRÍ ĐỘNG (NGÀY: MÂY, ĐỒI CỎ, HOA ĐÀO | ĐÊM: TRĂNG, SAO, SAO BĂNG, ĐOM ĐÓM) */
+    /* NỀN TRANG TRÍ ĐỘNG */
     #bg-decor-canvas {
       position: fixed;
       inset: 0;
@@ -47,6 +68,10 @@
       height: 100%;
       pointer-events: none;
       z-index: 0;
+      transition: opacity 0.35s ease;
+    }
+    body.solid-bg-active #bg-decor-canvas {
+      opacity: 0;
     }
 
     /* HỆ THỐNG TOAST POPUP */
@@ -90,20 +115,156 @@
     }
 
     /* =========================================================================
-       BẢNG GHÉP TRẬN TRÊN CÙNG (CÓ NÚT THU GỌN & ĐỔI NGÀY/ĐÊM ĐỒNG BỘ)
+       THẺ MŨI TÊN NHỎ GẮN TRÊN TỪNG THÀNH PHẦN & HỘP CHỈNH MÀU TRỰC TIẾP (KHÔNG LÀM MỜ NỀN)
+       ========================================================================= */
+    .comp-arrow-tag {
+      background: #fff;
+      color: var(--ink);
+      border: 2px solid var(--ink);
+      border-radius: 10px;
+      padding: 2px 7px;
+      font-size: 11px;
+      font-weight: 900;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      box-shadow: 0 2px 0 rgba(43, 45, 66, 0.18);
+      transition: transform 0.12s, background 0.15s;
+      z-index: 25;
+    }
+    .comp-arrow-tag:hover {
+      background: var(--yellow);
+    }
+    .comp-arrow-tag.open {
+      background: var(--pink);
+      color: #fff;
+    }
+    /* Thẻ mũi tên gắn ở góc trên phải của 2 khung Call */
+    .card-corner-arrow {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+
+    /* Hộp chỉnh màu nổi ngay cạnh thành phần (Không che mờ nền để xem trước trực tiếp) */
+    /* Hộp chỉnh màu nổi ngay cạnh thành phần (Mở rộng cho 255 màu) */
+    #inline-color-popover {
+      position: fixed;
+      display: none;
+      width: 315px;
+      background: #ffffff;
+      border: 2.5px solid var(--ink);
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(43, 45, 66, 0.25);
+      padding: 10px;
+      z-index: 9000;
+      flex-direction: column;
+      gap: 8px;
+      animation: popScale 0.15s ease-out;
+    }
+    @keyframes popScale {
+      from { transform: scale(0.92); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .popover-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1.5px dashed #ddd;
+      padding-bottom: 5px;
+      font-size: 12px;
+      font-weight: 900;
+      color: var(--ink);
+    }
+    .popover-close {
+      background: #ffe3e3;
+      border: 1.5px solid var(--ink);
+      border-radius: 7px;
+      padding: 1px 6px;
+      font-size: 10.5px;
+      font-weight: 900;
+      cursor: pointer;
+      color: #d90429;
+    }
+    .prop-tabs-row {
+      display: flex;
+      gap: 4px;
+    }
+    .prop-tab-btn {
+      flex: 1;
+      background: #f1f3f9;
+      border: 1.5px solid var(--ink);
+      border-radius: 8px;
+      padding: 4px 4px;
+      font-size: 10.5px;
+      font-weight: 800;
+      color: var(--ink);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+    }
+    .prop-tab-btn.active {
+      background: var(--yellow);
+      box-shadow: 0 2px 0 var(--ink);
+    }
+    .prop-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1px solid var(--ink);
+      display: inline-block;
+    }
+
+    /* Lưới 255 màu Hex (15 cột x 17 hàng = 255 ô màu) */
+    .palette-40-grid {
+      display: grid;
+      grid-template-columns: repeat(15, 1fr);
+      gap: 3px;
+      padding: 5px;
+      max-height: 195px;
+      overflow-y: auto;
+      background: #f8f9fa;
+      border: 1.5px solid var(--ink);
+      border-radius: 10px;
+    }
+    .color-swatch {
+      width: 100%;
+      aspect-ratio: 1 / 1;
+      border-radius: 4px;
+      border: 1px solid rgba(43, 45, 66, 0.45);
+      cursor: pointer;
+      transition: transform 0.1s;
+    }
+    .color-swatch:hover {
+      transform: scale(1.3);
+      z-index: 3;
+      border-color: #000;
+    }
+    .color-swatch.selected {
+      border: 2px solid #000;
+      box-shadow: 0 0 0 2px #ffe066;
+      transform: scale(1.2);
+      z-index: 2;
+    }
+    /* =========================================================================
+       BẢNG KẾT NỐI TRÊN CÙNG (ÁP DỤNG BIẾN MÀU TÙY CHỈNH)
        ========================================================================= */
     #top-panel {
       position: relative;
       z-index: 20;
       width: 100%;
-      max-width: 840px;
-      background: var(--card-bg);
+      max-width: 880px;
+      background: var(--top-bg);
+      color: var(--top-text);
       backdrop-filter: blur(10px);
-      border: 2.5px solid var(--ink);
+      border: 2.5px solid var(--top-border);
       border-radius: 18px;
       box-shadow: 0 5px 0 rgba(43, 45, 66, 0.12);
-      padding: 8px 14px;
-      transition: all 0.25s ease;
+      padding: 7px 14px;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
     }
     .top-header-row {
       display: flex;
@@ -116,20 +277,20 @@
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      font-size: 12.5px;
+      font-size: 12px;
       font-weight: 800;
-      color: var(--ink);
-      background: #fff9db;
-      border: 2px solid var(--ink);
-      padding: 4px 10px;
+      color: var(--top-text);
+      background: rgba(255, 249, 219, 0.85);
+      border: 2px solid var(--top-border);
+      padding: 3px 10px;
       border-radius: 20px;
     }
     #call-timer {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 900;
       color: #fff;
       background: var(--green);
-      border: 2px solid var(--ink);
+      border: 2px solid var(--top-border);
       padding: 3px 10px;
       border-radius: 20px;
       display: none;
@@ -137,11 +298,11 @@
     .collapse-btn {
       background: var(--blue-light);
       color: var(--ink);
-      border: 2px solid var(--ink);
-      padding: 4px 10px;
-      border-radius: 12px;
+      border: 2px solid var(--top-border);
+      padding: 3px 9px;
+      border-radius: 10px;
       font-weight: 800;
-      font-size: 12px;
+      font-size: 11px;
       cursor: pointer;
       transition: all 0.2s;
     }
@@ -153,9 +314,9 @@
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 8px;
-      margin-top: 8px;
-      padding-top: 8px;
-      border-top: 1.5px dashed rgba(43, 45, 66, 0.2);
+      margin-top: 7px;
+      padding-top: 7px;
+      border-top: 1.5px dashed var(--top-border);
     }
     #top-panel.collapsed #matchmaking-body {
       display: none;
@@ -163,12 +324,12 @@
     .conn-group {
       display: flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       flex-wrap: wrap;
     }
     .id-chip {
       background: var(--pink-light);
-      border: 2px solid var(--ink);
+      border: 2px solid var(--top-border);
       color: #d90429;
       padding: 4px 9px;
       border-radius: 10px;
@@ -179,7 +340,7 @@
     }
     input.cute-input {
       background: #fff;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--top-border);
       color: var(--ink);
       padding: 5px 10px;
       border-radius: 10px;
@@ -213,13 +374,14 @@
       z-index: 10;
       flex: 1;
       width: 100%;
-      max-width: 840px;
+      max-width: 880px;
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      margin: 8px 0;
+      gap: 12px;
+      margin: 6px 0;
       min-height: 0;
+      overflow-y: auto;
     }
 
     #stage-column {
@@ -228,14 +390,14 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      gap: 10px;
+      gap: 8px;
       height: 100%;
     }
     .avatars-row {
       display: flex;
-      align-items: center;
+      align-items: stretch;
       justify-content: center;
-      gap: 14px;
+      gap: 12px;
       flex-wrap: wrap;
       width: 100%;
     }
@@ -243,20 +405,52 @@
       background: var(--card-bg);
       backdrop-filter: blur(8px);
       border: 2.5px solid var(--ink);
-      border-radius: 22px;
-      padding: 14px 16px;
-      width: 235px;
+      border-radius: 20px;
+      padding: 10px 12px;
+      width: 248px;
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
       box-shadow: 0 6px 0 rgba(43, 45, 66, 0.14);
       position: relative;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+
+    /* Áp dụng màu nền, màu viền, màu chữ riêng cho Khung Call của mình & đối phương */
+    #local-card {
+      background: var(--local-card-bg);
+      border-color: var(--local-card-border);
+      color: var(--local-card-text);
+    }
+    #local-card .mic-badge,
+    #local-card .boost-header span,
+    #local-card .preset-btn,
+    #local-card .noise-lvl-btn:not(.active) {
+      color: var(--local-card-text);
+    }
+    #local-card .boost-box {
+      border-color: var(--local-card-border);
+    }
+
+    #remote-card {
+      background: var(--remote-card-bg);
+      border-color: var(--remote-card-border);
+      color: var(--remote-card-text);
+    }
+    #remote-card .mic-badge,
+    #remote-card .boost-header span,
+    #remote-card .preset-btn,
+    #remote-card .noise-lvl-btn:not(.active) {
+      color: var(--remote-card-text);
+    }
+    #remote-card .boost-box {
+      border-color: var(--remote-card-border);
     }
 
     .chibi-stage {
-      width: 96px;
-      height: 96px;
+      width: 84px;
+      height: 84px;
       border-radius: 50%;
       background: radial-gradient(circle, #ffffff 30%, #ffe5ec 100%);
       border: 2.5px solid var(--ink);
@@ -264,15 +458,31 @@
       align-items: center;
       justify-content: center;
       position: relative;
-      margin-top: 8px;
+      margin-top: 6px;
       transition: box-shadow 0.08s ease, transform 0.08s ease;
     }
     .chibi-stage.male-stage {
       background: radial-gradient(circle, #ffffff 30%, #d8f3dc 100%);
     }
 
+    .gate-dot {
+      position: absolute;
+      bottom: 2px;
+      right: 2px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: #2ed573;
+      border: 2px solid var(--ink);
+      title: "Đang mở cổng âm thanh";
+      transition: background 0.1s;
+    }
+    .gate-dot.gated {
+      background: #ff4757;
+    }
+
     /* =========================================================================
-       MODEL NHÂN VẬT CHIBI (NỮ & NAM)
+       MODEL NHÂN VẬT CHIBI (NỮ & NAM) + TÙY CHỌN TẮT LẮC KHI NÓI
        ========================================================================= */
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
     @keyframes walkWobble { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
@@ -287,6 +497,7 @@
       border: none;
       will-change: transform;
       pointer-events: none;
+      transform: scale(0.92);
     }
     .player.female {
       --c-primary: #ff758c;
@@ -327,6 +538,11 @@
     .chibi { position: relative; width: 100%; height: 100%; animation: bounce 1.5s infinite ease-in-out; }
     .player.moving .chibi { animation: walkWobble 0.35s infinite ease-in-out; }
 
+    /* Khi bật tùy chọn "Tắt hiệu ứng lắc khi nói": giữ nguyên nhún nhẹ mặc định, chỉ mở miệng */
+    body.no-wobble-talk .player.moving .chibi {
+      animation: bounce 1.5s infinite ease-in-out !important;
+    }
+
     .cb-head { position: absolute; width: 46px; height: 46px; border: 4px solid var(--ink); border-radius: 45%; left: 5px; top: 0; z-index: 2; background: #ffe6d5; box-sizing: border-box; }
     .cb-hair { position: absolute; width: 54px; height: 25px; background: var(--ink); border-radius: 25px 25px 0 0; top: -4px; left: -8px; z-index: 3; box-sizing: border-box; }
     .cb-backhair { position: absolute; width: 56px; height: 50px; background: var(--ink); border-radius: 30px; top: 10px; left: 0; z-index: 1; }
@@ -363,30 +579,34 @@
     .acc-cap::after { content: ""; position: absolute; bottom: 1px; left: -4px; width: 22px; height: 7px; background: var(--c-primary); border: 3px solid var(--ink); border-radius: 8px 0 8px 8px; box-sizing: border-box; }
     .acc-cap i { position: absolute; right: 9px; top: 5px; width: 8px; height: 8px; background: var(--c-accent); border: 2.5px solid var(--ink); border-radius: 50%; z-index: 3; box-sizing: border-box; }
 
-    /* Hộp Khuếch Đại Âm Thanh */
+    /* Hộp Khuếch Đại & Lọc Tạp Âm */
     .mic-badge {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 800;
       color: var(--ink);
-      background: #f1f2f6;
+      background: rgba(241, 242, 246, 0.85);
       border: 1.5px solid var(--ink);
-      padding: 2px 9px;
+      padding: 2px 8px;
       border-radius: 10px;
     }
     .boost-box {
       width: 100%;
-      background: #f8f9fa;
+      background: rgba(248, 249, 250, 0.85);
       border: 2px solid var(--ink);
       border-radius: 12px;
-      padding: 7px 9px;
+      padding: 6px 8px;
       display: flex;
       flex-direction: column;
       gap: 4px;
     }
+    .filter-box {
+      background: rgba(238, 247, 255, 0.85);
+    }
     .boost-header {
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
+      align-items: center;
+      font-size: 10.5px;
       font-weight: 800;
     }
     .boost-val { color: #009432; }
@@ -397,28 +617,39 @@
       -webkit-appearance: none;
       appearance: none;
       width: 100%;
-      height: 6px;
+      height: 5px;
       background: linear-gradient(90deg, #2ed573 0%, #ffa502 50%, #ff4757 100%);
       border-radius: 4px;
       border: 1px solid var(--ink);
       outline: none;
     }
-    input[type="range"].boost-slider::-webkit-slider-thumb {
+    input[type="range"].filter-slider {
       -webkit-appearance: none;
       appearance: none;
-      width: 16px;
-      height: 16px;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, #70d6ff 0%, #4facfe 50%, #ff758c 100%);
+      border-radius: 4px;
+      border: 1px solid var(--ink);
+      outline: none;
+    }
+    input[type="range"].boost-slider::-webkit-slider-thumb,
+    input[type="range"].filter-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 14px;
+      height: 14px;
       border-radius: 50%;
       background: #fff;
       cursor: pointer;
-      border: 2.5px solid var(--ink);
+      border: 2px solid var(--ink);
     }
-    .boost-presets {
+    .boost-presets, .noise-lvl-group {
       display: flex;
       justify-content: space-between;
       gap: 3px;
     }
-    .preset-btn {
+    .preset-btn, .noise-lvl-btn {
       flex: 1;
       background: #fff;
       border: 1.5px solid var(--ink);
@@ -428,65 +659,75 @@
       border-radius: 5px;
       cursor: pointer;
       font-weight: 800;
+      transition: all 0.12s;
     }
-    .preset-btn:hover { background: var(--yellow); }
+    .preset-btn:hover, .noise-lvl-btn:hover { background: var(--yellow); }
+    .noise-lvl-btn.active {
+      background: var(--pink);
+      color: #fff;
+      box-shadow: 0 1.5px 0 var(--ink);
+    }
 
     /* =========================================================================
-       KHUNG CHAT NHẮN TIN, VOICE NOTE, GỬI ẢNH & BỘ STICKER
+       KHUNG CHAT NHẮN TIN (ÁP DỤNG BIẾN MÀU TÙY CHỈNH)
        ========================================================================= */
     #chat-drawer {
-      width: 340px;
-      height: 375px;
-      background: var(--card-bg);
+      width: 335px;
+      height: 395px;
+      background: var(--chat-bg);
+      color: var(--chat-text);
       backdrop-filter: blur(10px);
-      border: 2.5px solid var(--ink);
+      border: 2.5px solid var(--chat-border);
       border-radius: 22px;
       box-shadow: 0 6px 0 rgba(43, 45, 66, 0.14);
       display: flex;
       flex-direction: column;
       overflow: hidden;
       position: relative;
-      transition: all 0.25s ease;
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
     }
     #chat-drawer.hidden {
       display: none;
     }
-    @media (max-width: 760px) {
+    @media (max-width: 780px) {
       #chat-drawer {
         position: fixed;
-        bottom: 74px;
+        bottom: 70px;
         left: 50%;
         transform: translateX(-50%);
         width: calc(100% - 24px);
         max-width: 410px;
-        height: 360px;
+        height: 365px;
         z-index: 50;
       }
     }
     .chat-header {
-      background: var(--pink-light);
-      border-bottom: 2px solid var(--ink);
-      padding: 8px 12px;
+      background: rgba(255, 229, 236, 0.75);
+      color: var(--chat-text);
+      border-bottom: 2px solid var(--chat-border);
+      padding: 8px 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       font-weight: 800;
-      font-size: 13px;
+      font-size: 12.5px;
     }
     .chat-tools {
       display: flex;
-      gap: 5px;
+      gap: 4px;
       align-items: center;
     }
     .mini-tool-btn {
       background: #fff;
-      border: 1.5px solid var(--ink);
+      color: var(--ink);
+      border: 1.5px solid var(--chat-border);
       border-radius: 8px;
-      padding: 2px 8px;
-      font-size: 11px;
+      padding: 2px 7px;
+      font-size: 10.5px;
       font-weight: 700;
       cursor: pointer;
     }
+    .mini-tool-btn.active { background: var(--green); color: #fff; }
 
     #chat-messages {
       flex: 1;
@@ -495,7 +736,7 @@
       display: flex;
       flex-direction: column;
       gap: 8px;
-      background: rgba(255, 255, 255, 0.55);
+      background: rgba(255, 255, 255, 0.35);
     }
     .msg-row {
       display: flex;
@@ -513,14 +754,16 @@
     .msg-sender {
       font-size: 10px;
       font-weight: 800;
-      color: #6c757d;
+      color: var(--chat-text);
+      opacity: 0.85;
       margin-bottom: 2px;
       padding: 0 4px;
     }
     .msg-bubble {
       padding: 7px 11px;
       border-radius: 14px;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--chat-border);
+      color: var(--chat-text);
       font-size: 12.5px;
       font-weight: 600;
       line-height: 1.35;
@@ -528,6 +771,7 @@
       user-select: text;
       -webkit-user-select: text;
       position: relative;
+      cursor: pointer;
     }
     .msg-row.self .msg-bubble {
       background: var(--blue-light);
@@ -545,7 +789,7 @@
       gap: 8px;
       padding: 6px 11px;
       border-radius: 14px;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--chat-border);
       background: #fff;
       min-width: 165px;
       box-shadow: 0 3px 0 rgba(43, 45, 66, 0.1);
@@ -600,14 +844,14 @@
     .vn-dur {
       font-size: 10.5px;
       font-weight: 800;
-      color: var(--ink);
+      color: var(--chat-text);
     }
 
     /* Hiển thị Hình ảnh trong Chat */
     .msg-image-wrap {
       padding: 4px;
       border-radius: 14px;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--chat-border);
       background: #fff;
       overflow: hidden;
       cursor: zoom-in;
@@ -631,6 +875,7 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      cursor: pointer;
       animation: stickerPop 0.28s ease-out;
     }
     .msg-sticker-img {
@@ -644,7 +889,8 @@
 
     .msg-time {
       font-size: 9.5px;
-      color: #777;
+      color: var(--chat-text);
+      opacity: 0.75;
       margin-top: 2px;
       padding: 0 4px;
       font-weight: 700;
@@ -718,8 +964,8 @@
     /* THANH NHẬP TIN NHẮN & NÚT GỬI ẢNH / STICKER / VOICE NOTE */
     .chat-input-bar {
       padding: 7px;
-      border-top: 2px solid var(--ink);
-      background: #fff;
+      border-top: 2px solid var(--chat-border);
+      background: rgba(255, 255, 255, 0.9);
       display: flex;
       align-items: center;
       gap: 5px;
@@ -728,14 +974,14 @@
       width: 34px;
       height: 34px;
       border-radius: 10px;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--chat-border);
       background: #f8f9fa;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       flex-shrink: 0;
-      box-shadow: 0 2px 0 var(--ink);
+      box-shadow: 0 2px 0 var(--chat-border);
       transition: transform 0.1s, background 0.15s;
     }
     .chat-icon-btn:hover { background: var(--yellow); }
@@ -752,7 +998,8 @@
     #chat-input {
       flex: 1;
       min-width: 0;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--chat-border);
+      color: var(--chat-text);
       border-radius: 10px;
       padding: 6px 9px;
       font-size: 12.5px;
@@ -792,37 +1039,46 @@
     }
 
     /* =========================================================================
-       THANH ĐIỀU KHIỂN DƯỚI CÙNG (ICON VẼ BẰNG CANVAS)
+       THANH ĐIỀU KHIỂN DƯỚI CÙNG (ÁP DỤNG BIẾN MÀU TÙY CHỈNH)
        ========================================================================= */
     #bottom-controls {
       position: relative;
       z-index: 20;
-      background: var(--card-bg);
+      background: var(--ctrl-bg);
+      color: var(--ctrl-text);
       backdrop-filter: blur(12px);
-      border: 2.5px solid var(--ink);
-      padding: 7px 16px;
+      border: 2.5px solid var(--ctrl-border);
+      padding: 6px 16px;
       border-radius: 40px;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
       box-shadow: 0 6px 0 rgba(43, 45, 66, 0.15);
+      transition: background 0.2s, border-color 0.2s, color 0.2s;
+    }
+    .ctrl-label-tag {
+      font-size: 11.5px;
+      font-weight: 800;
+      color: var(--ctrl-text);
+      padding: 0 2px;
     }
     .ctrl-btn {
-      width: 46px;
-      height: 46px;
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      border: 2.5px solid var(--ink);
+      border: 2.5px solid var(--ctrl-border);
       background: #fff;
+      color: var(--ctrl-text);
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
       position: relative;
-      box-shadow: 0 3px 0 var(--ink);
+      box-shadow: 0 3px 0 var(--ctrl-border);
       transition: transform 0.1s, background 0.15s;
     }
     .ctrl-btn:hover { background: #fff9db; }
-    .ctrl-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+    .ctrl-btn:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ctrl-border); }
     .ctrl-btn.off { background: #ffe3e3; }
     .ctrl-btn.active-toggle { background: var(--yellow); }
     .ctrl-btn.hangup {
@@ -835,7 +1091,7 @@
       right: -5px;
       background: #ff4757;
       color: #fff;
-      border: 2px solid var(--ink);
+      border: 2px solid var(--ctrl-border);
       border-radius: 50%;
       width: 20px;
       height: 20px;
@@ -890,7 +1146,7 @@
 </head>
 <body>
 
-  <!-- Canvas Vẽ Bầu Trời Ngày (Mây, Đồi Cỏ, Hoa Đào) & Đêm (Trăng, Sao, Sao Băng, Đom Đóm) -->
+  <!-- Canvas Vẽ Bầu Trời Ngày & Đêm -->
   <canvas id="bg-decor-canvas"></canvas>
 
   <!-- Container chứa Popup Toast -->
@@ -905,13 +1161,30 @@
     </div>
   </div>
 
+  <!-- THẺ CHỈNH MÀU NỔI TRỰC TIẾP TẠI PHẦN ĐƯỢC CHỌN (KHÔNG LÀM MỜ NỀN) -->
+  <div id="inline-color-popover">
+    <div class="popover-head">
+      <span id="popover-title">🎨 Chỉnh Màu</span>
+      <button class="popover-close" onclick="closeInlineColorPopover()">✖</button>
+    </div>
+
+    <!-- Thanh chọn thuộc tính Nền / Viền / Chữ của phần đang mở -->
+    <div class="prop-tabs-row" id="popover-prop-tabs"></div>
+
+    <!-- Lưới 40 màu (Trắng, Đen & 38 màu chia đều từ Tím -> Đỏ) -->
+    <div class="palette-40-grid" id="popover-palette-grid"></div>
+
+    <!-- Dòng công cụ phụ tùy theo thẻ đang mở -->
+    <div class="popover-extra-row" id="popover-extra-actions"></div>
+  </div>
+
   <!-- Luồng âm thanh chạy nền & PiP -->
   <audio id="remote-raw-puller" autoplay playsinline muted></audio>
   <audio id="remote-boosted-player" autoplay playsinline></audio>
   <canvas id="pip-canvas" width="360" height="200" style="display:none;"></canvas>
   <video id="pip-video" autoplay muted playsinline style="position:fixed; width:1px; height:1px; opacity:0; pointer-events:none;"></video>
 
-  <!-- 1. BẢNG GHÉP TRẬN TRÊN CÙNG (CÓ NÚT ĐỔI NGÀY/ĐÊM ĐỒNG BỘ & THU GỌN) -->
+  <!-- 1. BẢNG GHÉP TRẬN TRÊN CÙNG (GẮN THẺ MŨI TÊN CHỈNH MÀU BẢNG KẾT NỐI & NỀN ĐƠN SẮC) -->
   <div id="top-panel">
     <div class="top-header-row">
       <div class="conn-group">
@@ -920,10 +1193,19 @@
         <span class="status-pill" id="role-indicator" style="background:#e0f4ff;"></span>
       </div>
       <div class="conn-group">
+        <!-- Thẻ mũi tên đổi Nền Giao Diện Đơn Sắc & Hiệu ứng lắc -->
+        <button class="comp-arrow-tag" id="tag-bg-main" onclick="toggleComponentColorTag('bgMain', this)" title="Đổi màu nền giao diện đơn sắc & Hiệu ứng nhân vật">
+          🖼️ Nền <span class="arr">▾</span>
+        </button>
+        <button id="btn-wobble-quick" class="collapse-btn" style="background:#ffe5ec;" title="Tắt/Bật hiệu ứng lắc nhân vật khi nói">💃 Lắc: Bật</button>
         <button id="btn-theme-toggle" class="collapse-btn" style="background:#2b2d42; color:#ffe066;">🌙 Trời Đêm</button>
         <button id="btn-vocal-turbo" class="collapse-btn" style="background:#fff3bf;">Tăng âm lượng</button>
         <button id="btn-pip" class="collapse-btn" title="Tách cửa sổ nổi">🪟 Popup Nổi</button>
         <button id="btn-collapse-top" class="collapse-btn">▲ Thu gọn</button>
+        <!-- Thẻ mũi tên chỉnh màu riêng cho Bảng Kết Nối -->
+        <button class="comp-arrow-tag" id="tag-top-panel" onclick="toggleComponentColorTag('topPanel', this)" title="Chỉnh màu Bảng Kết Nối">
+          🎨 <span class="arr">▾</span>
+        </button>
       </div>
     </div>
 
@@ -945,13 +1227,20 @@
     <!-- Sân khấu 2 nhân vật Chibi -->
     <div id="stage-column">
       <div class="avatars-row">
-        <!-- Thẻ của Bạn -->
-        <div class="chibi-card">
+        <!-- ================= THẺ CỦA BẠN (LOCAL) ================= -->
+        <div class="chibi-card" id="local-card">
+          <!-- Thẻ mũi tên nhỏ chỉnh màu Khung Call của mình -->
+          <button class="comp-arrow-tag card-corner-arrow" id="tag-local-card" onclick="toggleComponentColorTag('localCard', this)" title="Chỉnh màu Khung Call của mình">
+            🎨 <span class="arr">▾</span>
+          </button>
+
           <div id="local-stage" class="chibi-stage male-stage">
             <div id="local-chibi-slot"></div>
+            <div id="local-gate-dot" class="gate-dot" title="Đèn cổng thu âm (Xanh: Mở, Đỏ: Đang cắt tạp âm)"></div>
           </div>
           <div id="local-mic-label" class="mic-badge">🎤 Đang bật Mic</div>
 
+          <!-- Khuếch đại Mic -->
           <div class="boost-box">
             <div class="boost-header">
               <span>🎙️ Mic:</span>
@@ -965,15 +1254,48 @@
               <button class="preset-btn" onclick="setMicBoost(1000)">1000%</button>
             </div>
           </div>
+
+          <!-- Bộ Lọc Tạp Âm & Chống Tiếng Ồ Của Bạn -->
+          <div class="boost-box filter-box">
+            <div class="boost-header">
+              <span>🛡️ Lọc tạp âm Mic:</span>
+              <span id="local-noise-lvl-txt" style="color:#0077b6;">Mức 1</span>
+            </div>
+            <div class="noise-lvl-group" id="local-noise-btns">
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('local', 0)">0</button>
+              <button class="noise-lvl-btn active" onclick="setNoiseFilterLevel('local', 1)">1</button>
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('local', 2)">2</button>
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('local', 3)">3</button>
+            </div>
+
+            <div class="boost-header" style="margin-top:2px;">
+              <span>🔇 Cắt âm nhỏ:</span>
+              <span id="local-gate-label" class="boost-val">8%</span>
+            </div>
+            <input type="range" id="local-gate-slider" class="filter-slider" min="0" max="60" value="8" step="1" />
+
+            <div class="boost-header">
+              <span>🌬️ Chống tiếng ồ:</span>
+              <span id="local-freq-label" class="boost-val">100Hz</span>
+            </div>
+            <input type="range" id="local-freq-slider" class="filter-slider" min="20" max="500" value="100" step="10" />
+          </div>
         </div>
 
-        <!-- Thẻ của cục dàng -->
-        <div class="chibi-card">
+        <!-- ================= THẺ CỦA ĐỐI PHƯƠNG (REMOTE) ================= -->
+        <div class="chibi-card" id="remote-card">
+          <!-- Thẻ mũi tên nhỏ chỉnh màu Khung Call đối phương -->
+          <button class="comp-arrow-tag card-corner-arrow" id="tag-remote-card" onclick="toggleComponentColorTag('remoteCard', this)" title="Chỉnh màu Khung Call đối phương">
+            🎨 <span class="arr">▾</span>
+          </button>
+
           <div id="remote-stage" class="chibi-stage">
             <div id="remote-chibi-slot"></div>
+            <div id="remote-gate-dot" class="gate-dot" title="Đèn cổng loa (Xanh: Mở, Đỏ: Đang cắt tạp âm đối phương)"></div>
           </div>
           <div id="remote-mic-label" class="mic-badge">⏳ Chưa kết nối</div>
 
+          <!-- Khuếch đại Loa -->
           <div class="boost-box">
             <div class="boost-header">
               <span>🔊 Loa:</span>
@@ -987,16 +1309,47 @@
               <button class="preset-btn" onclick="setSpkBoost(1000)">1000%</button>
             </div>
           </div>
+
+          <!-- Bộ Lọc Tạp Âm & Chống Tiếng Ồ Phía Đối Phương -->
+          <div class="boost-box filter-box">
+            <div class="boost-header">
+              <span>🛡️ Lọc ồn đối phương:</span>
+              <span id="remote-noise-lvl-txt" style="color:#d90429;">Mức 1</span>
+            </div>
+            <div class="noise-lvl-group" id="remote-noise-btns">
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('remote', 0)">0</button>
+              <button class="noise-lvl-btn active" onclick="setNoiseFilterLevel('remote', 1)">1</button>
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('remote', 2)">2</button>
+              <button class="noise-lvl-btn" onclick="setNoiseFilterLevel('remote', 3)">3</button>
+            </div>
+
+            <div class="boost-header" style="margin-top:2px;">
+              <span>🔇 Cắt âm nhỏ:</span>
+              <span id="remote-gate-label" class="boost-val">8%</span>
+            </div>
+            <input type="range" id="remote-gate-slider" class="filter-slider" min="0" max="60" value="8" step="1" />
+
+            <div class="boost-header">
+              <span>🌬️ Chống tiếng ồ:</span>
+              <span id="remote-freq-label" class="boost-val">100Hz</span>
+            </div>
+            <input type="range" id="remote-freq-slider" class="filter-slider" min="20" max="500" value="100" step="10" />
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Khung Chat Lưu Lịch Sử, Voice Note, Gửi Ảnh & Bộ Sticker -->
+    <!-- Khung Chat Lưu Lịch Sử (Gắn thẻ mũi tên chỉnh màu Khung Chat) -->
     <div id="chat-drawer">
       <div class="chat-header">
         <span>💌 Trò Chuyện</span>
         <div class="chat-tools">
+          <button id="btn-tts-toggle" class="mini-tool-btn" title="Tự động đọc thành tiếng tin nhắn mới">🔊 Đọc: Tắt</button>
           <button id="btn-clear-chat" class="mini-tool-btn" title="Xóa lịch sử trò chuyện">🗑️ Xóa</button>
+          <!-- Thẻ mũi tên nhỏ chỉnh màu Khung Chat -->
+          <button class="comp-arrow-tag" id="tag-chat-drawer" onclick="toggleComponentColorTag('chatDrawer', this)" title="Chỉnh màu Khung Chat">
+            🎨 <span class="arr">▾</span>
+          </button>
         </div>
       </div>
 
@@ -1041,8 +1394,9 @@
     </div>
   </div>
 
-  <!-- 4. THANH NÚT ĐIỀU KHIỂN DƯỚI CÙNG (TẤT CẢ ICON VẼ BẰNG CANVAS) -->
+  <!-- 4. THANH NÚT ĐIỀU KHIỂN DƯỚI CÙNG (GẮN THẺ MŨI TÊN CHỈNH MÀU BẢNG ĐIỀU KHIỂN) -->
   <div id="bottom-controls">
+    <span class="ctrl-label-tag">Điều khiển:</span>
     <button id="btn-mic" class="ctrl-btn" title="Bật / Tắt Micro">
       <canvas id="icon-mic" width="28" height="28"></canvas>
     </button>
@@ -1059,11 +1413,336 @@
     <button id="btn-hangup" class="ctrl-btn hangup" title="Kết thúc / Thoát cuộc gọi">
       <canvas id="icon-hangup" width="28" height="28"></canvas>
     </button>
+    <!-- Thẻ mũi tên nhỏ chỉnh màu Bảng Điều Khiển -->
+    <button class="comp-arrow-tag" id="tag-bottom-ctrl" onclick="toggleComponentColorTag('bottomCtrl', this)" title="Chỉnh màu Bảng Điều Khiển">
+      🎨 <span class="arr">▴</span>
+    </button>
   </div>
 
   <script>
     // =========================================================================
-    // 1. BỘ 8 STICKER CHIBI DỄ THƯƠNG (KHÔNG PHÁT GIỌNG NÓI KHI BẤM)
+    // =========================================================================
+    // 0. HỆ THỐNG THẺ MŨI TÊN CHỈNH MÀU TỪNG PHẦN (255 MÀU HEX & TỰ ĐỘNG ĐỒNG BỘ P2P)
+    // =========================================================================
+    const CUSTOM_THEME_KEY = "chibi_custom_ui_theme_v2";
+
+    function hslToHex(h, s, l) {
+      l /= 100;
+      const a = (s * Math.min(l, 1 - l)) / 100;
+      const f = n => {
+        const k = (n + h / 30) % 12;
+        const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+        return Math.round(255 * color).toString(16).padStart(2, "0");
+      };
+      return `#${f(0)}${f(8)}${f(4)}`;
+    }
+
+    // Tạo bảng đúng 255 màu Hex (15 cột x 17 hàng):
+    // - Hàng 1 (15 màu): Dải sắc độ từ Trắng (#ffffff) -> Xám -> Đen (#000000)
+    // - 16 Hàng tiếp theo (16 x 15 = 240 màu): Toàn dải quang phổ Hex từ sáng Pastel tới đậm
+    const PALETTE_255_COLORS = [];
+
+    for (let i = 0; i < 15; i++) {
+      const v = Math.round(255 - (i * 255) / 14).toString(16).padStart(2, "0");
+      const hex = `#${v}${v}${v}`;
+      PALETTE_255_COLORS.push({ hex, name: `Màu đơn sắc ${hex.toUpperCase()}` });
+    }
+
+    for (let row = 0; row < 16; row++) {
+      // Độ sáng giảm dần từ 92% (Pastel sáng) xuống 17% (Tối đậm)
+      const light = 92 - row * 5;
+      const sat = row < 3 ? 95 : row > 12 ? 78 : 88;
+      for (let col = 0; col < 15; col++) {
+        // Trải đều vòng tròn màu (Tím 270° -> Hồng -> Đỏ -> Cam -> Vàng -> Lục -> Lam)
+        const hue = (270 + col * (360 / 15)) % 360;
+        const hex = hslToHex(hue, sat, light);
+        PALETTE_255_COLORS.push({
+          hex,
+          name: `Mã Hex: ${hex.toUpperCase()}`
+        });
+      }
+    }
+
+    const COMPONENT_TAG_DEFS = {
+      localCard: {
+        title: "🎨 Khung Call Của Mình",
+        props: [
+          { label: "Màu Nền", varName: "--local-card-bg" },
+          { label: "Màu Viền", varName: "--local-card-border" },
+          { label: "Màu Chữ", varName: "--local-card-text" }
+        ]
+      },
+      remoteCard: {
+        title: "🎨 Khung Call Đối Phương",
+        props: [
+          { label: "Màu Nền", varName: "--remote-card-bg" },
+          { label: "Màu Viền", varName: "--remote-card-border" },
+          { label: "Màu Chữ", varName: "--remote-card-text" }
+        ]
+      },
+      chatDrawer: {
+        title: "🎨 Khung Trò Chuyện",
+        props: [
+          { label: "Màu Nền", varName: "--chat-bg" },
+          { label: "Màu Viền", varName: "--chat-border" },
+          { label: "Màu Chữ", varName: "--chat-text" }
+        ]
+      },
+      bottomCtrl: {
+        title: "🎨 Bảng Điều Khiển",
+        props: [
+          { label: "Màu Nền", varName: "--ctrl-bg" },
+          { label: "Màu Viền", varName: "--ctrl-border" },
+          { label: "Màu Chữ", varName: "--ctrl-text" }
+        ]
+      },
+      topPanel: {
+        title: "🎨 Bảng Kết Nối",
+        props: [
+          { label: "Màu Nền", varName: "--top-bg" },
+          { label: "Màu Viền", varName: "--top-border" },
+          { label: "Màu Chữ", varName: "--top-text" }
+        ]
+      },
+      bgMain: {
+        title: "🖼️ Màu Nền Giao Diện Đơn Sắc",
+        props: [
+          { label: "Nền Đơn Sắc", varName: "SOLID_BG" }
+        ]
+      }
+    };
+
+    const DEFAULT_CUSTOM_CONFIG = {
+      noWobbleTalk: false,
+      solidBg: null,
+      vars: {
+        "--local-card-bg": "rgba(255, 255, 255, 0.9)",
+        "--local-card-border": "#2b2d42",
+        "--local-card-text": "#2b2d42",
+        "--remote-card-bg": "rgba(255, 255, 255, 0.9)",
+        "--remote-card-border": "#2b2d42",
+        "--remote-card-text": "#2b2d42",
+        "--chat-bg": "rgba(255, 255, 255, 0.9)",
+        "--chat-border": "#2b2d42",
+        "--chat-text": "#2b2d42",
+        "--ctrl-bg": "rgba(255, 255, 255, 0.9)",
+        "--ctrl-border": "#2b2d42",
+        "--ctrl-text": "#2b2d42",
+        "--top-bg": "rgba(255, 255, 255, 0.9)",
+        "--top-border": "#2b2d42",
+        "--top-text": "#2b2d42"
+      }
+    };
+
+    let customConfig = JSON.parse(JSON.stringify(DEFAULT_CUSTOM_CONFIG));
+    let currentOpenCompKey = null;
+    let currentActiveVarName = null;
+
+    const popoverEl = document.getElementById("inline-color-popover");
+    const popoverTitleEl = document.getElementById("popover-title");
+    const popoverTabsEl = document.getElementById("popover-prop-tabs");
+    const popoverGridEl = document.getElementById("popover-palette-grid");
+    const popoverExtraEl = document.getElementById("popover-extra-actions");
+
+    function loadCustomConfig() {
+      try {
+        const saved = localStorage.getItem(CUSTOM_THEME_KEY);
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          customConfig.noWobbleTalk = !!parsed.noWobbleTalk;
+          customConfig.solidBg = parsed.solidBg || null;
+          if (parsed.vars) Object.assign(customConfig.vars, parsed.vars);
+        }
+      } catch (e) {}
+      applyCustomConfigToDOM();
+    }
+
+    // Lưu cấu hình & TỰ ĐỘNG ĐỒNG BỘ SANG ĐỐI PHƯƠNG NGAY LẬP TỨC
+    function saveCustomConfig(autoSyncPeer = true) {
+      try {
+        localStorage.setItem(CUSTOM_THEME_KEY, JSON.stringify(customConfig));
+      } catch (e) {}
+
+      if (autoSyncPeer && typeof dataConn !== "undefined" && dataConn && dataConn.open) {
+        dataConn.send({ type: "CUSTOM_UI_SYNC", config: customConfig });
+      }
+    }
+
+    function applyCustomConfigToDOM() {
+      document.body.classList.toggle("no-wobble-talk", customConfig.noWobbleTalk);
+      const quickWobbleBtn = document.getElementById("btn-wobble-quick");
+      if (quickWobbleBtn) {
+        quickWobbleBtn.innerText = customConfig.noWobbleTalk ? "👄 Chỉ mở miệng" : "💃 Lắc: Bật";
+        quickWobbleBtn.style.background = customConfig.noWobbleTalk ? "#ffe066" : "#ffe5ec";
+      }
+
+      if (customConfig.solidBg) {
+        document.body.classList.add("solid-bg-active");
+        document.body.style.background = customConfig.solidBg;
+      } else {
+        document.body.classList.remove("solid-bg-active");
+        document.body.style.background = "";
+      }
+
+      const rootStyle = document.documentElement.style;
+      Object.entries(customConfig.vars).forEach(([cssVar, val]) => {
+        rootStyle.setProperty(cssVar, val);
+      });
+
+      if (currentOpenCompKey) {
+        refreshPopoverTabsAndSwatches();
+      }
+    }
+
+    // Dựng lưới 255 màu Hex
+    function initPopoverPaletteGrid() {
+      popoverGridEl.innerHTML = "";
+      PALETTE_255_COLORS.forEach(c => {
+        const sw = document.createElement("div");
+        sw.className = "color-swatch";
+        sw.style.background = c.hex;
+        sw.title = c.name;
+        sw.setAttribute("data-hex", c.hex);
+        sw.addEventListener("click", () => {
+          if (!currentActiveVarName) return;
+          if (currentActiveVarName === "SOLID_BG") {
+            customConfig.solidBg = c.hex;
+          } else {
+            customConfig.vars[currentActiveVarName] = c.hex;
+          }
+          saveCustomConfig(true); // Tự động gửi màu mới sang đối phương ngay khi chọn
+          applyCustomConfigToDOM();
+        });
+        popoverGridEl.appendChild(sw);
+      });
+    }
+    initPopoverPaletteGrid();
+
+    function refreshPopoverTabsAndSwatches() {
+      const def = COMPONENT_TAG_DEFS[currentOpenCompKey];
+      if (!def) return;
+
+      popoverTabsEl.innerHTML = "";
+      def.props.forEach(p => {
+        const btn = document.createElement("button");
+        btn.className = "prop-tab-btn" + (p.varName === currentActiveVarName ? " active" : "");
+        const curCol = p.varName === "SOLID_BG" ? (customConfig.solidBg || "#bde0fe") : customConfig.vars[p.varName];
+        btn.innerHTML = `<span class="prop-dot" style="background:${curCol}"></span><span>${p.label}</span>`;
+        btn.onclick = () => {
+          currentActiveVarName = p.varName;
+          refreshPopoverTabsAndSwatches();
+        };
+        popoverTabsEl.appendChild(btn);
+      });
+
+      const activeColor = currentActiveVarName === "SOLID_BG"
+        ? customConfig.solidBg
+        : customConfig.vars[currentActiveVarName];
+
+      popoverGridEl.querySelectorAll(".color-swatch").forEach(sw => {
+        sw.classList.toggle("selected", sw.getAttribute("data-hex") === activeColor);
+      });
+
+      popoverExtraEl.innerHTML = "";
+      if (currentOpenCompKey === "bgMain") {
+        const skyBtn = document.createElement("button");
+        skyBtn.className = "mini-act-btn";
+        skyBtn.innerText = "🌤️ Dùng Bầu Trời Động";
+        skyBtn.onclick = () => {
+          customConfig.solidBg = null;
+          saveCustomConfig(true);
+          applyCustomConfigToDOM();
+        };
+        popoverExtraEl.appendChild(skyBtn);
+      } else {
+        const rstPartBtn = document.createElement("button");
+        rstPartBtn.className = "mini-act-btn";
+        rstPartBtn.innerText = "🔄 Mặc định phần này";
+        rstPartBtn.onclick = () => {
+          def.props.forEach(p => {
+            customConfig.vars[p.varName] = DEFAULT_CUSTOM_CONFIG.vars[p.varName];
+          });
+          saveCustomConfig(true);
+          applyCustomConfigToDOM();
+        };
+        popoverExtraEl.appendChild(rstPartBtn);
+      }
+
+      // Hiển thị nhãn báo hiệu đang tự động đồng bộ kèm mã Hex hiện tại
+      const hexBadge = document.createElement("span");
+      hexBadge.style.cssText = "font-size:10px; font-weight:800; color:#009432; padding:0 4px;";
+      hexBadge.innerText = `⚡ Tự đồng bộ (${(activeColor || "Mặc định").toUpperCase()})`;
+      popoverExtraEl.appendChild(hexBadge);
+    }
+
+    window.toggleComponentColorTag = function(compKey, btnEl) {
+      if (currentOpenCompKey === compKey && popoverEl.style.display === "flex") {
+        closeInlineColorPopover();
+        return;
+      }
+
+      document.querySelectorAll(".comp-arrow-tag").forEach(b => {
+        b.classList.remove("open");
+        const arr = b.querySelector(".arr");
+        if (arr) arr.innerText = b.id === "tag-bottom-ctrl" ? "▴" : "▾";
+      });
+
+      currentOpenCompKey = compKey;
+      const def = COMPONENT_TAG_DEFS[compKey];
+      currentActiveVarName = def.props[0].varName;
+
+      btnEl.classList.add("open");
+      const arr = btnEl.querySelector(".arr");
+      if (arr) arr.innerText = btnEl.id === "tag-bottom-ctrl" ? "▾" : "▴";
+
+      popoverTitleEl.innerText = def.title;
+      refreshPopoverTabsAndSwatches();
+      popoverEl.style.display = "flex";
+
+      const rect = btnEl.getBoundingClientRect();
+      const popW = 315;
+      const popH = popoverEl.offsetHeight || 280;
+
+      let leftPos = rect.left + rect.width / 2 - popW / 2;
+      leftPos = Math.max(8, Math.min(window.innerWidth - popW - 8, leftPos));
+
+      let topPos = rect.bottom + 6;
+      if (topPos + popH > window.innerHeight - 8) {
+        topPos = Math.max(8, rect.top - popH - 6);
+      }
+
+      popoverEl.style.left = `${leftPos}px`;
+      popoverEl.style.top = `${topPos}px`;
+    };
+
+    window.closeInlineColorPopover = function() {
+      popoverEl.style.display = "none";
+      currentOpenCompKey = null;
+      document.querySelectorAll(".comp-arrow-tag").forEach(b => {
+        b.classList.remove("open");
+        const arr = b.querySelector(".arr");
+        if (arr) arr.innerText = b.id === "tag-bottom-ctrl" ? "▴" : "▾";
+      });
+    };
+
+    document.addEventListener("mousedown", (e) => {
+      if (popoverEl.style.display === "flex") {
+        if (!popoverEl.contains(e.target) && !e.target.closest(".comp-arrow-tag")) {
+          closeInlineColorPopover();
+        }
+      }
+    });
+
+    document.getElementById("btn-wobble-quick").addEventListener("click", () => {
+      customConfig.noWobbleTalk = !customConfig.noWobbleTalk;
+      saveCustomConfig(true); // Tự động đồng bộ luôn chế độ lắc/mở miệng sang đối phương
+      applyCustomConfigToDOM();
+    });
+
+    loadCustomConfig();
+
+    // =========================================================================
+    // 1. BỘ 8 STICKER CHIBI DỄ THƯƠNG (CÓ KÈM LỜI ĐỌC TTS)
     // =========================================================================
     function createCuteStickerSVG(bgTop, bgBot, mainEmoji, subEmoji, labelText) {
       const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
@@ -1084,14 +1763,14 @@
     }
 
     const STICKER_PACK = [
-      { id: "love", label: "Yêu thương", src: createCuteStickerSVG("#ff9a9e", "#fecfef", "🥰", "💖", "Yêu thương") },
-      { id: "hug", label: "Ôm cái nào", src: createCuteStickerSVG("#a1c4fd", "#c2e9fb", "🤗", "✨", "Ôm cái nào") },
-      { id: "miss", label: "Nhớ quá đi", src: createCuteStickerSVG("#fbc2eb", "#a6c1ee", "🥺", "💭", "Nhớ quá đi") },
-      { id: "flower", label: "Tặng hoa nè", src: createCuteStickerSVG("#ffecd2", "#fcb69f", "💐", "🌸", "Tặng hoa nè") },
-      { id: "kiss", label: "Hôn chụt", src: createCuteStickerSVG("#ff758c", "#ff7eb3", "😘", "💋", "Hôn chụt!") },
-      { id: "pout", label: "Dỗi rồi nha", src: createCuteStickerSVG("#fdcbf1", "#e6dee9", "😤", "💢", "Dỗi rồi nha") },
-      { id: "party", label: "Quẩy lên!", src: createCuteStickerSVG("#f6d365", "#fda085", "🥳", "🎉", "Quẩy lên!") },
-      { id: "sleep", label: "Ngủ ngoan nhé", src: createCuteStickerSVG("#89f7fe", "#66a6ff", "😴", "🌙", "Ngủ ngon nhé") }
+      { id: "love", label: "Yêu thương", tts: "Yêu thương ngập tràn", src: createCuteStickerSVG("#ff9a9e", "#fecfef", "🥰", "💖", "Yêu thương") },
+      { id: "hug", label: "Ôm cái nào", tts: "Lại đây ôm cái nào", src: createCuteStickerSVG("#a1c4fd", "#c2e9fb", "🤗", "✨", "Ôm cái nào") },
+      { id: "miss", label: "Nhớ quá đi", tts: "Nhớ người yêu quá đi", src: createCuteStickerSVG("#fbc2eb", "#a6c1ee", "🥺", "💭", "Nhớ quá đi") },
+      { id: "flower", label: "Tặng hoa nè", tts: "Tặng hoa cho người đẹp nè", src: createCuteStickerSVG("#ffecd2", "#fcb69f", "💐", "🌸", "Tặng hoa nè") },
+      { id: "kiss", label: "Hôn chụt", tts: "Hôn chụt chụt", src: createCuteStickerSVG("#ff758c", "#ff7eb3", "😘", "💋", "Hôn chụt!") },
+      { id: "pout", label: "Dỗi rồi nha", tts: "Hứ, dỗi rồi nha", src: createCuteStickerSVG("#fdcbf1", "#e6dee9", "😤", "💢", "Dỗi rồi nha") },
+      { id: "party", label: "Quẩy lên!", tts: "Vui quá quẩy lên thôi", src: createCuteStickerSVG("#f6d365", "#fda085", "🥳", "🎉", "Quẩy lên!") },
+      { id: "sleep", label: "Ngủ ngoan nhé", tts: "Chúc cục dàng ngủ ngoan nhé", src: createCuteStickerSVG("#89f7fe", "#66a6ff", "😴", "🌙", "Ngủ ngon nhé") }
     ];
 
     const stickerGridEl = document.getElementById("sticker-grid");
@@ -1117,7 +1796,7 @@
     document.getElementById("btn-pick-sticker").addEventListener("click", () => toggleStickerPicker());
 
     // =========================================================================
-    // 2. VẼ CÁC ICON BẰNG HTML5 CANVAS (MIC, LOA, TIM, CHAT, MÁY ẢNH, STICKER, VOICE NOTE)
+    // 2. VẼ CÁC ICON BẰNG HTML5 CANVAS
     // =========================================================================
     function drawCanvasIcon(canvasId, type, isOff = false) {
       const c = document.getElementById(canvasId);
@@ -1278,7 +1957,7 @@
     renderAllIcons();
 
     // =========================================================================
-    // 3. VẼ NỀN BAN NGÀY & TRỜI ĐÊM (TRĂNG, SAO, SAO BĂNG & ĐOM ĐÓM) + ĐỒNG BỘ P2P
+    // 3. VẼ NỀN BAN NGÀY & TRỜI ĐÊM (MẶT TRĂNG KHUYẾT LIỀN MẠCH)
     // =========================================================================
     const bgCanvas = document.getElementById("bg-decor-canvas");
     const bgCtx = bgCanvas.getContext("2d");
@@ -1300,7 +1979,6 @@
       a: Math.random() * Math.PI * 2
     }));
 
-    // Vì sao lấp lánh trên bầu trời đêm
     const stars = Array.from({ length: 75 }, () => ({
       x: Math.random(),
       y: Math.random() * 0.72,
@@ -1310,7 +1988,6 @@
       sparkle: Math.random() < 0.2
     }));
 
-    // Đàn đom đóm chập chờn bay nhẹ nhàng
     const fireflies = Array.from({ length: 28 }, () => ({
       x: Math.random() * window.innerWidth,
       y: window.innerHeight * 0.3 + Math.random() * (window.innerHeight * 0.7),
@@ -1321,13 +1998,11 @@
       glowSpeed: 0.002 + Math.random() * 0.003
     }));
 
-    // Mảng quản lý các vệt Sao Băng bay ngang qua bầu trời đêm
     const shootingStars = [];
 
     function spawnShootingStar() {
       const w = bgCanvas.width;
       const h = bgCanvas.height;
-      // Xuất phát từ vùng cao bên phải bay chéo xuống bên trái
       const startX = w * 0.25 + Math.random() * (w * 0.75);
       const startY = Math.random() * (h * 0.32);
       const angle = (Math.PI * 0.76) + (Math.random() - 0.5) * 0.14;
@@ -1352,18 +2027,22 @@
     window.addEventListener("resize", resizeBg);
     resizeBg();
 
-    // Hàm cập nhật chế độ Ngày / Đêm và đồng bộ P2P sang máy đối phương
     const btnThemeToggle = document.getElementById("btn-theme-toggle");
 
     function setNightModeState(nightState, broadcastToPeer = false, isFromPeer = false) {
       isNightMode = !!nightState;
+      // Nếu người dùng bấm nút Ngày/Đêm thì tự động tắt nền đơn sắc để hiện bầu trời
+      if (customConfig.solidBg) {
+        customConfig.solidBg = null;
+        saveCustomConfig();
+        applyCustomConfigToDOM();
+      }
       document.body.classList.toggle("night-mode", isNightMode);
 
       if (isNightMode) {
         btnThemeToggle.innerText = "☀️ Ban Ngày";
         btnThemeToggle.style.background = "#ffe066";
         btnThemeToggle.style.color = "#2b2d42";
-        // Gọi ngay 2 ngôi sao băng chào đón khi vừa chuyển sang Trời Đêm
         spawnShootingStar();
         setTimeout(() => { if (isNightMode) spawnShootingStar(); }, 600);
       } else {
@@ -1390,210 +2069,214 @@
       setNightModeState(!isNightMode, true, false);
     });
 
+    function drawSeamlessCrescentMoon(ctx, cx, cy) {
+      ctx.save();
+      const halo = ctx.createRadialGradient(cx, cy, 12, cx, cy, 84);
+      halo.addColorStop(0, "rgba(255, 243, 176, 0.42)");
+      halo.addColorStop(0.5, "rgba(255, 243, 176, 0.14)");
+      halo.addColorStop(1, "rgba(255, 243, 176, 0)");
+      ctx.fillStyle = halo;
+      ctx.beginPath();
+      ctx.arc(cx, cy, 84, 0, Math.PI * 2);
+      ctx.fill();
+
+      const R1 = 30;
+      const R2 = 25.5;
+      const d = 13.5;
+      const ix = (R1 * R1 - R2 * R2 + d * d) / (2 * d);
+      const iy = Math.sqrt(Math.max(0, R1 * R1 - ix * ix));
+      const a1 = Math.atan2(iy, ix);
+      const a2 = Math.atan2(iy, ix - d);
+
+      ctx.translate(cx, cy);
+      ctx.rotate(-0.42);
+      ctx.fillStyle = "#fff3b0";
+      ctx.beginPath();
+      ctx.arc(0, 0, R1, a1, -a1, false);
+      ctx.arc(d, 0, R2, -a2, a2, true);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+    }
+
     function drawBackgroundDecor(time) {
-      const w = bgCanvas.width;
-      const h = bgCanvas.height;
-      bgCtx.clearRect(0, 0, w, h);
+      if (!customConfig.solidBg) {
+        const w = bgCanvas.width;
+        const h = bgCanvas.height;
+        bgCtx.clearRect(0, 0, w, h);
 
-      if (!isNightMode) {
-        // ================= BAN NGÀY =================
-        bgCtx.save();
-        bgCtx.fillStyle = "#ffe066";
-        bgCtx.strokeStyle = "rgba(255, 224, 102, 0.35)";
-        bgCtx.lineWidth = 12;
-        bgCtx.beginPath();
-        bgCtx.arc(65, 65, 32 + Math.sin(time * 0.002) * 3, 0, Math.PI * 2);
-        bgCtx.fill();
-        bgCtx.stroke();
-        bgCtx.restore();
-
-        bgCtx.fillStyle = "rgba(255, 255, 255, 0.78)";
-        clouds.forEach(c => {
-          c.x += c.v;
-          if (c.x - 100 > w) c.x = -120;
-          bgCtx.beginPath();
-          bgCtx.arc(c.x, c.y, 24 * c.s, 0, Math.PI * 2);
-          bgCtx.arc(c.x + 22 * c.s, c.y - 8 * c.s, 28 * c.s, 0, Math.PI * 2);
-          bgCtx.arc(c.x + 48 * c.s, c.y, 22 * c.s, 0, Math.PI * 2);
-          bgCtx.fill();
-        });
-
-        bgCtx.fillStyle = "#c7f9cc";
-        bgCtx.beginPath();
-        bgCtx.ellipse(w * 0.25, h + 40, w * 0.45, 130, 0, Math.PI, 0);
-        bgCtx.fill();
-
-        bgCtx.fillStyle = "#b5e48c";
-        bgCtx.beginPath();
-        bgCtx.ellipse(w * 0.78, h + 50, w * 0.45, 145, 0, Math.PI, 0);
-        bgCtx.fill();
-
-        bgCtx.fillStyle = "#ff8fa3";
-        petals.forEach(p => {
-          p.x += p.vx;
-          p.y += p.vy;
-          p.a += 0.02;
-          if (p.x > w) p.x = -10;
-          if (p.y > h) p.y = -10;
+        if (!isNightMode) {
           bgCtx.save();
-          bgCtx.translate(p.x, p.y);
-          bgCtx.rotate(p.a);
+          bgCtx.fillStyle = "#ffe066";
+          bgCtx.strokeStyle = "rgba(255, 224, 102, 0.35)";
+          bgCtx.lineWidth = 12;
           bgCtx.beginPath();
-          bgCtx.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2);
+          bgCtx.arc(65, 65, 32 + Math.sin(time * 0.002) * 3, 0, Math.PI * 2);
           bgCtx.fill();
+          bgCtx.stroke();
           bgCtx.restore();
-        });
-      } else {
-        // ================= TRỜI ĐÊM (TRĂNG, SAO, SAO BĂNG & ĐOM ĐÓM) =================
-        // 1. Vì sao lấp lánh
-        stars.forEach(st => {
-          const sx = st.x * w;
-          const sy = st.y * h;
-          const alpha = 0.2 + 0.8 * Math.pow(Math.sin(time * st.speed + st.phase), 2);
-          bgCtx.save();
-          bgCtx.fillStyle = `rgba(255, 252, 225, ${alpha})`;
-          bgCtx.beginPath();
-          bgCtx.arc(sx, sy, st.r, 0, Math.PI * 2);
-          bgCtx.fill();
 
-          if (st.sparkle && alpha > 0.65) {
-            bgCtx.strokeStyle = `rgba(255, 252, 225, ${alpha * 0.85})`;
-            bgCtx.lineWidth = 1.1;
-            const len = st.r * 3.4;
+          bgCtx.fillStyle = "rgba(255, 255, 255, 0.78)";
+          clouds.forEach(c => {
+            c.x += c.v;
+            if (c.x - 100 > w) c.x = -120;
             bgCtx.beginPath();
-            bgCtx.moveTo(sx - len, sy); bgCtx.lineTo(sx + len, sy);
-            bgCtx.moveTo(sx, sy - len); bgCtx.lineTo(sx, sy + len);
+            bgCtx.arc(c.x, c.y, 24 * c.s, 0, Math.PI * 2);
+            bgCtx.arc(c.x + 22 * c.s, c.y - 8 * c.s, 28 * c.s, 0, Math.PI * 2);
+            bgCtx.arc(c.x + 48 * c.s, c.y, 22 * c.s, 0, Math.PI * 2);
+            bgCtx.fill();
+          });
+
+          bgCtx.fillStyle = "#c7f9cc";
+          bgCtx.beginPath();
+          bgCtx.ellipse(w * 0.25, h + 40, w * 0.45, 130, 0, Math.PI, 0);
+          bgCtx.fill();
+
+          bgCtx.fillStyle = "#b5e48c";
+          bgCtx.beginPath();
+          bgCtx.ellipse(w * 0.78, h + 50, w * 0.45, 145, 0, Math.PI, 0);
+          bgCtx.fill();
+
+          bgCtx.fillStyle = "#ff8fa3";
+          petals.forEach(p => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.a += 0.02;
+            if (p.x > w) p.x = -10;
+            if (p.y > h) p.y = -10;
+            bgCtx.save();
+            bgCtx.translate(p.x, p.y);
+            bgCtx.rotate(p.a);
+            bgCtx.beginPath();
+            bgCtx.ellipse(0, 0, p.r, p.r * 0.6, 0, 0, Math.PI * 2);
+            bgCtx.fill();
+            bgCtx.restore();
+          });
+        } else {
+          stars.forEach(st => {
+            const sx = st.x * w;
+            const sy = st.y * h;
+            const alpha = 0.2 + 0.8 * Math.pow(Math.sin(time * st.speed + st.phase), 2);
+            bgCtx.save();
+            bgCtx.fillStyle = `rgba(255, 252, 225, ${alpha})`;
+            bgCtx.beginPath();
+            bgCtx.arc(sx, sy, st.r, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            if (st.sparkle && alpha > 0.65) {
+              bgCtx.strokeStyle = `rgba(255, 252, 225, ${alpha * 0.85})`;
+              bgCtx.lineWidth = 1.1;
+              const len = st.r * 3.4;
+              bgCtx.beginPath();
+              bgCtx.moveTo(sx - len, sy); bgCtx.lineTo(sx + len, sy);
+              bgCtx.moveTo(sx, sy - len); bgCtx.lineTo(sx, sy + len);
+              bgCtx.stroke();
+            }
+            bgCtx.restore();
+          });
+
+          if (Math.random() < 0.014 && shootingStars.length < 3) {
+            spawnShootingStar();
+          }
+
+          for (let i = shootingStars.length - 1; i >= 0; i--) {
+            const ss = shootingStars[i];
+            ss.x += ss.vx;
+            ss.y += ss.vy;
+            ss.life++;
+
+            const progress = ss.life / ss.maxLife;
+            const alpha = progress < 0.2 ? progress / 0.2 : Math.max(0, 1 - (progress - 0.2) / 0.8);
+
+            const speedMag = Math.hypot(ss.vx, ss.vy) || 1;
+            const tailX = ss.x - (ss.vx / speedMag) * ss.tailLen;
+            const tailY = ss.y - (ss.vy / speedMag) * ss.tailLen;
+
+            bgCtx.save();
+            const tailGrad = bgCtx.createLinearGradient(ss.x, ss.y, tailX, tailY);
+            tailGrad.addColorStop(0, `rgba(255, 255, 240, ${alpha})`);
+            tailGrad.addColorStop(0.35, `rgba(140, 225, 255, ${alpha * 0.65})`);
+            tailGrad.addColorStop(1, "rgba(140, 225, 255, 0)");
+
+            bgCtx.strokeStyle = tailGrad;
+            bgCtx.lineWidth = ss.size;
+            bgCtx.lineCap = "round";
+            bgCtx.beginPath();
+            bgCtx.moveTo(ss.x, ss.y);
+            bgCtx.lineTo(tailX, tailY);
             bgCtx.stroke();
+
+            bgCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+            bgCtx.beginPath();
+            bgCtx.arc(ss.x, ss.y, ss.size * 1.15, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            bgCtx.strokeStyle = `rgba(255, 245, 190, ${alpha * 0.9})`;
+            bgCtx.lineWidth = 1.2;
+            const flare = ss.size * 3.5;
+            bgCtx.beginPath();
+            bgCtx.moveTo(ss.x - flare, ss.y); bgCtx.lineTo(ss.x + flare, ss.y);
+            bgCtx.moveTo(ss.x, ss.y - flare); bgCtx.lineTo(ss.x, ss.y + flare);
+            bgCtx.stroke();
+            bgCtx.restore();
+
+            if (ss.life >= ss.maxLife || ss.x < -150 || ss.y > h) {
+              shootingStars.splice(i, 1);
+            }
           }
-          bgCtx.restore();
-        });
 
-        // 2. Hiệu ứng Sao Băng bay ngang qua bầu trời đêm
-        if (Math.random() < 0.014 && shootingStars.length < 3) {
-          spawnShootingStar();
+          drawSeamlessCrescentMoon(bgCtx, 75, 72);
+
+          bgCtx.fillStyle = "rgba(65, 80, 135, 0.22)";
+          clouds.forEach(c => {
+            c.x += c.v * 0.55;
+            if (c.x - 100 > w) c.x = -120;
+            bgCtx.beginPath();
+            bgCtx.arc(c.x, c.y, 24 * c.s, 0, Math.PI * 2);
+            bgCtx.arc(c.x + 22 * c.s, c.y - 8 * c.s, 28 * c.s, 0, Math.PI * 2);
+            bgCtx.arc(c.x + 48 * c.s, c.y, 22 * c.s, 0, Math.PI * 2);
+            bgCtx.fill();
+          });
+
+          bgCtx.fillStyle = "#14283d";
+          bgCtx.beginPath();
+          bgCtx.ellipse(w * 0.25, h + 40, w * 0.45, 130, 0, Math.PI, 0);
+          bgCtx.fill();
+
+          bgCtx.fillStyle = "#0d1d2e";
+          bgCtx.beginPath();
+          bgCtx.ellipse(w * 0.78, h + 50, w * 0.45, 145, 0, Math.PI, 0);
+          bgCtx.fill();
+
+          fireflies.forEach(f => {
+            f.x += f.vx + Math.sin(time * 0.0016 + f.phase) * 0.35;
+            f.y += f.vy + Math.cos(time * 0.0013 + f.phase) * 0.25;
+
+            if (f.x < -20) f.x = w + 20;
+            if (f.x > w + 20) f.x = -20;
+            if (f.y < h * 0.22) f.y = h + 10;
+
+            const glow = 0.12 + 0.88 * Math.pow(Math.sin(time * f.glowSpeed + f.phase), 2);
+            const rad = f.r * 5.8;
+
+            bgCtx.save();
+            const fGrad = bgCtx.createRadialGradient(f.x, f.y, 0.5, f.x, f.y, rad);
+            fGrad.addColorStop(0, `rgba(235, 255, 130, ${glow})`);
+            fGrad.addColorStop(0.45, `rgba(170, 245, 75, ${glow * 0.45})`);
+            fGrad.addColorStop(1, "rgba(170, 245, 75, 0)");
+            bgCtx.fillStyle = fGrad;
+            bgCtx.beginPath();
+            bgCtx.arc(f.x, f.y, rad, 0, Math.PI * 2);
+            bgCtx.fill();
+
+            bgCtx.fillStyle = `rgba(255, 255, 215, ${glow})`;
+            bgCtx.beginPath();
+            bgCtx.arc(f.x, f.y, f.r * 0.85, 0, Math.PI * 2);
+            bgCtx.fill();
+            bgCtx.restore();
+          });
         }
-
-        for (let i = shootingStars.length - 1; i >= 0; i--) {
-          const ss = shootingStars[i];
-          ss.x += ss.vx;
-          ss.y += ss.vy;
-          ss.life++;
-
-          const progress = ss.life / ss.maxLife;
-          const alpha = progress < 0.2 ? progress / 0.2 : Math.max(0, 1 - (progress - 0.2) / 0.8);
-
-          const speedMag = Math.hypot(ss.vx, ss.vy) || 1;
-          const tailX = ss.x - (ss.vx / speedMag) * ss.tailLen;
-          const tailY = ss.y - (ss.vy / speedMag) * ss.tailLen;
-
-          bgCtx.save();
-          // Vệt đuôi sao băng chuyển màu phát sáng
-          const tailGrad = bgCtx.createLinearGradient(ss.x, ss.y, tailX, tailY);
-          tailGrad.addColorStop(0, `rgba(255, 255, 240, ${alpha})`);
-          tailGrad.addColorStop(0.35, `rgba(140, 225, 255, ${alpha * 0.65})`);
-          tailGrad.addColorStop(1, "rgba(140, 225, 255, 0)");
-
-          bgCtx.strokeStyle = tailGrad;
-          bgCtx.lineWidth = ss.size;
-          bgCtx.lineCap = "round";
-          bgCtx.beginPath();
-          bgCtx.moveTo(ss.x, ss.y);
-          bgCtx.lineTo(tailX, tailY);
-          bgCtx.stroke();
-
-          // Đầu ngôi sao băng lóe sáng chữ thập
-          bgCtx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
-          bgCtx.beginPath();
-          bgCtx.arc(ss.x, ss.y, ss.size * 1.15, 0, Math.PI * 2);
-          bgCtx.fill();
-
-          bgCtx.strokeStyle = `rgba(255, 245, 190, ${alpha * 0.9})`;
-          bgCtx.lineWidth = 1.2;
-          const flare = ss.size * 3.5;
-          bgCtx.beginPath();
-          bgCtx.moveTo(ss.x - flare, ss.y); bgCtx.lineTo(ss.x + flare, ss.y);
-          bgCtx.moveTo(ss.x, ss.y - flare); bgCtx.lineTo(ss.x, ss.y + flare);
-          bgCtx.stroke();
-          bgCtx.restore();
-
-          if (ss.life >= ss.maxLife || ss.x < -150 || ss.y > h) {
-            shootingStars.splice(i, 1);
-          }
-        }
-
-        // 3. Mặt trăng khuyết & Hào quang
-        bgCtx.save();
-        const mx = 75, my = 72;
-        const halo = bgCtx.createRadialGradient(mx, my, 14, mx, my, 82);
-        halo.addColorStop(0, "rgba(255, 243, 176, 0.4)");
-        halo.addColorStop(0.5, "rgba(255, 243, 176, 0.14)");
-        halo.addColorStop(1, "rgba(255, 243, 176, 0)");
-        bgCtx.fillStyle = halo;
-        bgCtx.beginPath();
-        bgCtx.arc(mx, my, 82, 0, Math.PI * 2);
-        bgCtx.fill();
-
-        bgCtx.fillStyle = "#fff3b0";
-        bgCtx.beginPath();
-        bgCtx.arc(mx, my, 30, 0.2 * Math.PI, 1.35 * Math.PI, false);
-        bgCtx.quadraticCurveTo(mx - 4, my + 4, mx + 17, my + 24);
-        bgCtx.closePath();
-        bgCtx.fill();
-        bgCtx.restore();
-
-        // 4. Mây đêm mờ nhẹ
-        bgCtx.fillStyle = "rgba(65, 80, 135, 0.22)";
-        clouds.forEach(c => {
-          c.x += c.v * 0.55;
-          if (c.x - 100 > w) c.x = -120;
-          bgCtx.beginPath();
-          bgCtx.arc(c.x, c.y, 24 * c.s, 0, Math.PI * 2);
-          bgCtx.arc(c.x + 22 * c.s, c.y - 8 * c.s, 28 * c.s, 0, Math.PI * 2);
-          bgCtx.arc(c.x + 48 * c.s, c.y, 22 * c.s, 0, Math.PI * 2);
-          bgCtx.fill();
-        });
-
-        // 5. Đồi cỏ đêm yên bình
-        bgCtx.fillStyle = "#14283d";
-        bgCtx.beginPath();
-        bgCtx.ellipse(w * 0.25, h + 40, w * 0.45, 130, 0, Math.PI, 0);
-        bgCtx.fill();
-
-        bgCtx.fillStyle = "#0d1d2e";
-        bgCtx.beginPath();
-        bgCtx.ellipse(w * 0.78, h + 50, w * 0.45, 145, 0, Math.PI, 0);
-        bgCtx.fill();
-
-        // 6. Đom đóm chập chờn nhẹ nhàng
-        fireflies.forEach(f => {
-          f.x += f.vx + Math.sin(time * 0.0016 + f.phase) * 0.35;
-          f.y += f.vy + Math.cos(time * 0.0013 + f.phase) * 0.25;
-
-          if (f.x < -20) f.x = w + 20;
-          if (f.x > w + 20) f.x = -20;
-          if (f.y < h * 0.22) f.y = h + 10;
-
-          const glow = 0.12 + 0.88 * Math.pow(Math.sin(time * f.glowSpeed + f.phase), 2);
-          const rad = f.r * 5.8;
-
-          bgCtx.save();
-          const fGrad = bgCtx.createRadialGradient(f.x, f.y, 0.5, f.x, f.y, rad);
-          fGrad.addColorStop(0, `rgba(235, 255, 130, ${glow})`);
-          fGrad.addColorStop(0.45, `rgba(170, 245, 75, ${glow * 0.45})`);
-          fGrad.addColorStop(1, "rgba(170, 245, 75, 0)");
-          bgCtx.fillStyle = fGrad;
-          bgCtx.beginPath();
-          bgCtx.arc(f.x, f.y, rad, 0, Math.PI * 2);
-          bgCtx.fill();
-
-          bgCtx.fillStyle = `rgba(255, 255, 215, ${glow})`;
-          bgCtx.beginPath();
-          bgCtx.arc(f.x, f.y, f.r * 0.85, 0, Math.PI * 2);
-          bgCtx.fill();
-          bgCtx.restore();
-        });
       }
-
       requestAnimationFrame(drawBackgroundDecor);
     }
     requestAnimationFrame(drawBackgroundDecor);
@@ -1686,10 +2369,11 @@
     });
 
     // =========================================================================
-    // 5. HỆ THỐNG CHAT ĐA PHƯƠNG TIỆN (TEXT + VOICE NOTE + ẢNH NÉN + STICKER)
+    // 5. HỆ THỐNG CHAT ĐA PHƯƠNG TIỆN (TEXT + TTS + VOICE NOTE + ẢNH NÉN + STICKER)
     // =========================================================================
     const CHAT_STORAGE_KEY = "chibi_p2p_chat_history_v2";
     let chatHistory = [];
+    let autoReadTTS = false;
     let unreadCount = 0;
     let activeVoiceAudio = null;
 
@@ -1729,6 +2413,15 @@
       if (e.target.id === "image-lightbox") e.currentTarget.style.display = "none";
     });
 
+    window.speakText = function(text) {
+      if (!("speechSynthesis" in window)) return;
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(text);
+      utter.lang = "vi-VN";
+      utter.rate = 1.05;
+      window.speechSynthesis.speak(utter);
+    };
+
     window.playVoiceNote = function(index, btnEl) {
       const item = chatHistory[index];
       if (!item || !item.content) return;
@@ -1761,7 +2454,7 @@
     function renderChatMessages() {
       chatMessagesEl.innerHTML = "";
       if (chatHistory.length === 0) {
-        chatMessagesEl.innerHTML = `<div style="text-align:center; color:#777; font-size:12px; margin-top:45px; line-height:1.5;">Chưa có tin nhắn nào.<br/></div>`;
+        chatMessagesEl.innerHTML = `<div style="text-align:center; opacity:0.75; font-size:12px; margin-top:45px; line-height:1.5;">Chưa có tin nhắn nào.<br/></div>`;
         return;
       }
 
@@ -1783,7 +2476,7 @@
         } else if (kind === "sticker") {
           const stObj = STICKER_PACK.find(s => s.id === item.content) || STICKER_PACK[0];
           bodyHTML = `
-            <div class="msg-sticker-wrap">
+            <div class="msg-sticker-wrap" onclick="speakText('${stObj.tts}')" title="Bấm để nghe âm thanh Sticker">
               <img class="msg-sticker-img" src="${stObj.src}" alt="${stObj.label}" />
             </div>
           `;
@@ -1800,7 +2493,8 @@
           `;
         } else {
           const safeText = escapeHtml(item.content || item.text || "");
-          bodyHTML = `<div class="msg-bubble">${safeText}</div>`;
+          const jsSafe = (item.content || item.text || "").replace(/'/g, "\\'");
+          bodyHTML = `<div class="msg-bubble" onclick="speakText('${jsSafe}')" title="Bấm để đọc tin nhắn">${safeText}</div>`;
         }
 
         row.innerHTML = `
@@ -1829,11 +2523,14 @@
         const senderLabel = senderGender === "male" ? "Đạt 💙" : "Tuyến 💖";
         if (kind === "text") {
           showPopupToast(`${senderLabel}: ${content}`, "success", "💌");
+          if (autoReadTTS) speakText(content);
         } else if (kind === "image") {
           showPopupToast(`${senderLabel} vừa gửi một hình ảnh!`, "success", "📷");
+          if (autoReadTTS) speakText("cục dàng vừa gửi một tấm ảnh");
         } else if (kind === "sticker") {
           const stObj = STICKER_PACK.find(s => s.id === content) || STICKER_PACK[0];
           showPopupToast(`${senderLabel} gửi Sticker: ${stObj.label}`, "success", "✨");
+          if (autoReadTTS) speakText(stObj.tts);
         } else if (kind === "voice") {
           showPopupToast(`${senderLabel} vừa gửi một tin nhắn thoại!`, "success", "🎙️");
         }
@@ -2015,6 +2712,13 @@
     document.getElementById("btn-send-chat").addEventListener("click", sendChatMessage);
     chatInput.addEventListener("keydown", e => { if (e.key === "Enter") sendChatMessage(); });
 
+    document.getElementById("btn-tts-toggle").addEventListener("click", e => {
+      autoReadTTS = !autoReadTTS;
+      e.currentTarget.classList.toggle("active", autoReadTTS);
+      e.currentTarget.innerText = autoReadTTS ? "🔊 Đọc: Bật" : "🔊 Đọc: Tắt";
+      showPopupToast(autoReadTTS ? "Đã bật tự động đọc tin nhắn & Sticker!" : "Đã tắt tự động đọc", "info", "🔊");
+    });
+
     document.getElementById("btn-clear-chat").addEventListener("click", () => {
       if (confirm("Bạn có chắc muốn xóa lịch sử trò chuyện & hình ảnh đã lưu?")) {
         chatHistory = [];
@@ -2036,7 +2740,7 @@
     loadSavedChat();
 
     // =========================================================================
-    // 6. CẤU HÌNH TURN SERVER & MẠCH KHUẾCH ĐẠI 1000%
+    // 6. CẤU HÌNH TURN SERVER, MẠCH KHUẾCH ĐẠI 1000% & BỘ LỌC TẠP ÂM 2 BÊN
     // =========================================================================
     const iceServers = [
       { urls: "stun:stun.relay.metered.ca:80" },
@@ -2070,11 +2774,34 @@
     let audioCtx = null;
     let rawMicStream = null;
     let processedMicStream = null;
-    let micGainNode = null;
+
+    let micHighPass = null;
+    let micLowPass = null;
     let micVocalFilter = null;
-    let remoteGainNode = null;
+    let micGateGain = null;
+    let micGainNode = null;
+    let localPreGateAnalyser = null;
+
+    let remoteHighPass = null;
+    let remoteLowPass = null;
     let remoteVocalFilter = null;
+    let remoteGateGain = null;
+    let remoteGainNode = null;
+    let remotePreGateAnalyser = null;
+
     let isVocalTurbo = false;
+
+    const NOISE_PRESETS = {
+      0: { name: "Mức 0 (Tắt)", gate: 0, highpass: 20, lowpass: 20000 },
+      1: { name: "Mức 1 (Nhẹ)", gate: 8, highpass: 100, lowpass: 12000 },
+      2: { name: "Mức 2 (Vừa)", gate: 18, highpass: 180, lowpass: 7500 },
+      3: { name: "Mức 3 (Mạnh)", gate: 30, highpass: 280, lowpass: 4500 }
+    };
+
+    const filterState = {
+      local: { level: 1, gateThreshold: 8, highpassHz: 100, lowpassHz: 12000 },
+      remote: { level: 1, gateThreshold: 8, highpassHz: 100, lowpassHz: 12000 }
+    };
 
     let currentCall = null;
     let dataConn = null;
@@ -2178,15 +2905,25 @@
         const ctx = ensureAudioContext();
         const source = ctx.createMediaStreamSource(rawStream);
 
-        const highPass = ctx.createBiquadFilter();
-        highPass.type = "highpass";
-        highPass.frequency.setValueAtTime(85, ctx.currentTime);
+        micHighPass = ctx.createBiquadFilter();
+        micHighPass.type = "highpass";
+        micHighPass.frequency.setValueAtTime(filterState.local.highpassHz, ctx.currentTime);
+
+        micLowPass = ctx.createBiquadFilter();
+        micLowPass.type = "lowpass";
+        micLowPass.frequency.setValueAtTime(filterState.local.lowpassHz, ctx.currentTime);
 
         micVocalFilter = ctx.createBiquadFilter();
         micVocalFilter.type = "peaking";
         micVocalFilter.frequency.setValueAtTime(2500, ctx.currentTime);
         micVocalFilter.Q.setValueAtTime(1.0, ctx.currentTime);
         micVocalFilter.gain.setValueAtTime(isVocalTurbo ? 8 : 0, ctx.currentTime);
+
+        localPreGateAnalyser = ctx.createAnalyser();
+        localPreGateAnalyser.fftSize = 256;
+
+        micGateGain = ctx.createGain();
+        micGateGain.gain.setValueAtTime(1.0, ctx.currentTime);
 
         micGainNode = ctx.createGain();
         micGainNode.gain.value = currentMicBoost;
@@ -2198,9 +2935,12 @@
 
         const destination = ctx.createMediaStreamDestination();
 
-        source.connect(highPass);
-        highPass.connect(micVocalFilter);
-        micVocalFilter.connect(micGainNode);
+        source.connect(micHighPass);
+        micHighPass.connect(micLowPass);
+        micLowPass.connect(micVocalFilter);
+        micVocalFilter.connect(localPreGateAnalyser);
+        micVocalFilter.connect(micGateGain);
+        micGateGain.connect(micGainNode);
         micGainNode.connect(compressor);
         compressor.connect(destination);
 
@@ -2208,7 +2948,6 @@
         statusText.innerText = "🟢 Sẵn sàng kết nối";
 
         activateBackgroundPersistence();
-        setupVoiceVisualizer(processedMicStream, localStage, "local-chibi-model", true);
         return processedMicStream;
       } catch (err) {
         statusText.innerText = "⚠️ Chưa cấp quyền Micro";
@@ -2227,15 +2966,25 @@
 
       const source = ctx.createMediaStreamSource(remoteStream);
 
-      const highPass = ctx.createBiquadFilter();
-      highPass.type = "highpass";
-      highPass.frequency.setValueAtTime(85, ctx.currentTime);
+      remoteHighPass = ctx.createBiquadFilter();
+      remoteHighPass.type = "highpass";
+      remoteHighPass.frequency.setValueAtTime(filterState.remote.highpassHz, ctx.currentTime);
+
+      remoteLowPass = ctx.createBiquadFilter();
+      remoteLowPass.type = "lowpass";
+      remoteLowPass.frequency.setValueAtTime(filterState.remote.lowpassHz, ctx.currentTime);
 
       remoteVocalFilter = ctx.createBiquadFilter();
       remoteVocalFilter.type = "peaking";
       remoteVocalFilter.frequency.setValueAtTime(2500, ctx.currentTime);
       remoteVocalFilter.Q.setValueAtTime(1.0, ctx.currentTime);
       remoteVocalFilter.gain.setValueAtTime(isVocalTurbo ? 8 : 0, ctx.currentTime);
+
+      remotePreGateAnalyser = ctx.createAnalyser();
+      remotePreGateAnalyser.fftSize = 256;
+
+      remoteGateGain = ctx.createGain();
+      remoteGateGain.gain.setValueAtTime(1.0, ctx.currentTime);
 
       remoteGainNode = ctx.createGain();
       remoteGainNode.gain.value = isSpeakerOn ? currentSpkBoost : 0;
@@ -2247,9 +2996,12 @@
 
       const boostedDestination = ctx.createMediaStreamDestination();
 
-      source.connect(highPass);
-      highPass.connect(remoteVocalFilter);
-      remoteVocalFilter.connect(remoteGainNode);
+      source.connect(remoteHighPass);
+      remoteHighPass.connect(remoteLowPass);
+      remoteLowPass.connect(remoteVocalFilter);
+      remoteVocalFilter.connect(remotePreGateAnalyser);
+      remoteVocalFilter.connect(remoteGateGain);
+      remoteGateGain.connect(remoteGainNode);
       remoteGainNode.connect(limiter);
       limiter.connect(boostedDestination);
 
@@ -2258,47 +3010,131 @@
       remoteBoostedPlayer.play().catch(() => {
         limiter.connect(ctx.destination);
       });
-
-      setupVoiceVisualizer(boostedDestination.stream, remoteStage, "remote-chibi-model", false);
     }
 
-    function setupVoiceVisualizer(stream, stageEl, chibiId, isLocal) {
-      try {
-        const ctx = ensureAudioContext();
-        const source = ctx.createMediaStreamSource(stream);
-        const analyser = ctx.createAnalyser();
-        analyser.fftSize = 256;
-        source.connect(analyser);
-        const dataArray = new Uint8Array(analyser.frequencyBinCount);
+    const freqTempBuffer = new Uint8Array(128);
 
-        function updateMeter() {
-          if (!stream.active) return;
-          analyser.getByteFrequencyData(dataArray);
-          let sum = 0;
-          for (let i = 0; i < dataArray.length; i++) sum += dataArray[i];
-          const avg = sum / dataArray.length;
+    function computeSignalPercent(analyser) {
+      if (!analyser) return 0;
+      analyser.getByteFrequencyData(freqTempBuffer);
+      let sum = 0;
+      for (let i = 0; i < freqTempBuffer.length; i++) sum += freqTempBuffer[i];
+      const avg = sum / freqTempBuffer.length;
+      return Math.min(100, Math.round((avg / 140) * 100));
+    }
 
-          if (isLocal) localVolumeLevel = avg;
-          else remoteVolumeLevel = avg;
+    setInterval(() => {
+      if (!audioCtx) return;
 
-          if (document.visibilityState === "visible") {
-            const chibiEl = document.getElementById(chibiId);
-            if (avg > 9) {
-              const radius = Math.min(32, avg * 0.5);
-              stageEl.style.boxShadow = `0 0 0 ${radius * 0.35}px rgba(255, 117, 140, 0.35)`;
-              if (chibiEl) chibiEl.classList.add("moving");
-            } else {
-              stageEl.style.boxShadow = "none";
-              if (chibiEl) chibiEl.classList.remove("moving");
-            }
+      if (localPreGateAnalyser && micGateGain) {
+        const pct = computeSignalPercent(localPreGateAnalyser);
+        const thres = filterState.local.gateThreshold;
+        const pass = isMicOn && (thres === 0 || pct >= thres);
+
+        micGateGain.gain.setTargetAtTime(pass ? 1.0 : 0.0, audioCtx.currentTime, pass ? 0.012 : 0.08);
+        localVolumeLevel = pass ? pct : 0;
+
+        if (document.visibilityState === "visible") {
+          const dot = document.getElementById("local-gate-dot");
+          if (dot) dot.classList.toggle("gated", !pass && thres > 0);
+          const chibiEl = document.getElementById("local-chibi-model");
+          if (pass && pct > 8) {
+            const radius = Math.min(30, pct * 0.45);
+            localStage.style.boxShadow = `0 0 0 ${radius * 0.35}px rgba(79, 172, 254, 0.38)`;
+            if (chibiEl) chibiEl.classList.add("moving");
+          } else {
+            localStage.style.boxShadow = "none";
+            if (chibiEl) chibiEl.classList.remove("moving");
           }
-          requestAnimationFrame(updateMeter);
         }
-        updateMeter();
-      } catch (e) {}
-    }
+      }
 
-    // Điều chỉnh Khuếch đại Mic & Loa
+      if (remotePreGateAnalyser && remoteGateGain) {
+        const pct = computeSignalPercent(remotePreGateAnalyser);
+        const thres = filterState.remote.gateThreshold;
+        const pass = isSpeakerOn && (thres === 0 || pct >= thres);
+
+        remoteGateGain.gain.setTargetAtTime(pass ? 1.0 : 0.0, audioCtx.currentTime, pass ? 0.012 : 0.08);
+        remoteVolumeLevel = pass ? pct : 0;
+
+        if (document.visibilityState === "visible") {
+          const dot = document.getElementById("remote-gate-dot");
+          if (dot) dot.classList.toggle("gated", !pass && thres > 0);
+          const chibiEl = document.getElementById("remote-chibi-model");
+          if (pass && pct > 8) {
+            const radius = Math.min(30, pct * 0.45);
+            remoteStage.style.boxShadow = `0 0 0 ${radius * 0.35}px rgba(255, 117, 140, 0.38)`;
+            if (chibiEl) chibiEl.classList.add("moving");
+          } else {
+            remoteStage.style.boxShadow = "none";
+            if (chibiEl) chibiEl.classList.remove("moving");
+          }
+        }
+      }
+    }, 35);
+
+    window.setNoiseFilterLevel = function(side, lvl) {
+      ensureAudioContext();
+      const preset = NOISE_PRESETS[lvl];
+      if (!preset) return;
+
+      filterState[side].level = lvl;
+      filterState[side].gateThreshold = preset.gate;
+      filterState[side].highpassHz = preset.highpass;
+      filterState[side].lowpassHz = preset.lowpass;
+
+      const btnGroup = document.getElementById(`${side}-noise-btns`);
+      if (btnGroup) {
+        btnGroup.querySelectorAll(".noise-lvl-btn").forEach((b, idx) => {
+          b.classList.toggle("active", idx === lvl);
+        });
+      }
+      document.getElementById(`${side}-noise-lvl-txt`).innerText = `Mức ${lvl}`;
+
+      const gateSlider = document.getElementById(`${side}-gate-slider`);
+      const freqSlider = document.getElementById(`${side}-freq-slider`);
+      gateSlider.value = preset.gate;
+      freqSlider.value = preset.highpass;
+      document.getElementById(`${side}-gate-label`).innerText = `${preset.gate}%`;
+      document.getElementById(`${side}-freq-label`).innerText = `${preset.highpass}Hz`;
+
+      if (side === "local" && audioCtx) {
+        if (micHighPass) micHighPass.frequency.setTargetAtTime(preset.highpass, audioCtx.currentTime, 0.03);
+        if (micLowPass) micLowPass.frequency.setTargetAtTime(preset.lowpass, audioCtx.currentTime, 0.03);
+      } else if (side === "remote" && audioCtx) {
+        if (remoteHighPass) remoteHighPass.frequency.setTargetAtTime(preset.highpass, audioCtx.currentTime, 0.03);
+        if (remoteLowPass) remoteLowPass.frequency.setTargetAtTime(preset.lowpass, audioCtx.currentTime, 0.03);
+      }
+    };
+
+    document.getElementById("local-gate-slider").addEventListener("input", e => {
+      const val = Number(e.target.value);
+      filterState.local.gateThreshold = val;
+      document.getElementById("local-gate-label").innerText = `${val}%`;
+    });
+
+    document.getElementById("local-freq-slider").addEventListener("input", e => {
+      ensureAudioContext();
+      const hz = Number(e.target.value);
+      filterState.local.highpassHz = hz;
+      document.getElementById("local-freq-label").innerText = `${hz}Hz`;
+      if (micHighPass) micHighPass.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.02);
+    });
+
+    document.getElementById("remote-gate-slider").addEventListener("input", e => {
+      const val = Number(e.target.value);
+      filterState.remote.gateThreshold = val;
+      document.getElementById("remote-gate-label").innerText = `${val}%`;
+    });
+
+    document.getElementById("remote-freq-slider").addEventListener("input", e => {
+      ensureAudioContext();
+      const hz = Number(e.target.value);
+      filterState.remote.highpassHz = hz;
+      document.getElementById("remote-freq-label").innerText = `${hz}Hz`;
+      if (remoteHighPass) remoteHighPass.frequency.setTargetAtTime(hz, audioCtx.currentTime, 0.02);
+    });
+
     const micSlider = document.getElementById("mic-boost-slider");
     const micLabel = document.getElementById("mic-boost-label");
     window.setMicBoost = function(percent) {
@@ -2458,9 +3294,9 @@
       if (!dataConn) return;
       dataConn.on("open", () => {
         dataConn.send({ type: "MIC_STATE", isMicOn });
-        // Chủ phòng (Nam) tự động đồng bộ trạng thái Ngày/Đêm hiện tại sang máy Nữ khi vừa kết nối
         if (myGender === "male") {
           dataConn.send({ type: "THEME_SYNC", isNightMode });
+          dataConn.send({ type: "CUSTOM_UI_SYNC", config: customConfig }); // Đồng bộ luôn bảng màu ngay khi kết nối
         }
       });
       dataConn.on("data", data => {
@@ -2470,6 +3306,11 @@
         }
         else if (data.type === "THEME_SYNC") {
           setNightModeState(data.isNightMode, false, true);
+        }
+        else if (data.type === "CUSTOM_UI_SYNC" && data.config) {
+          customConfig = data.config;
+          saveCustomConfig(false); // Truyền false để lưu mà không bắn ngược lại gây vòng lặp
+          applyCustomConfigToDOM();
         }
         else if (data.type === "CHAT_MSG") {
           appendNewChatItem(data.kind || "text", data.content || data.text, data.senderGender, true, data.duration || null);
@@ -2514,6 +3355,7 @@
       if (currentCall) { currentCall.close(); currentCall = null; }
       remoteRawPuller.srcObject = null;
       remoteBoostedPlayer.srcObject = null;
+      remotePreGateAnalyser = null;
       document.getElementById("remote-mic-label").innerText = "⏳ Chưa kết nối";
       statusText.innerText = reasonText || "🟢 Sẵn sàng";
       document.getElementById("btn-hangup").style.display = "none";
@@ -2592,7 +3434,7 @@
     const pipVideo = document.getElementById("pip-video");
 
     function renderPipCanvas() {
-      pipCtx.fillStyle = isNightMode ? "#121629" : "#fff0f5";
+      pipCtx.fillStyle = customConfig.solidBg ? customConfig.solidBg : (isNightMode ? "#121629" : "#fff0f5");
       pipCtx.fillRect(0, 0, 360, 200);
       pipCtx.strokeStyle = "#2b2d42";
       pipCtx.lineWidth = 4;
