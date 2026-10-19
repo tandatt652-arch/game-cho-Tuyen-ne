@@ -3,237 +3,309 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>Khu Vườn Bí Mật 20/10 - Co-op Adventure</title>
-  <!-- Font chữ nét mảnh & điệu đà (Great Vibes & Alex Brush) hỗ trợ đầy đủ tiếng Việt -->
-  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Great+Vibes&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <title>Mừng Ngày 20/10 - Gửi Tặng Tuyến 💖</title>
+  <!-- Font chữ nét mảnh & điệu đà (Great Vibes & Alex Brush) -->
+  <link href="https://fonts.googleapis.com/css2?family=Alex+Brush&family=Great+Vibes&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
   <style>
     :root {
       --ink: #2b2d42;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
-      background: linear-gradient(135deg, #fff0f5 0%, #e6f7ff 100%);
+      background: radial-gradient(circle at 50% 35%, #fff9fb 0%, #ffe5ec 55%, #ffd6e0 100%);
       color: #4a4a68;
       font-family: "Segoe UI", -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      min-height: 100vh;
+      overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 100vh;
-      padding: 10px;
-      overflow-x: hidden;
+      position: relative;
       touch-action: manipulation;
     }
 
-    /* Thanh kết nối P2P & Điều khiển Âm lượng */
-    #top-bar {
-      background: rgba(255, 255, 255, 0.92);
-      backdrop-filter: blur(10px);
-      border: 2px solid #ffc2d1;
-      border-radius: 16px;
-      padding: 10px 16px;
-      margin-bottom: 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      font-size: 13px;
-      max-width: 900px;
+    /* Canvas hiệu ứng Cánh Hoa Rơi & Đom Đóm Lấp Lánh */
+    #bgCanvas {
+      position: fixed;
+      inset: 0;
       width: 100%;
-      box-shadow: 0 6px 20px rgba(255, 117, 140, 0.12);
+      height: 100%;
+      pointer-events: none;
+      z-index: 2;
     }
-    .conn-group { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-    .badge {
-      background: #ffe5ec;
-      color: #ff4d6d;
-      padding: 5px 10px;
-      border-radius: 8px;
-      font-weight: 700;
-      user-select: text;
-      -webkit-user-select: text;
-      border: 1px dashed #ff8fa3;
-    }
-    input[type="text"] {
-      background: #fff;
-      border: 2px solid #bde0fe;
-      color: #333;
-      padding: 6px 12px;
-      border-radius: 8px;
-      outline: none;
-      font-size: 13px;
-      transition: border 0.2s;
-      width: 165px;
-    }
-    input[type="text"]:focus { border-color: #ff758c; }
-    button.btn {
-      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-      color: #fff;
-      border: none;
-      padding: 7px 13px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 700;
-      box-shadow: 0 4px 10px rgba(255, 117, 140, 0.3);
-      transition: transform 0.15s, opacity 0.2s, background 0.25s;
-      font-size: 12.5px;
-    }
-    button.btn:hover { opacity: 0.92; transform: translateY(-1px); }
-    button.btn:active { transform: translateY(1px); }
-    button.btn-blue { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); box-shadow: 0 4px 10px rgba(79, 172, 254, 0.3); }
-    button.btn-purple { background: linear-gradient(135deg, #a18cd1 0%, #fbc2eb 100%); color: #2b2d42; }
 
-    /* Cụm chỉnh âm lượng nhạc 8-bit */
+    /* Thanh điều khiển Nhạc Nền nhỏ gọn ở góc trên */
+    #top-bar {
+      position: fixed;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 25;
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      border: 2px solid #ffc2d1;
+      border-radius: 30px;
+      padding: 7px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 8px 25px rgba(255, 77, 109, 0.15);
+    }
+    .top-title {
+      font-weight: 800;
+      font-size: 13.5px;
+      color: #c9184a;
+      white-space: nowrap;
+    }
     .music-ctrl {
       display: flex;
       align-items: center;
       gap: 6px;
       background: #fff0f5;
       border: 1.5px solid #ffc2d1;
-      padding: 4px 10px;
-      border-radius: 10px;
+      padding: 3px 10px;
+      border-radius: 20px;
     }
     .music-btn {
       background: none;
       border: none;
-      font-size: 16px;
+      font-size: 15px;
       cursor: pointer;
       line-height: 1;
     }
     #bgm-volume {
-      width: 72px;
+      width: 70px;
       accent-color: #ff4d6d;
       cursor: pointer;
       height: 5px;
     }
 
-    /* HUD Thông tin trận đấu */
-    #hud {
-      width: 100%;
-      max-width: 900px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 8px;
-      padding: 0 6px;
-    }
-    .hud-box {
-      background: #fff;
-      border: 2px solid #ffc2d1;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-weight: 800;
-      font-size: 15px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-    }
-    #timer-box { color: #ff4d6d; font-size: 18px; transition: transform 0.2s, background 0.2s; }
-    #gift-counter { color: #3a86ff; }
-
-    /* Khung Canvas chính */
-    #game-wrapper {
+    /* =========================================================================
+       KHU VỰC SÂN KHẤU BÓ HOA NGHỆ THUẬT
+       ========================================================================= */
+    #bouquet-stage {
       position: relative;
-      width: 100%;
-      max-width: 900px;
-      border-radius: 18px;
-      overflow: hidden;
-      box-shadow: 0 12px 35px rgba(255, 117, 140, 0.22);
-      border: 4px solid #fff;
-      background: #a8e6cf;
-    }
-    canvas {
-      display: block;
-      width: 100%;
-      height: auto;
+      z-index: 10;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 30px;
+      transition: opacity 0.6s ease, transform 0.6s ease;
     }
 
-    /* Lớp chứa DOM Nhân vật Chibi khớp tọa độ Canvas */
-    #sprite-layer {
+    /* Hào quang lung linh phía sau bó hoa */
+    .bouquet-aura {
       position: absolute;
-      top: 0;
-      left: 0;
-      width: 900px;
-      height: 520px;
-      transform-origin: top left;
-      pointer-events: none;
-      z-index: 10;
-      overflow: hidden;
+      width: 380px;
+      height: 380px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 183, 197, 0.45) 50%, rgba(255, 183, 197, 0) 75%);
+      border-radius: 50%;
+      z-index: -1;
+      animation: auraPulse 4s ease-in-out infinite;
+    }
+    @keyframes auraPulse {
+      0%, 100% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.08); opacity: 1; }
+    }
+
+    /* Khung SVG Bó Hoa */
+    .bouquet-wrapper {
+      width: min(92vw, 440px);
+      height: min(65vh, 470px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: bouquetFloat 4.5s ease-in-out infinite;
+      filter: drop-shadow(0 18px 28px rgba(180, 40, 80, 0.22));
+    }
+    @keyframes bouquetFloat {
+      0%, 100% { transform: translateY(0px) rotate(0deg); }
+      50% { transform: translateY(-10px) rotate(0.8deg); }
+    }
+
+    /* Hiệu ứng từng bông hoa đung đưa & tương tác khi chạm */
+    .flower-head {
+      cursor: pointer;
+      transform-box: fill-box;
+      transform-origin: center;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
+      animation: gentleSway 5s ease-in-out infinite;
+    }
+    .flower-head:nth-child(even) {
+      animation-duration: 6s;
+      animation-direction: reverse;
+    }
+    .flower-head:hover {
+      transform: scale(1.12) rotate(4deg);
+      filter: brightness(1.08) drop-shadow(0 0 12px rgba(255, 117, 140, 0.65));
+    }
+    .flower-head:active {
+      transform: scale(0.95);
+    }
+    @keyframes gentleSway {
+      0%, 100% { transform: rotate(-2deg); }
+      50% { transform: rotate(2.5deg); }
+    }
+
+    /* Hiệu ứng hoa baby lấp lánh */
+    .babys-breath circle {
+      animation: twinkleStar 2.6s ease-in-out infinite alternate;
+    }
+    .babys-breath circle:nth-child(3n) { animation-delay: 0.7s; }
+    .babys-breath circle:nth-child(2n) { animation-delay: 1.4s; }
+    @keyframes twinkleStar {
+      0% { opacity: 0.65; r: 3.2px; }
+      100% { opacity: 1; r: 4.6px; filter: drop-shadow(0 0 4px #fff); }
+    }
+
+    .hint-touch {
+      font-size: 13px;
+      color: #a4133c;
+      background: rgba(255, 255, 255, 0.75);
+      padding: 5px 16px;
+      border-radius: 20px;
+      border: 1px solid #ffccd5;
+      margin-top: -6px;
+      margin-bottom: 12px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(255, 117, 140, 0.12);
+    }
+
+    /* Nút Phong Bì Mở Thư Tình */
+    .envelope-btn {
+      position: relative;
+      background: linear-gradient(135deg, #ff4d6d 0%, #ff758c 100%);
+      color: #fff;
+      border: 3px solid #fff;
+      padding: 12px 28px;
+      border-radius: 30px;
+      font-size: 16px;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 10px 25px rgba(255, 77, 109, 0.4);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: transform 0.2s, box-shadow 0.2s;
+      animation: pulseBtn 2s infinite;
+    }
+    .envelope-btn:hover {
+      transform: translateY(-3px) scale(1.03);
+      box-shadow: 0 14px 30px rgba(255, 77, 109, 0.55);
+    }
+    @keyframes pulseBtn {
+      0%, 100% { box-shadow: 0 8px 25px rgba(255, 77, 109, 0.4), 0 0 0 0 rgba(255, 77, 109, 0.4); }
+      50% { box-shadow: 0 8px 25px rgba(255, 77, 109, 0.5), 0 0 0 10px rgba(255, 77, 109, 0); }
     }
 
     /* =========================================================================
-       MODEL NHÂN VẬT CHIBI (NỮ & NAM)
+       MODAL BỨC THƯ TÌNH LÃNG MẠN
        ========================================================================= */
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3px); } }
-    @keyframes walkWobble { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-5px) rotate(3deg); } }
+    #letter-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(35, 15, 30, 0.6);
+      backdrop-filter: blur(6px);
+      z-index: 30;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+    }
+    .letter-paper {
+      background: linear-gradient(180deg, #fffdf9 0%, #fff0f5 100%);
+      border: 3px solid #ff8fa3;
+      border-radius: 24px;
+      padding: 26px 24px 22px;
+      max-width: 520px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), inset 0 0 0 6px rgba(255, 194, 209, 0.35);
+      text-align: center;
+      position: relative;
+      animation: letterUnfold 0.45s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    @keyframes letterUnfold {
+      from { transform: translateY(40px) scale(0.85); opacity: 0; }
+      to { transform: translateY(0) scale(1); opacity: 1; }
+    }
+    .letter-header {
+      font-family: 'Great Vibes', cursive;
+      font-size: 38px;
+      color: #c9184a;
+      margin-bottom: 6px;
+      line-height: 1.2;
+    }
+    .letter-body {
+      font-family: 'Dancing Script', 'Segoe UI', cursive;
+      font-size: 21px;
+      color: #4a4a68;
+      line-height: 1.6;
+      min-height: 115px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 16px;
+      border: 1.5px dashed #ffb3c6;
+      margin-bottom: 14px;
+      text-align: left;
+    }
 
+    /* Cụm 2 nhân vật Chibi Đạt & Tuyến đứng trong thư */
+    .couple-box {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 36px;
+      height: 82px;
+      margin: 14px 0 8px;
+      position: relative;
+    }
+    .couple-heart {
+      font-size: 26px;
+      animation: heartBeat 1s infinite alternate;
+    }
+    @keyframes heartBeat {
+      from { transform: scale(0.9); }
+      to { transform: scale(1.25); }
+    }
+
+    /* =========================================================================
+       MODEL NHÂN VẬT CHIBI (ĐẠT & TUYẾN)
+       ========================================================================= */
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
     .player {
-      position: absolute;
+      position: relative;
       width: 56px;
       height: 66px;
-      z-index: 20;
       transform-origin: center bottom;
-      background: transparent;
-      border: none;
-      top: 0;
-      left: 0;
-      will-change: transform;
       pointer-events: none;
     }
-    .player.female {
-      --c-primary: #ff758c;
-      --c-secondary: #ffb3c6;
-      --c-accent: #ffe066;
-    }
-    .player.male {
-      --c-primary: #4facfe;
-      --c-secondary: #70d6ff;
-      --c-accent: #ffe066;
-    }
+    .player.female { --c-primary: #ff758c; --c-secondary: #ffb3c6; --c-accent: #ffe066; }
+    .player.male { --c-primary: #4facfe; --c-secondary: #70d6ff; --c-accent: #ffe066; }
     .player-name-tag {
-      position: absolute;
-      top: -22px;
-      left: 50%;
-      transform: translateX(-50%);
-      white-space: nowrap;
-      font-size: 11px;
-      font-weight: 800;
-      color: var(--ink);
-      background: rgba(255, 255, 255, 0.85);
-      padding: 1px 7px;
-      border-radius: 10px;
-      border: 1.5px solid var(--ink);
-      z-index: 10;
+      position: absolute; top: -22px; left: 50%; transform: translateX(-50%);
+      white-space: nowrap; font-size: 11px; font-weight: 800; color: var(--ink);
+      background: rgba(255, 255, 255, 0.9); padding: 1px 7px; border-radius: 10px;
+      border: 1.5px solid var(--ink); z-index: 10;
     }
     .player-shadow {
-      position: absolute;
-      bottom: -5px;
-      left: 10px;
-      width: 36px;
-      height: 12px;
-      background: rgba(0, 0, 0, 0.16);
-      border-radius: 50%;
-      z-index: 0;
+      position: absolute; bottom: -5px; left: 10px; width: 36px; height: 12px;
+      background: rgba(0, 0, 0, 0.14); border-radius: 50%; z-index: 0;
     }
-
     .chibi { position: relative; width: 100%; height: 100%; animation: bounce 1.5s infinite ease-in-out; }
-    .player.moving .chibi { animation: walkWobble 0.35s infinite ease-in-out; }
-
-    .cb-head { position: absolute; width: 46px; height: 46px; border: 4px solid var(--ink); border-radius: 45%; left: 5px; top: 0; z-index: 2; background: #ffe6d5; box-sizing: border-box; }
-    .cb-hair { position: absolute; width: 54px; height: 25px; background: var(--ink); border-radius: 25px 25px 0 0; top: -4px; left: -8px; z-index: 3; box-sizing: border-box; }
+    .cb-head { position: absolute; width: 46px; height: 46px; border: 4px solid var(--ink); border-radius: 45%; left: 5px; top: 0; z-index: 2; background: #ffe6d5; }
+    .cb-hair { position: absolute; width: 54px; height: 25px; background: var(--ink); border-radius: 25px 25px 0 0; top: -4px; left: -8px; z-index: 3; }
     .cb-backhair { position: absolute; width: 56px; height: 50px; background: var(--ink); border-radius: 30px; top: 10px; left: 0; z-index: 1; }
-    .cb-eye { position: absolute; top: 20px; width: 6px; height: 10px; background: var(--ink); border-radius: 50%; z-index: 3; transition: transform 0.1s; }
+    .cb-eye { position: absolute; top: 20px; width: 6px; height: 10px; background: var(--ink); border-radius: 50%; z-index: 3; }
     .cb-eye::after { content: ""; position: absolute; top: 2px; left: 1px; width: 2.5px; height: 2.5px; background: #fff; border-radius: 50%; }
     .cb-eye.e1 { left: 8px; } .cb-eye.e2 { right: 8px; }
     .cb-blush { position: absolute; top: 26px; width: 8px; height: 5px; background: #ff7ca8; border-radius: 50%; opacity: 0.6; z-index: 3; }
     .cb-blush.b1 { left: 2px; } .cb-blush.b2 { right: 2px; }
     .cb-mouth { position: absolute; left: 14px; top: 30px; width: 10px; height: 5px; border-radius: 0 0 10px 10px; background: var(--ink); z-index: 3; }
-    .cb-body { position: absolute; width: 34px; height: 26px; background: var(--c-primary); border: 4px solid var(--ink); border-radius: 10px; bottom: 0; left: 11px; z-index: 2; box-sizing: border-box; overflow: hidden; }
+    .cb-body { position: absolute; width: 34px; height: 26px; background: var(--c-primary); border: 4px solid var(--ink); border-radius: 10px; bottom: 0; left: 11px; z-index: 2; overflow: hidden; }
     .avatar-acc { position: absolute; pointer-events: none; z-index: 6; }
 
-    /* Phụ kiện Nơ của Bạn Gái (P2) */
     .acc-bow { left: 23px; top: -2px; width: 42px; height: 26px; transform: rotate(6deg); }
     .acc-bow::before, .acc-bow::after { content: ""; position: absolute; top: 3px; width: 18px; height: 14px; background: var(--c-secondary); border: 3px solid var(--ink); box-shadow: inset 0 3px #ffffffa0; box-sizing: border-box; }
     .acc-bow::before { left: 1px; border-radius: 80% 25% 65% 30%; transform: rotate(-12deg); }
@@ -243,7 +315,6 @@
     .acc-bow span { left: 10px; transform: rotate(10deg); }
     .acc-bow b { right: 10px; transform: rotate(-10deg); }
 
-    /* Thiết kế riêng cho Nhân Vật Nam (P1) */
     .player.male .cb-backhair { width: 50px; height: 22px; top: 8px; left: 3px; border-radius: 12px; }
     .player.male .cb-hair { width: 52px; height: 19px; top: -5px; left: -7px; border-radius: 20px 20px 6px 6px; }
     .player.male .cb-hair::before { content: ""; position: absolute; left: 4px; bottom: -6px; width: 16px; height: 10px; background: var(--ink); border-radius: 0 0 12px 4px; transform: rotate(-8deg); }
@@ -256,387 +327,58 @@
     .acc-cap::after { content: ""; position: absolute; bottom: 1px; left: -4px; width: 22px; height: 7px; background: var(--c-primary); border: 3px solid var(--ink); border-radius: 8px 0 8px 8px; box-sizing: border-box; }
     .acc-cap i { position: absolute; right: 9px; top: 5px; width: 8px; height: 8px; background: var(--c-accent); border: 2.5px solid var(--ink); border-radius: 50%; z-index: 3; box-sizing: border-box; }
 
-    /* =========================================================================
-       CÁC CỬA SỔ MODAL & MINI-GAME
-       ========================================================================= */
-    .modal-overlay {
-      display: none;
-      position: absolute;
-      inset: 0;
-      background: rgba(25, 20, 35, 0.55);
-      backdrop-filter: blur(5px);
-      z-index: 30;
-      align-items: center;
-      justify-content: center;
-      padding: 10px;
-    }
-    .modal-card {
-      background: #fff;
-      border: 3px solid #ff8fa3;
-      border-radius: 22px;
-      padding: 16px 18px;
-      max-width: 520px;
-      width: 100%;
-      max-height: 96%;
-      overflow-y: auto;
-      text-align: center;
-      box-shadow: 0 15px 40px rgba(0,0,0,0.25);
-      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-      position: relative;
-    }
-    @keyframes popIn {
-      from { transform: scale(0.8); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
-    }
-    .modal-title { font-size: 20px; color: #ff4d6d; margin-bottom: 4px; font-weight: 800; }
-    .modal-desc { font-size: 12.5px; color: #6c757d; margin-bottom: 10px; line-height: 1.35; }
-
-    /* Khung sân khấu Mê Cung */
-    #maze-stage {
-      position: relative;
-      width: 100%;
-      max-width: 420px;
-      aspect-ratio: 420 / 300;
-      margin: 0 auto;
-      border: 3px solid var(--ink);
-      border-radius: 14px;
-      overflow: hidden;
-      background: #141824;
-      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
-    }
-    #mazeCanvas { width: 100%; height: 100%; display: block; }
-    #maze-sprite-layer {
-      position: absolute; top: 0; left: 0; width: 420px; height: 300px;
-      transform-origin: top left; pointer-events: none; z-index: 15; overflow: hidden;
-    }
-    #mazeFogCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 25; }
-
-    /* Giao diện Mini-game Simon */
-    .simon-header {
-      display: flex; justify-content: space-between; align-items: center;
-      background: #fff0f5; padding: 7px 12px; border-radius: 12px; margin-bottom: 8px;
-      border: 1.5px solid #ffc2d1; font-weight: 800; font-size: 13px;
-    }
-    .simon-turn-banner {
-      padding: 7px 12px; border-radius: 10px; font-weight: 800; font-size: 13.5px;
-      margin-bottom: 10px; transition: all 0.2s;
-    }
-    .simon-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
-      max-width: 270px; margin: 0 auto 10px;
-    }
-    .simon-pad {
-      height: 82px; border-radius: 18px; border: 4px solid var(--ink);
-      font-size: 30px; display: flex; align-items: center; justify-content: center;
-      cursor: pointer; transition: transform 0.1s, filter 0.15s, box-shadow 0.15s;
-      box-shadow: 0 6px 0 var(--ink); opacity: 0.75;
-    }
-    .simon-pad:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
-    .simon-pad.lit {
-      opacity: 1; filter: brightness(1.25); transform: scale(1.06);
-      box-shadow: 0 0 24px currentColor, 0 4px 0 var(--ink);
-    }
-    .simon-pad-0 { background: #ff758c; color: #ff758c; }
-    .simon-pad-1 { background: #4facfe; color: #4facfe; }
-    .simon-pad-2 { background: #ffd166; color: #ffd166; }
-    .simon-pad-3 { background: #b388eb; color: #b388eb; }
-
-    .simon-steps-dots { display: flex; gap: 6px; justify-content: center; margin-top: 6px; min-height: 22px; }
-    .step-dot {
-      width: 20px; height: 20px; border-radius: 50%; border: 2px solid var(--ink);
-      font-size: 10px; display: flex; align-items: center; justify-content: center;
-      font-weight: bold; color: #fff; opacity: 0.35;
-    }
-    .step-dot.done { opacity: 1; transform: scale(1.1); }
-    .step-dot.current { opacity: 1; outline: 3px solid #ffe066; }
-
-    /* Giao diện Mini-game Lật Thẻ Bài 16 Ô */
-    .memory-grid {
-      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px;
-      max-width: 300px; margin: 0 auto 8px;
-    }
-    .mem-card {
-      height: 58px; border-radius: 12px; border: 3px solid var(--ink);
-      background: linear-gradient(135deg, #ffc2d1 0%, #ffe5ec 100%);
-      box-shadow: 0 4px 0 var(--ink); display: flex; align-items: center; justify-content: center;
-      font-size: 25px; cursor: pointer; transition: transform 0.25s, opacity 0.3s, background 0.2s;
-    }
-    .mem-card:active { transform: translateY(2px); }
-    .mem-card.up { background: #ffffff; transform: scale(1.04); }
-    .mem-card.up.by-p1 { border-color: #4facfe; box-shadow: 0 4px 0 #4facfe; }
-    .mem-card.up.by-p2 { border-color: #ff4d6d; box-shadow: 0 4px 0 #ff4d6d; }
-    .mem-card.matched { opacity: 0; transform: scale(0); pointer-events: none; }
-
-    /* Nút bấm xen kẽ Xanh - Hồng cho Bức Thư Tình */
-    .mash-alt-btn {
-      width: 100%; padding: 14px; font-size: 16px; font-weight: 900; border-radius: 16px;
-      color: #fff; cursor: pointer; border: 4px solid var(--ink); box-shadow: 0 6px 0 var(--ink);
-      transition: background 0.15s, transform 0.08s; text-transform: uppercase; letter-spacing: 0.5px;
-    }
-    .mash-alt-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 var(--ink); }
-    .mash-alt-btn.turn-blue { background: linear-gradient(135deg, #00b4db 0%, #4facfe 100%); }
-    .mash-alt-btn.turn-pink { background: linear-gradient(135deg, #ff4d6d 0%, #ff758c 100%); }
-    .sync-bar-bg {
-      width: 100%; height: 26px; background: #f1f3f5; border-radius: 14px;
-      position: relative; overflow: hidden; margin: 12px 0; border: 2px solid #dee2e6;
-    }
-
-    /* =========================================================================
-       TRÒ CHƠI 6: SUDOKU 9x9
-       ========================================================================= */
-    .sudoku-grid {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      width: 100%;
-      max-width: 324px;
-      margin: 0 auto 10px;
-      border: 3px solid var(--ink);
-      border-radius: 8px;
-      overflow: hidden;
-      background: #fff;
-    }
-    .sdk-cell {
-      aspect-ratio: 1 / 1;
-      border: 1px solid #dee2e6;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 800;
-      cursor: pointer;
-      color: #2b2d42;
-      background: #fff;
-      transition: background 0.15s, color 0.15s;
-    }
-    .sdk-cell.b-right { border-right: 2.5px solid var(--ink); }
-    .sdk-cell.b-bottom { border-bottom: 2.5px solid var(--ink); }
-    .sdk-cell.fixed { color: #495057; background: #f8f9fa; }
-    .sdk-cell.user-solved { color: #0077b6; background: #edf6f9; }
-    .sdk-cell.selected { outline: 3px solid #3a86ff; z-index: 2; background: #e0f2fe !important; }
-    .sdk-cell.same-num-highlight {
-      background: #ff758c !important;
-      color: #ffffff !important;
-      font-weight: 900;
-      box-shadow: inset 0 0 6px rgba(0,0,0,0.2);
-    }
-    .sdk-numpad {
-      display: grid;
-      grid-template-columns: repeat(9, 1fr);
-      gap: 5px;
-      max-width: 324px;
-      margin: 0 auto;
-    }
-    .sdk-num-btn {
-      padding: 8px 0;
-      border-radius: 8px;
-      border: 2px solid #ffc2d1;
-      background: #fff0f5;
-      color: #c9184a;
-      font-weight: 900;
-      font-size: 15px;
-      cursor: pointer;
-      box-shadow: 0 3px 0 #ffc2d1;
-    }
-    .sdk-num-btn.active-num {
-      background: #ff4d6d;
+    button.btn {
+      background: linear-gradient(135deg, #ff4d6d 0%, #ff758c 100%);
       color: #fff;
-      border-color: var(--ink);
-      box-shadow: 0 3px 0 var(--ink);
-    }
-
-    /* =========================================================================
-       TRÒ CHƠI 7: CỜ CARO (20x20, 30x30, 50x50)
-       ========================================================================= */
-    .caro-toolbar {
-      display: flex; justify-content: space-between; align-items: center; gap: 6px;
-      margin-bottom: 8px; flex-wrap: wrap;
-    }
-    .caro-size-btns button {
-      padding: 4px 9px; font-size: 11.5px; border-radius: 6px; border: 1.5px solid var(--ink);
-      cursor: pointer; font-weight: 800; background: #f1f3f5; color: var(--ink);
-    }
-    .caro-size-btns button.active { background: #4facfe; color: #fff; }
-    .caro-viewport {
-      width: 100%;
-      max-width: 440px;
-      height: 270px;
-      margin: 0 auto;
-      overflow: auto;
-      border: 3px solid var(--ink);
-      border-radius: 10px;
-      background: #fff9fb;
-      position: relative;
-    }
-    .caro-grid {
-      display: grid;
-      background: #dee2e6;
-      gap: 1px;
-      width: max-content;
-      margin: 0 auto;
-    }
-    .caro-cell {
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 900;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 25px;
       cursor: pointer;
-      line-height: 1;
-    }
-    .caro-cell:hover { background: #fff0f5; }
-    .caro-cell.x-mark { color: #3a86ff; }
-    .caro-cell.o-mark { color: #ff4d6d; }
-    .caro-cell.win-cell { background: #ffe066 !important; animation: popIn 0.3s infinite alternate; }
-
-    /* =========================================================================
-       TRÒ CHƠI 8: GHÉP HÌNH 12 MẢNH KHỔ DỌC (3 CỘT × 4 HÀNG - TỶ LỆ 3:4)
-       ========================================================================= */
-    .jigsaw-board {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      grid-template-rows: repeat(4, 1fr);
-      gap: 4px;
-      width: 240px;
-      height: 320px;
-      margin: 0 auto 8px;
-      border: 3px solid var(--ink);
-      border-radius: 12px;
-      padding: 4px;
-      background: #fff0f5;
-      transition: gap 0.4s, padding 0.4s;
-    }
-    .jigsaw-board.completed {
-      gap: 0px;
-      padding: 0px;
-      border-color: #ff4d6d;
-      box-shadow: 0 0 25px rgba(255, 77, 109, 0.7);
-    }
-    .jigsaw-tile {
-      width: 100%;
-      height: 100%;
-      background-size: 300% 400%;
-      background-repeat: no-repeat;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s;
-      position: relative;
-    }
-    .jigsaw-board.completed .jigsaw-tile { border-radius: 0; }
-    .jigsaw-tile.selected {
-      outline: 3px solid #ffe066;
-      transform: scale(0.93);
-      z-index: 3;
-      box-shadow: 0 0 12px #ff4d6d;
-    }
-    .jigsaw-love-banner {
-      display: none;
-      background: linear-gradient(135deg, #fff0f5 0%, #ffe5ec 100%);
-      border: 2px solid #ff758c;
-      border-radius: 14px;
-      padding: 10px 14px;
-      margin-top: 8px;
-      animation: popIn 0.4s ease;
-    }
-
-    /* =========================================================================
-       TRÒ CHƠI 9: CÂU HỎI 1 + 1 BẰNG MẤY?
-       ========================================================================= */
-    .math-stage {
-      position: relative;
-      min-height: 250px;
-      background: linear-gradient(180deg, #fff9fb 0%, #ffe5ec 100%);
-      border: 2.5px dashed #ff8fa3;
-      border-radius: 16px;
-      padding: 18px 12px 90px;
-      overflow: hidden;
-    }
-    .math-question {
-      font-size: 26px;
-      font-weight: 900;
-      color: #c9184a;
-      margin-bottom: 12px;
-    }
-    .math-ans-slot {
-      min-height: 54px;
-      max-width: 280px;
-      margin: 0 auto 10px;
-      background: #fff;
-      border: 3px solid var(--ink);
-      border-radius: 14px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 6px 12px;
       font-weight: 800;
-      color: #ff4d6d;
-      box-shadow: inset 0 2px 6px rgba(0,0,0,0.06);
+      font-size: 14.5px;
+      box-shadow: 0 6px 16px rgba(255, 77, 109, 0.35);
+      transition: transform 0.15s, opacity 0.2s;
     }
-    .math-corner-char {
-      position: absolute;
-      bottom: 8px;
-      width: 56px;
-      height: 66px;
-      cursor: pointer;
-      pointer-events: auto !important;
-      transition: all 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
-      transform: scale(0.82);
-    }
-    .math-corner-char.left-char { left: 14px; }
-    .math-corner-char.right-char { right: 14px; }
-    .math-corner-char.clicked-Wait {
-      filter: drop-shadow(0 0 10px #ffe066);
-      transform: scale(0.92) translateY(-6px);
-    }
-    .math-corner-char.fly-center-left {
-      left: calc(50% - 58px) !important;
-      bottom: 112px !important;
-      transform: scale(0.75) !important;
-      filter: drop-shadow(0 0 12px #4facfe);
-    }
-    .math-corner-char.fly-center-right {
-      right: calc(50% - 58px) !important;
-      bottom: 112px !important;
-      transform: scale(0.75) !important;
-      filter: drop-shadow(0 0 12px #ff4d6d);
-    }
-
-    /* Hộp quà mở thành công */
-    .gift-preview-img {
-      width: 135px; height: 165px; object-fit: contain;
-      border-radius: 16px; border: 3px solid #ffe5ec; padding: 8px;
-      background: #fff9fb; margin: 10px auto; display: block;
-      box-shadow: 0 6px 16px rgba(255, 117, 140, 0.15);
-    }
-    .gallery-grid { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin: 12px 0; }
-    .gallery-item {
-      width: 56px; height: 56px; border-radius: 12px; border: 2px solid #ff8fa3;
-      padding: 4px; background: #fff0f3; object-fit: contain;
-    }
+    button.btn:hover { opacity: 0.94; transform: translateY(-2px); }
+    button.btn-sec { background: #adb5bd; box-shadow: none; }
 
     /* =========================================================================
-       MÀN HÌNH PHÁO HOA & KIỂU CHỮ MỎNG ĐIỆU ĐÀ 20/10
+       MÀN HÌNH ĐÊM PHÁO HOA RỰC RỠ & KIỂU CHỮ MỎNG ĐIỆU ĐÀ
        ========================================================================= */
     #fireworks-overlay {
       display: none;
-      position: absolute;
+      position: fixed;
       inset: 0;
-      background: radial-gradient(circle at center, #1b0a2e 0%, #090314 100%);
+      background: radial-gradient(circle at center, #1b0a2e 0%, #070210 100%);
       z-index: 50;
       overflow: hidden;
       flex-direction: column;
       align-items: center;
       justify-content: center;
     }
-    #fwCanvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-    .finale-content { position: relative; z-index: 55; text-align: center; padding: 20px; pointer-events: auto; }
+    #fwCanvas {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    .finale-content {
+      position: relative;
+      z-index: 55;
+      text-align: center;
+      padding: 20px;
+      pointer-events: auto;
+      animation: letterUnfold 0.8s ease;
+    }
     @keyframes delicateFloat {
       0%, 100% {
         transform: translateY(0) scale(1);
-        filter: drop-shadow(0 0 10px rgba(255, 143, 163, 0.85)) drop-shadow(0 0 24px rgba(255, 229, 236, 0.45));
+        filter: drop-shadow(0 0 12px rgba(255, 143, 163, 0.9)) drop-shadow(0 0 28px rgba(255, 229, 236, 0.5));
       }
       50% {
-        transform: translateY(-7px) scale(1.03);
-        filter: drop-shadow(0 0 16px rgba(255, 224, 102, 0.9)) drop-shadow(0 0 34px rgba(255, 117, 140, 0.8));
+        transform: translateY(-8px) scale(1.03);
+        filter: drop-shadow(0 0 18px rgba(255, 224, 102, 0.95)) drop-shadow(0 0 38px rgba(255, 117, 140, 0.85));
       }
     }
     @keyframes shimmerFlow {
@@ -647,7 +389,7 @@
     .romantic-title {
       font-family: 'Great Vibes', 'Alex Brush', cursive;
       font-weight: 400;
-      font-size: clamp(40px, 6.5vw, 68px);
+      font-size: clamp(42px, 7vw, 74px);
       letter-spacing: 1.5px;
       background: linear-gradient(270deg, #ffdde1, #fff6cc, #ffffff, #ffc2d1, #e0c3fc);
       background-size: 300% 300%;
@@ -655,215 +397,415 @@
       -webkit-text-fill-color: transparent;
       animation: shimmerFlow 5s ease infinite, delicateFloat 3.4s ease-in-out infinite;
       line-height: 1.4;
-      margin-bottom: 10px;
+      margin-bottom: 12px;
       padding: 4px 16px;
     }
     .romantic-sub {
-      color: #ffe5ec; font-size: 15px; font-weight: 400; letter-spacing: 1.5px;
-      opacity: 0.92; text-shadow: 0 2px 10px rgba(255, 77, 109, 0.8); margin-bottom: 24px;
+      color: #ffe5ec;
+      font-size: 16px;
+      font-weight: 400;
+      letter-spacing: 1.5px;
+      opacity: 0.92;
+      text-shadow: 0 2px 10px rgba(255, 77, 109, 0.8);
+      margin-bottom: 28px;
     }
-
-    /* Phím ảo Điện thoại */
-    #touch-controls {
-      display: none; justify-content: space-between; width: 100%; max-width: 900px;
-      margin-top: 12px; padding: 0 10px; z-index: 40;
-    }
-    .dpad { display: grid; grid-template-columns: repeat(3, 50px); grid-template-rows: repeat(2, 50px); gap: 6px; }
-    .t-btn {
-      background: #fff; border: 2px solid #ffc2d1; border-radius: 14px; color: #ff4d6d;
-      font-weight: bold; font-size: 18px; display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.08); touch-action: none;
-    }
-    .t-btn.active { background: #ff758c; color: #fff; transform: scale(0.93); }
-    .action-btn-mobile {
-      width: 110px; height: 106px; border-radius: 24px;
-      background: linear-gradient(135deg, #ff758c 0%, #ff7eb3 100%);
-      color: #fff; font-size: 15px; border: none;
-    }
-
-    #guide { margin-top: 8px; font-size: 12.5px; color: #6c757d; text-align: center; }
   </style>
 </head>
 <body>
 
-  <!-- Thanh Kết nối Online & Điều chỉnh Nhạc nền 8-bit -->
+  <!-- Canvas nền: Cánh hoa hồng rơi, Đom đóm & Trái tim bay khi chạm -->
+  <canvas id="bgCanvas"></canvas>
+
+  <!-- Thanh điều chỉnh Nhạc Nền -->
   <div id="top-bar">
-    <div class="conn-group">
-      <span>Mã: <span id="my-id" class="badge">Đang tạo...</span></span>
-      <input type="text" id="target-id" placeholder="Dán mã cho ăm chã" />
-      <button id="btn-connect" class="btn">Ghép Đôi 💕</button>
-    </div>
-    <div class="conn-group">
-      <div class="music-ctrl" title="Điều chỉnh âm lượng nhạc nền 8-bit">
-        <button id="btn-bgm-toggle" class="music-btn">🎵</button>
-        <input type="range" id="bgm-volume" min="0" max="100" value="45" />
-      </div>
-      <span id="status" style="font-weight: 700; color: #ff758c;">Chưa ghép với ăm chã</span>
-      <button id="btn-toggle-map" class="btn btn-purple">🗺️ Ẩn Map</button>
-      <button id="btn-toggle-touch" class="btn btn-blue">📱 Phím Ảo</button>
+    <span class="top-title">🌸 Dành Tặng Tuyến 20/10 💖</span>
+    <div class="music-ctrl" title="Chỉnh âm lượng nhạc">
+      <button id="btn-bgm-toggle" class="music-btn">🎵</button>
+      <input type="range" id="bgm-volume" min="0" max="100" value="50" />
     </div>
   </div>
 
-  <!-- Thanh Thông số Trận đấu -->
-  <div id="hud">
-    <div class="hud-box" id="gift-counter">🎁 Trò chơi: <span id="gift-count-text">0 / 9</span></div>
-    <div class="hud-box" id="timer-box">⏳ <span id="time-text">60:00</span></div>
-    <div class="hud-box">
-      <span style="color:#4facfe;">● Đạt</span> &amp; <span style="color:#ff758c;">● Tuyến</span>
+  <!-- =========================================================================
+       MÀN HÌNH 1: BÓ HOA NGHỆ THUẬT ĐA LỚP & PHONG BÌ THƯ
+       ========================================================================= -->
+  <div id="bouquet-stage">
+    <div class="bouquet-aura"></div>
+
+    <!-- BÓ HOA VẼ CHI TIẾT BẰNG SVG ĐA LỚP & GRADIENT MỀM MẠI -->
+    <div class="bouquet-wrapper">
+      <svg viewBox="0 0 500 560" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <!-- Bóng đổ mềm mại cho từng lớp hoa và giấy gói -->
+          <filter id="soft-shadow" x="-20%" y="-20%" width="140%" height="140%">
+            <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#800f2f" flood-opacity="0.18"/>
+          </filter>
+          <filter id="glow-white" x="-30%" y="-30%" width="160%" height="160%">
+            <feGaussianBlur stdDeviation="2.5" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+
+          <!-- Gradient Giấy Gói Hoa Cao Cấp -->
+          <linearGradient id="wrap-back" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#f8edeb"/>
+            <stop offset="100%" stop-color="#fcd5ce"/>
+          </linearGradient>
+          <linearGradient id="wrap-pink-left" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ffcad4"/>
+            <stop offset="50%" stop-color="#ff9ebb"/>
+            <stop offset="100%" stop-color="#f48fb1"/>
+          </linearGradient>
+          <linearGradient id="wrap-pink-right" x1="1" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffe5ec"/>
+            <stop offset="55%" stop-color="#ffb3c6"/>
+            <stop offset="100%" stop-color="#fb6f92"/>
+          </linearGradient>
+          <linearGradient id="wrap-cream-front" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff"/>
+            <stop offset="100%" stop-color="#ffe5ec"/>
+          </linearGradient>
+
+          <!-- Gradient Ruy-băng Lụa Đỏ Hồng -->
+          <linearGradient id="ribbon-grad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#ff758f"/>
+            <stop offset="50%" stop-color="#ff4d6d"/>
+            <stop offset="100%" stop-color="#c9184a"/>
+          </linearGradient>
+
+          <!-- Gradient Cánh Hoa Hồng Đỏ Thắm / Hồng Đào / Kem Sữa / Tím Pastel -->
+          <radialGradient id="rose-ruby" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#800f2f"/>
+            <stop offset="40%" stop-color="#c9184a"/>
+            <stop offset="78%" stop-color="#ff4d6d"/>
+            <stop offset="100%" stop-color="#ff8fa3"/>
+          </radialGradient>
+          <radialGradient id="rose-blush" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#ff4d6d"/>
+            <stop offset="45%" stop-color="#ff758f"/>
+            <stop offset="80%" stop-color="#ffb3c6"/>
+            <stop offset="100%" stop-color="#fff0f3"/>
+          </radialGradient>
+          <radialGradient id="rose-cream" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#ffb703"/>
+            <stop offset="30%" stop-color="#ffcad4"/>
+            <stop offset="70%" stop-color="#fff0f3"/>
+            <stop offset="100%" stop-color="#ffffff"/>
+          </radialGradient>
+          <radialGradient id="rose-lilac" cx="50%" cy="45%" r="55%">
+            <stop offset="0%" stop-color="#7209b7"/>
+            <stop offset="42%" stop-color="#b5179e"/>
+            <stop offset="78%" stop-color="#f72585"/>
+            <stop offset="100%" stop-color="#ffccd5"/>
+          </radialGradient>
+          <linearGradient id="leaf-euca" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#74c69d"/>
+            <stop offset="100%" stop-color="#2d6a4f"/>
+          </linearGradient>
+          <linearGradient id="leaf-mint" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#95d5b2"/>
+            <stop offset="100%" stop-color="#40916c"/>
+          </linearGradient>
+
+          <!-- MẪU BÔNG HOA HỒNG ĐA TẦNG CÁNH (REUSABLE SYMBOL) -->
+          <g id="luxury-rose">
+            <!-- Tầng cánh ngoài cùng uốn lượn -->
+            <path d="M0,-48 C22,-52 44,-35 46,-12 C48,12 36,36 14,45 C-8,52 -34,42 -44,20 C-52,-2 -42,-32 -20,-44 C-10,-49 -4,-47 0,-48 Z" opacity="0.92"/>
+            <path d="M-32,-34 C-10,-52 24,-48 38,-26 C52,-4 44,28 22,40 C0,52 -30,44 -42,22 C-54,0 -44,-22 -32,-34 Z" transform="rotate(35)" opacity="0.95"/>
+            <!-- Tầng cánh giữa xếp lớp -->
+            <path d="M0,-36 C18,-38 34,-24 34,-6 C34,14 20,30 2,33 C-16,36 -32,24 -35,6 C-38,-12 -22,-34 0,-36 Z" fill="rgba(255,255,255,0.22)"/>
+            <path d="M0,-31 C15,-33 28,-20 29,-4 C30,12 18,26 2,28 C-14,30 -28,18 -29,2 C-30,-14 -15,-29 0,-31 Z" transform="rotate(50)"/>
+            <!-- Tầng cánh trong khum tròn -->
+            <path d="M-18,-16 C-6,-28 14,-26 22,-12 C30,2 22,20 6,24 C-10,28 -24,18 -25,2 C-26,-8 -22,-12 -18,-16 Z" fill="rgba(0,0,0,0.08)"/>
+            <path d="M0,-19 C11,-20 19,-11 19,0 C19,11 10,19 0,19 C-11,19 -19,10 -19,0 C-19,-10 -11,-18 0,-19 Z"/>
+            <!-- Xoáy tâm hoa hồng -->
+            <path d="M-10,-4 C-4,-12 8,-11 11,-2 C14,6 6,13 -2,12 C-9,11 -12,3 -7,-3 C-3,-7 4,-6 6,-1 C7,3 3,6 -1,5" fill="none" stroke="rgba(255,255,255,0.65)" stroke-width="2.5" stroke-linecap="round"/>
+          </g>
+
+          <!-- MẪU HOA MẪU ĐƠN / CAMELIA NHIỀU CÁNH MỊN -->
+          <g id="peony-flower">
+            <g opacity="0.95">
+              <ellipse cx="0" cy="-26" rx="16" ry="22"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(45)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(90)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(135)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(180)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(225)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(270)"/>
+              <ellipse cx="0" cy="-26" rx="16" ry="22" transform="rotate(315)"/>
+            </g>
+            <g transform="scale(0.72) rotate(22)" fill="rgba(255,255,255,0.3)">
+              <ellipse cx="0" cy="-26" rx="15" ry="20"/>
+              <ellipse cx="0" cy="-26" rx="15" ry="20" transform="rotate(60)"/>
+              <ellipse cx="0" cy="-26" rx="15" ry="20" transform="rotate(120)"/>
+              <ellipse cx="0" cy="-26" rx="15" ry="20" transform="rotate(180)"/>
+              <ellipse cx="0" cy="-26" rx="15" ry="20" transform="rotate(240)"/>
+              <ellipse cx="0" cy="-26" rx="15" ry="20" transform="rotate(300)"/>
+            </g>
+            <!-- Nhụy vàng lấp lánh -->
+            <circle cx="0" cy="0" r="10" fill="#ffd166"/>
+            <circle cx="-4" cy="-3" r="2" fill="#fff"/>
+            <circle cx="4" cy="-2" r="1.8" fill="#fff"/>
+            <circle cx="0" cy="4" r="1.8" fill="#fff"/>
+          </g>
+
+          <!-- MẪU HOA TULIP DUYÊN DÁNG -->
+          <g id="tulip-bloom">
+            <path d="M0,18 C-20,16 -24,-8 -16,-28 C-8,-18 -2,-12 0,-6 C2,-12 8,-18 16,-28 C24,-8 20,16 0,18 Z"/>
+            <path d="M0,16 C-12,14 -14,-10 0,-32 C14,-10 12,14 0,16 Z" fill="rgba(255,255,255,0.28)"/>
+          </g>
+        </defs>
+
+        <!-- 1. LỚP GIẤY GÓI PHÍA SAU LƯNG BÓ HOA -->
+        <g filter="url(#soft-shadow)">
+          <path d="M95,180 Q250,70 405,180 L330,440 L170,440 Z" fill="url(#wrap-back)"/>
+          <path d="M55,220 Q140,120 250,150 L210,430 L125,400 Z" fill="url(#wrap-pink-left)"/>
+          <path d="M445,220 Q360,120 250,150 L290,430 L375,400 Z" fill="url(#wrap-pink-right)"/>
+        </g>
+
+        <!-- 2. CÀNH LÁ KHUYNH DIỆP & LÁ HỒNG TẠO DÁNG XÒE TỰ NHIÊN -->
+        <g stroke="#2d6a4f" stroke-width="2.5" fill="url(#leaf-euca)" filter="url(#soft-shadow)">
+          <!-- Nhánh lá trái cao -->
+          <path d="M220,300 Q150,180 110,95" fill="none" stroke="#40916c" stroke-width="3"/>
+          <ellipse cx="115" cy="100" rx="12" ry="20" transform="rotate(-35 115 100)"/>
+          <ellipse cx="138" cy="128" rx="14" ry="22" transform="rotate(-55 138 128)"/>
+          <ellipse cx="122" cy="155" rx="14" ry="22" transform="rotate(-15 122 155)"/>
+          <ellipse cx="162" cy="168" rx="15" ry="23" transform="rotate(-50 162 168)"/>
+
+          <!-- Nhánh lá phải cao -->
+          <path d="M280,300 Q350,180 390,95" fill="none" stroke="#40916c" stroke-width="3"/>
+          <ellipse cx="385" cy="100" rx="12" ry="20" transform="rotate(35 385 100)"/>
+          <ellipse cx="362" cy="128" rx="14" ry="22" transform="rotate(55 362 128)"/>
+          <ellipse cx="378" cy="155" rx="14" ry="22" transform="rotate(15 378 155)"/>
+          <ellipse cx="338" cy="168" rx="15" ry="23" transform="rotate(50 338 168)"/>
+
+          <!-- Nhánh lá trung tâm đỉnh -->
+          <path d="M250,280 L250,70" fill="none" stroke="#52b788" stroke-width="3"/>
+          <ellipse cx="250" cy="68" rx="11" ry="20" fill="url(#leaf-mint)"/>
+          <ellipse cx="232" cy="96" rx="13" ry="21" transform="rotate(-32 232 96)" fill="url(#leaf-mint)"/>
+          <ellipse cx="268" cy="96" rx="13" ry="21" transform="rotate(32 268 96)" fill="url(#leaf-mint)"/>
+
+          <!-- Lá xòe hai bên hông -->
+          <ellipse cx="90" cy="245" rx="26" ry="13" transform="rotate(-25 90 245)"/>
+          <ellipse cx="410" cy="245" rx="26" ry="13" transform="rotate(25 410 245)"/>
+          <ellipse cx="115" cy="305" rx="24" ry="12" transform="rotate(-15 115 305)" fill="url(#leaf-mint)"/>
+          <ellipse cx="385" cy="305" rx="24" ry="12" transform="rotate(15 385 305)" fill="url(#leaf-mint)"/>
+        </g>
+
+        <!-- 3. CỤM HOA BABY TRẮNG (GYPSOPHILA) ĐIỂM XUYẾT XUNG QUANH -->
+        <g class="babys-breath" fill="#ffffff" filter="url(#glow-white)">
+          <!-- Cụm trái trên -->
+          <path d="M175,180 L150,115 M162,145 L135,135 M162,145 L172,118" stroke="#95d5b2" stroke-width="1.5" fill="none"/>
+          <circle cx="150" cy="115" r="4"/><circle cx="135" cy="135" r="3.5"/><circle cx="172" cy="118" r="4"/>
+          <circle cx="142" cy="122" r="3"/><circle cx="160" cy="108" r="3.5"/>
+
+          <!-- Cụm phải trên -->
+          <path d="M325,180 L350,115 M338,145 L365,135 M338,145 L328,118" stroke="#95d5b2" stroke-width="1.5" fill="none"/>
+          <circle cx="350" cy="115" r="4"/><circle cx="365" cy="135" r="3.5"/><circle cx="328" cy="118" r="4"/>
+          <circle cx="358" cy="122" r="3"/><circle cx="340" cy="108" r="3.5"/>
+
+          <!-- Cụm xen kẽ giữa bó hoa -->
+          <circle cx="205" cy="125" r="4"/><circle cx="295" cy="125" r="4"/>
+          <circle cx="115" cy="215" r="4"/><circle cx="102" cy="228" r="3.5"/><circle cx="126" cy="205" r="3.5"/>
+          <circle cx="385" cy="215" r="4"/><circle cx="398" cy="228" r="3.5"/><circle cx="374" cy="205" r="3.5"/>
+          <circle cx="195" cy="285" r="4.5"/><circle cx="305" cy="285" r="4.5"/>
+          <circle cx="250" cy="155" r="4"/><circle cx="238" cy="145" r="3.2"/><circle cx="262" cy="145" r="3.2"/>
+        </g>
+
+        <!-- 4. CÁC BÔNG HOA TULIP Vươn Cao -->
+        <g filter="url(#soft-shadow)">
+          <g transform="translate(185, 130) rotate(-18)">
+            <use href="#tulip-bloom" class="flower-head" fill="url(#rose-blush)" data-note="0"/>
+          </g>
+          <g transform="translate(315, 130) rotate(18)">
+            <use href="#tulip-bloom" class="flower-head" fill="url(#rose-blush)" data-note="1"/>
+          </g>
+          <g transform="translate(250, 110)">
+            <use href="#tulip-bloom" class="flower-head" fill="url(#rose-ruby)" data-note="2"/>
+          </g>
+        </g>
+
+        <!-- 5. TẦNG HOA MẪU ĐƠN & HOA HỒNG LỚN TRUNG TÂM (CHẠM VÀO ĐỂ TƯƠNG TÁC) -->
+        <g filter="url(#soft-shadow)">
+          <!-- Hoa Mẫu Đơn hai bên -->
+          <g transform="translate(145, 200) scale(0.92)">
+            <use href="#peony-flower" class="flower-head" fill="url(#rose-cream)" data-note="3"/>
+          </g>
+          <g transform="translate(355, 200) scale(0.92)">
+            <use href="#peony-flower" class="flower-head" fill="url(#rose-cream)" data-note="0"/>
+          </g>
+
+          <!-- Hoa Hồng Kem & Tím Pastel tầng giữa -->
+          <g transform="translate(200, 185) scale(0.95) rotate(-12)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-blush)" data-note="1"/>
+          </g>
+          <g transform="translate(300, 185) scale(0.95) rotate(12)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-lilac)" data-note="2"/>
+          </g>
+
+          <!-- Hoa Hồng Kem Sữa hai bên dưới -->
+          <g transform="translate(150, 275) scale(0.98) rotate(-20)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-blush)" data-note="3"/>
+          </g>
+          <g transform="translate(350, 275) scale(0.98) rotate(20)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-blush)" data-note="0"/>
+          </g>
+
+          <!-- Hoa Mẫu Đơn Hồng Phấn tiền cảnh -->
+          <g transform="translate(205, 265) scale(1.02)">
+            <use href="#peony-flower" class="flower-head" fill="url(#rose-blush)" data-note="1"/>
+          </g>
+          <g transform="translate(295, 265) scale(1.02)">
+            <use href="#peony-flower" class="flower-head" fill="url(#rose-cream)" data-note="2"/>
+          </g>
+
+          <!-- BÔNG HỒNG ĐỎ RUBY CHỦ ĐẠO CHÍNH GIỮA (LỚN NHẤT) -->
+          <g transform="translate(250, 220) scale(1.22)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-ruby)" data-note="3"/>
+          </g>
+
+          <!-- Bông Hồng Nhung sát mép giấy gói -->
+          <g transform="translate(250, 305) scale(1.05) rotate(8)">
+            <use href="#luxury-rose" class="flower-head" fill="url(#rose-blush)" data-note="0"/>
+          </g>
+        </g>
+
+        <!-- 6. LỚP GIẤY LỤA TRẮNG MỎNG & GIẤY GÓI PHÍA TRƯỚC ÔM LẤY BÓ HOA -->
+        <g filter="url(#soft-shadow)">
+          <!-- Lớp giấy lụa trắng xếp nếp trong cùng -->
+          <path d="M120,295 Q185,335 250,315 Q315,335 380,295 L315,455 L185,455 Z" fill="url(#wrap-cream-front)" opacity="0.92"/>
+
+          <!-- Vạt giấy gói Hồng Pastel bên trái gấp chéo -->
+          <path d="M85,285 Q165,330 265,365 L295,485 L195,505 L145,420 Z" fill="url(#wrap-pink-left)"/>
+
+          <!-- Vạt giấy gói Hồng Pastel bên phải gấp chéo đè lên -->
+          <path d="M415,285 Q335,330 235,365 L205,485 L305,505 L355,420 Z" fill="url(#wrap-pink-right)"/>
+
+          <!-- Chân giấy gói xòe bên dưới -->
+          <path d="M195,465 L305,465 L328,538 Q250,552 172,538 Z" fill="url(#wrap-pink-left)"/>
+          <path d="M210,468 L290,468 L302,542 Q250,550 198,542 Z" fill="url(#wrap-cream-front)" opacity="0.7"/>
+        </g>
+
+        <!-- 7. CHIẾC NƠ RUY-BĂNG LỤA ĐỎ HỒNG THẮT EO BÓ HOA -->
+        <g filter="url(#soft-shadow)" transform="translate(250, 448)">
+          <!-- Dải ruy-băng buộc ngang eo -->
+          <rect x="-52" y="-12" width="104" height="22" rx="8" fill="url(#ribbon-grad)"/>
+          <!-- Hai dải đuôi nơ rủ xuống mềm mại -->
+          <path d="M-12,6 Q-32,48 -46,88 L-18,82 Q-8,45 -2,8 Z" fill="url(#ribbon-grad)"/>
+          <path d="M12,6 Q32,48 46,88 L18,82 Q8,45 2,8 Z" fill="url(#ribbon-grad)"/>
+          <!-- Hai cánh nơ phồng hai bên -->
+          <path d="M-8,-2 C-45,-36 -78,-18 -68,12 C-58,34 -25,18 -6,4 Z" fill="url(#ribbon-grad)" stroke="#fff0f3" stroke-width="1.5"/>
+          <path d="M8,-2 C45,-36 78,-18 68,12 C58,34 25,18 6,4 Z" fill="url(#ribbon-grad)" stroke="#fff0f3" stroke-width="1.5"/>
+          <!-- Nút thắt nơ ở tâm -->
+          <rect x="-13" y="-14" width="26" height="26" rx="9" fill="#c9184a" stroke="#ffe5ec" stroke-width="2"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="hint-touch">✨ Chạm vào từng bông hoa để hoa ngân vang giai điệu ✨</div>
+
+    <!-- Nút mở Bức Thư Tình -->
+    <button id="btn-open-letter" class="envelope-btn">
+      <span>💌</span> Mở Bức Thư Của Đạt
+    </button>
+  </div>
+
+  <!-- =========================================================================
+       MÀN HÌNH 2: MODAL BỨC THƯ TÌNH & CẶP ĐÔI CHIBI ĐẠT - TUYẾN
+       ========================================================================= -->
+  <div id="letter-modal">
+    <div class="letter-paper">
+      <div class="letter-header">Gửi Cục Dàng Của Anh 💖</div>
+
+      <!-- 2 Nhân vật Chibi Đạt & Tuyến đứng cạnh nhau -->
+      <div class="couple-box">
+        <div class="player male">
+          <div class="player-name-tag">Đạt 💙</div>
+          <div class="player-shadow"></div>
+          <div class="chibi">
+            <div class="cb-backhair"></div>
+            <div class="cb-head">
+              <div class="cb-ahoge"></div>
+              <div class="cb-hair"></div>
+              <div class="cb-eye e1"></div>
+              <div class="cb-eye e2"></div>
+              <div class="cb-blush b1"></div>
+              <div class="cb-blush b2"></div>
+              <div class="cb-mouth"></div>
+            </div>
+            <div class="cb-body">
+              <div class="cb-collar"></div>
+              <div class="cb-tie"></div>
+            </div>
+            <div class="avatar-acc acc-cap"><i></i></div>
+          </div>
+        </div>
+
+        <div class="couple-heart">💞</div>
+
+        <div class="player female">
+          <div class="player-name-tag">Tuyến 💖</div>
+          <div class="player-shadow"></div>
+          <div class="chibi">
+            <div class="cb-backhair"></div>
+            <div class="cb-head">
+              <div class="cb-hair"></div>
+              <div class="cb-eye e1"></div>
+              <div class="cb-eye e2"></div>
+              <div class="cb-blush b1"></div>
+              <div class="cb-blush b2"></div>
+              <div class="cb-mouth"></div>
+            </div>
+            <div class="cb-body"></div>
+            <div class="avatar-acc acc-bow"><i></i><span></span><b></b></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Nội dung bức thư chạy chữ từng nhịp -->
+      <div id="letter-text" class="letter-body"></div>
+
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <button id="btn-back-bouquet" class="btn btn-sec">💐 Ngắm lại hoa</button>
+        <button id="btn-to-fireworks" class="btn">🎆 Đã đọc xong - Ngắm Pháo Hoa 20/10 ✨</button>
+      </div>
     </div>
   </div>
 
-  <!-- Khung Màn hình Game -->
-  <div id="game-wrapper">
-    <canvas id="gameCanvas" width="900" height="520"></canvas>
-
-    <!-- LỚP HIỂN THỊ MODEL CHIBI CSS TRÊN BẢN ĐỒ CHÍNH -->
-    <div id="sprite-layer">
-      <!-- Nhân vật Nam (P1 - Đạt) -->
-      <div id="dom-p1" class="player male">
-        <div class="player-name-tag">Đạt 💙</div>
-        <div class="player-shadow"></div>
-        <div class="chibi">
-          <div class="cb-backhair"></div>
-          <div class="cb-head">
-            <div class="cb-ahoge"></div>
-            <div class="cb-hair"></div>
-            <div class="cb-eye e1"></div>
-            <div class="cb-eye e2"></div>
-            <div class="cb-blush b1"></div>
-            <div class="cb-blush b2"></div>
-            <div class="cb-mouth"></div>
-          </div>
-          <div class="cb-body">
-            <div class="cb-collar"></div>
-            <div class="cb-tie"></div>
-          </div>
-          <div class="avatar-acc acc-cap"><i></i></div>
-        </div>
-      </div>
-
-      <!-- Nhân vật Bạn Gái (P2 - Tuyến) -->
-      <div id="dom-p2" class="player female">
-        <div class="player-name-tag">Tuyến 💖</div>
-        <div class="player-shadow"></div>
-        <div class="chibi">
-          <div class="cb-backhair"></div>
-          <div class="cb-head">
-            <div class="cb-hair"></div>
-            <div class="cb-eye e1"></div>
-            <div class="cb-eye e2"></div>
-            <div class="cb-blush b1"></div>
-            <div class="cb-blush b2"></div>
-            <div class="cb-mouth"></div>
-          </div>
-          <div class="cb-body"></div>
-          <div class="avatar-acc acc-bow"><i></i><span></span><b></b></div>
-        </div>
-      </div>
+  <!-- =========================================================================
+       MÀN HÌNH 3: ĐÊM PHÁO HOA RỰC RỠ & LỜI CHÚC KẾT
+       ========================================================================= -->
+  <div id="fireworks-overlay">
+    <canvas id="fwCanvas"></canvas>
+    <div class="finale-content">
+      <div class="romantic-title">Mừng ngày 20/10 cô bé của anh</div>
+      <div class="romantic-sub">✨ Chúc em mãi rạng rỡ, hạnh phúc và luôn mỉm cười bên anh ✨</div>
+      <button id="btn-replay-all" class="btn" style="font-size: 14px; padding: 9px 22px;">
+        💐 Xem Lại Bó Hoa &amp; Bức Thư 💖
+      </button>
     </div>
-
-    <!-- MODAL MINI-GAME -->
-    <div id="puzzle-modal" class="modal-overlay">
-      <div class="modal-card">
-        <div id="puz-title" class="modal-title">Thử Thách Mở Quà</div>
-        <div id="puz-desc" class="modal-desc">Cùng nhau giải đố để mở hộp quà này nhé!</div>
-        <div id="puz-content"></div>
-        <button id="btn-close-puz" class="btn" style="margin-top: 10px; background: #adb5bd;">Đóng lại</button>
-      </div>
-    </div>
-
-    <!-- MODAL NHẬN QUÀ THÀNH CÔNG -->
-    <div id="reward-modal" class="modal-overlay">
-      <div class="modal-card">
-        <div class="modal-title">🎉 Mở Quà Thành Công! 🎉</div>
-        <img id="reward-img" class="gift-preview-img" src="" alt="Gift" />
-        <h3 id="reward-name" style="color: #3a86ff; margin-bottom: 6px;">Tên Món Quà</h3>
-        <p id="reward-msg" class="modal-desc" style="color: #495057; font-size: 14.5px; text-align: left; line-height: 1.6; white-space: pre-line; padding: 4px 10px;"></p>
-        <button id="btn-close-reward" class="btn">Tiếp tục hành trình 💖</button>
-      </div>
-    </div>
-
-    <!-- MODAL TỔNG KẾT 20/10 -->
-    <div id="end-modal" class="modal-overlay">
-      <div class="modal-card" style="max-width: 540px;">
-        <div id="end-title" class="modal-title" style="font-size: 25px;">🌸 Chúc Mừng 20/10! 🌸</div>
-        <p id="end-desc" class="modal-desc" style="font-size: 15px; color: #333;"></p>
-        <div id="end-gallery" class="gallery-grid"></div>
-        <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px;">
-          <button id="btn-show-fireworks" class="btn" style="font-size: 16px; padding: 11px 22px;">
-            💐 Đã đọc xong - Nhận Bó Hoa 20/10 ✨
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- MÀN HÌNH BÓ HOA TỪ TỪ TRỒI LÊN KẾT THÀNH BÓ -->
-    <div id="fireworks-overlay">
-      <canvas id="fwCanvas" width="900" height="520"></canvas>
-      <div class="finale-content" style="position: absolute; bottom: 12px; width: 100%; padding: 0;">
-        <button id="btn-restart" class="btn" style="font-size: 13.5px; padding: 8px 20px; opacity: 0.9;">
-          🔄 Chơi Lại Từ Đầu
-        </button>
-      </div>
-    </div>
-  <!-- Cụm điều khiển cảm ứng -->
-  <div id="touch-controls">
-    <div class="dpad">
-      <div></div>
-      <div class="t-btn" data-key="up">▲</div>
-      <div></div>
-      <div class="t-btn" data-key="left">◀</div>
-      <div class="t-btn" data-key="down">▼</div>
-      <div class="t-btn" data-key="right">▶</div>
-    </div>
-    <div class="t-btn action-btn-mobile" data-key="action">MỞ QUÀ /<br/>TƯƠNG TÁC</div>
-  </div>
-
-  <div id="guide">
-    <strong>Di chuyển:</strong> W/A/S/D hoặc Phím Mũi Tên | <strong>Mở quà / Tương tác:</strong> Phím Cách (Space) hoặc Enter | <strong>Đổi nhân vật (Offline):</strong> Phím Tab
   </div>
 
   <script>
     // =========================================================================
-    // 0. ĐƯỜNG DẪN ẢNH DỌC CỦA TUYẾN CHO TRÒ GHÉP HÌNH 12 MẢNH (THAY FILE TẠI ĐÂY)
+    // 1. NỘI DUNG BỨC THƯ (BẠN CÓ THỂ SỬA LỜI CHÚC TẠI ĐÂY)
     // =========================================================================
-    // Bạn có thể thay createDefaultGirlPortrait() bằng đường dẫn file ảnh dọc (VD: "./anh-tuyen.jpg")
-    let HER_PHOTO_URL = "photo34.jpg";
-
-    function createDefaultGirlPortrait() {
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="240" height="320" viewBox="0 0 240 320">
-        <defs>
-          <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#ffdde1"/>
-            <stop offset="100%" stop-color="#ee9ca7"/>
-          </linearGradient>
-        </defs>
-        <rect width="240" height="320" fill="url(#bg)"/>
-        <circle cx="120" cy="135" r="72" fill="rgba(255,255,255,0.48)"/>
-        <text x="50%" y="42%" dominant-baseline="middle" text-anchor="middle" font-size="52">👸💖🌷</text>
-        <text x="50%" y="70%" dominant-baseline="middle" text-anchor="middle" font-size="19" font-weight="bold" fill="#c9184a" font-family="Segoe UI">Công Chúa Của Anh</text>
-        <text x="50%" y="82%" dominant-baseline="middle" text-anchor="middle" font-size="13" fill="#6d214f" font-family="Segoe UI">20 / 10 Hạnh Phúc</text>
-      </svg>`;
-      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-    }
+    const LOVE_LETTER_CONTENT =
+      "Tặng em bó hoa tươi thắm nhất! Chúc công chúa của anh luôn rạng rỡ và xinh đẹp như những đóa hoa này.\n\n" +
+      "Cảm ơn em đã đến bên anh. Chúc cục dàng của anh một ngày 20/10 thật hạnh phúc và ngập tràn tiếng cười. Yêu em rất nhìu! ❤️";
 
     // =========================================================================
-    // 1. HỆ THỐNG ÂM THANH & BỘ PHÁT NHẠC NỀN 8-BIT CHIPTUNE PHIÊU LƯU
+    // 2. HỆ THỐNG ÂM THANH & NHẠC NỀN LÃNG MẠN (WEB AUDIO API)
     // =========================================================================
     let audioCtx = null;
     let bgmMasterGain = null;
     let bgmPlaying = false;
     let bgmMuted = false;
-    let bgmVolume = 0.45;
+    let bgmVolume = 0.5;
     let bgmStep = 0;
-    let bgmIntervalId = null;
 
-    const SIMON_TONES = [
-      { freq: 523.25, wave: "sine" },     // Nút 0 (Hồng 🌸) - C5
-      { freq: 587.33, wave: "triangle" }, // Nút 1 (Xanh 💎) - D5
-      { freq: 659.25, wave: "sine" },     // Nút 2 (Vàng ⭐) - E5
-      { freq: 783.99, wave: "triangle" }  // Nút 3 (Tím 🔮)  - G5
-    ];
+    const FLOWER_CHIMES = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
 
     function initAudio() {
       if (!audioCtx) {
@@ -873,15 +815,14 @@
         bgmMasterGain.connect(audioCtx.destination);
       }
       if (audioCtx.state === "suspended") audioCtx.resume();
-      if (!bgmPlaying) startChiptuneBGM();
+      if (!bgmPlaying) startRomanticMusicBox();
     }
 
     const N = {
       _: 0,
-      A2: 110.00, B2: 123.47, C3: 130.81, D3: 146.83, E3: 164.81, F3: 174.61, G3: 196.00,
-      A3: 220.00, B3: 246.94, C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00,
-      A4: 440.00, B4: 493.88, C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99,
-      A5: 880.00, B5: 987.77, C6: 1046.50
+      C3: 130.81,F3: 174.61, G3: 196.00, A3: 220.00,
+      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
+      C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77, C6: 1046.50
     };
 
     const LEAD_MELODY = [
@@ -894,59 +835,39 @@
     const ARP_NOTES = [
       N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4,
       N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4,
-      N.F3, N.A3, N.C4, N.E4, N.F3, N.A3, N.C4, N.E4, N.G3, N.B3, N.D4, N.F4, N.G3, N.B3, N.D4, N.F4,
-      N.C4, N.E4, N.G4, N.C5, N.F3, N.A3, N.C4, N.D4, N.G3, N.B3, N.D4, N.G4, N.C4, N.G3, N.E4, N.C4
+      N.F3, N.A3, N.C4, N.E4, N.F3, N.A3, N.C4, N.E4, N.G3, N.B4, N.D4, N.F4, N.G3, N.B4, N.D4, N.F4,
+      N.C4, N.E4, N.G4, N.C5, N.F3, N.A3, N.C4, N.D4, N.G3, N.B4, N.D4, N.G4, N.C4, N.G3, N.E4, N.C4
     ];
 
-    const BASS_NOTES = [
-      N.C3, N._, N.G3, N._, N.C3, N._, N.G3, N._, N.C3, N._, N.G3, N._, N.C3, N._, N.B2, N._,
-      N.A2, N._, N.E3, N._, N.A2, N._, N.E3, N._, N.A2, N._, N.E3, N._, N.A2, N._, N.G3, N._,
-      N.F3, N._, N.C3, N._, N.F3, N._, N.C3, N._, N.G3, N._, N.D3, N._, N.G3, N._, N.D3, N._,
-      N.C3, N._, N.G3, N._, N.F3, N._, N.G3, N._, N.C3, N._, N.G3, N._, N.C3, N._, N._,  N._
-    ];
-
-    function playChiptuneNote(freq, dur, waveType, gainVal) {
+    function playMusicBoxNote(freq, dur, waveType, gainVal) {
       if (!audioCtx || !bgmMasterGain || freq <= 0) return;
       const now = audioCtx.currentTime;
       const osc = audioCtx.createOscillator();
       const gain = audioCtx.createGain();
-      const filter = audioCtx.createBiquadFilter();
-      filter.type = "lowpass";
-      filter.frequency.setValueAtTime(2400, now);
-
       osc.type = waveType;
       osc.frequency.setValueAtTime(freq, now);
 
       gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(gainVal, now + 0.012);
+      gain.gain.linearRampToValueAtTime(gainVal, now + 0.015);
       gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
 
-      osc.connect(filter);
-      filter.connect(gain);
+      osc.connect(gain);
       gain.connect(bgmMasterGain);
-
       osc.start(now);
-      osc.stop(now + dur + 0.01);
+      osc.stop(now + dur + 0.02);
     }
 
-    function startChiptuneBGM() {
+    function startRomanticMusicBox() {
       if (bgmPlaying) return;
       bgmPlaying = true;
-      const stepDurationMs = 135;
-
-      bgmIntervalId = setInterval(() => {
+      setInterval(() => {
         if (!audioCtx || bgmMuted || bgmVolume <= 0.01 || audioCtx.state !== "running") return;
-
-        const leadFreq = LEAD_MELODY[bgmStep];
-        const arpFreq = ARP_NOTES[bgmStep];
-        const bassFreq = BASS_NOTES[bgmStep];
-
-        if (leadFreq > 0) playChiptuneNote(leadFreq, 0.22, "square", 0.22);
-        if (arpFreq > 0) playChiptuneNote(arpFreq, 0.12, "triangle", 0.16);
-        if (bassFreq > 0) playChiptuneNote(bassFreq, 0.18, "triangle", 0.28);
-
+        const lead = LEAD_MELODY[bgmStep];
+        const arp = ARP_NOTES[bgmStep];
+        if (lead > 0) playMusicBoxNote(lead, 0.32, "sine", 0.26);
+        if (arp > 0) playMusicBoxNote(arp, 0.2, "triangle", 0.14);
         bgmStep = (bgmStep + 1) % LEAD_MELODY.length;
-      }, stepDurationMs);
+      }, 150);
     }
 
     function updateBgmGain() {
@@ -970,2670 +891,329 @@
       updateBgmGain();
     });
 
-    function playTone(freq, duration = 0.22, type = "sine", vol = 0.16) {
+    function playChime(freq, duration = 0.35, vol = 0.18) {
       try {
         initAudio();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
-      } catch (e) {}
-    }
-
-    function playSimonTone(padIndex, duration = 0.3) {
-      try {
-        initAudio();
-        const cfg = SIMON_TONES[padIndex] || SIMON_TONES[0];
         const now = audioCtx.currentTime;
-
         const osc = audioCtx.createOscillator();
-        const sub = audioCtx.createOscillator();
+        const over = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-
-        osc.type = cfg.wave;
-        osc.frequency.setValueAtTime(cfg.freq, now);
-
-        sub.type = "sine";
-        sub.frequency.setValueAtTime(cfg.freq * 2, now);
+        osc.type = "sine";
+        over.type = "triangle";
+        osc.frequency.setValueAtTime(freq, now);
+        over.frequency.setValueAtTime(freq * 2, now);
 
         gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(0.2, now + 0.02);
+        gain.gain.linearRampToValueAtTime(vol, now + 0.015);
         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
 
         osc.connect(gain);
-        sub.connect(gain);
+        over.connect(gain);
         gain.connect(audioCtx.destination);
-
         osc.start(now);
-        sub.start(now);
+        over.start(now);
         osc.stop(now + duration);
-        sub.stop(now + duration);
+        over.stop(now + duration);
       } catch (e) {}
     }
-
-    let lastFootstepTime = 0;
-    let stepAlternate = false;
-    function playSoftFootstep(timestamp) {
-      if (timestamp - lastFootstepTime < 230) return;
-      lastFootstepTime = timestamp;
-      stepAlternate = !stepAlternate;
-      try {
-        initAudio();
-        const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "triangle";
-        const startFreq = stepAlternate ? 145 : 170;
-        osc.frequency.setValueAtTime(startFreq, now);
-        osc.frequency.exponentialRampToValueAtTime(55, now + 0.055);
-
-        gain.gain.setValueAtTime(0.04, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
-
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + 0.06);
-      } catch (e) {}
-    }
-
-    // =========================================================================
-    // 2. MA TRẬN MÊ CUNG MỚI 30x30 & MA TRẬN SUDOKU
-    // =========================================================================
-    const MAZE_GRID = [
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1],
-      [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
-      [1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1],
-      [1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1],
-      [1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1],
-      [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-      [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1],
-      [1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1],
-      [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1],
-      [1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1],
-      [1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 1],
-      [1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1],
-      [1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1],
-      [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1],
-      [1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0],
-      [1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]
-    ];
-    const MAZE_ROWS = 30;
-    const MAZE_COLS = 30;
-    const MAZE_TILE = 28;
-
-    const SUDOKU_INIT = [
-      [0, 0, 3, 5, 0, 0, 4, 2, 0],
-      [0, 0, 7, 0, 0, 0, 9, 1, 0],
-      [5, 2, 0, 0, 0, 7, 0, 0, 0],
-      [0, 3, 5, 9, 2, 6, 0, 0, 1],
-      [0, 0, 0, 0, 0, 0, 3, 4, 0],
-      [0, 0, 0, 0, 7, 0, 2, 5, 6],
-      [0, 0, 9, 0, 0, 0, 0, 0, 0],
-      [6, 0, 2, 0, 0, 4, 0, 0, 8],
-      [0, 5, 0, 0, 0, 0, 7, 0, 4]
-    ];
-
-    const SUDOKU_SOL = [
-      [1, 9, 3, 5, 6, 8, 4, 2, 7],
-      [8, 6, 7, 3, 4, 2, 9, 1, 5],
-      [5, 2, 4, 1, 9, 7, 6, 8, 3],
-      [4, 3, 5, 9, 2, 6, 8, 7, 1],
-      [2, 7, 6, 8, 5, 1, 3, 4, 9],
-      [9, 8, 1, 4, 7, 3, 2, 5, 6],
-      [7, 4, 9, 6, 8, 5, 1, 3, 2],
-      [6, 1, 2, 7, 3, 4, 5, 9, 8],
-      [3, 5, 8, 2, 1, 9, 7, 6, 4]
-    ];
-
-    // =========================================================================
-    // 3. KHU VỰC CẤU HÌNH 9 TRÒ CHƠI & QUÀ TẶNG
-    // =========================================================================
-    function createSvgIcon(emoji, bgColor) {
-      const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120">
-        <rect width="120" height="120" rx="24" fill="${bgColor}"/>
-        <circle cx="60" cy="60" r="46" fill="rgba(255,255,255,0.6)"/>
-        <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle" font-size="56">${emoji}</text>
-      </svg>`;
-      return "data:image/svg+xml;utf8," + encodeURIComponent(svg);
-    }
-
-    const GIFT_CONFIGS = [
-      {
-        id: 0,
-        name: "Trờ chơi 4",
-        x: 360, y: 320,
-        imgUrl: "https://heraflower.vn/wp-content/uploads/2024/10/mau-hoa-1-10.png",
-        fallbackUrl: createSvgIcon("💐", "#ffe5ec"),
-        message: "Tặng em bó hoa tươi thắm nhất! Chúc công chúa của anh luôn rạng rỡ và xinh đẹp như những đóa hoa này.",
-        puzzleType: "PLATES",
-        hint: "Hai bạn hãy cùng đứng vào 2 vòng tròn Xanh & Hồng cạnh hộp quà!"
-      },
-      {
-        id: 1,
-        name: "Trò chơi 1",
-        x: 1240, y: 280,
-        imgUrl: "https://png.pngtree.com/png-clipart/20240626/original/pngtree-maze-games-for-6-year-olds-png-image_15415350.png",
-        fallbackUrl: createSvgIcon("🧸", "#e2ece9"),
-        message: "Vượt mê cung thành công!",
-        puzzleType: "MAZE_ESCAPE",
-        hint: "Dùng phím di chuyển tìm đường tới Cổng Ra . Cả 2 cùng tới lối ra mới qua ải!"
-      },
-      {
-        id: 2,
-        name: "Trò chơi 2",
-        x: 340, y: 920,
-        imgUrl: "https://image.made-in-china.com/155f0j00udpTEhgcRRbf/Memory-Fun-Pad-Simon-Says-Game-Pad.webp",
-        fallbackUrl: createSvgIcon("🍰", "#fff1e6"),
-        message: "Chắc cái này quen lắm.",
-        puzzleType: "SIMON_MEMORY",
-        hint: "Nhớ 8 lượt giai điệu 4. Trong mỗi lượt, Tuyến luôn bấm trước rồi tới Đạt bấm xen kẽ!"
-      },
-      {
-        id: 3,
-        name: "Trò chơi 3",
-        x: 1280, y: 900,
-        imgUrl: "https://ngonngucuabe.com/wp-content/uploads/2023/06/IMG_0085-2048x1536.jpg",
-        fallbackUrl: createSvgIcon("💄", "#f3c4fb"),
-        message: "Tâm đầu ý hợp! ",
-        puzzleType: "MEMORY_CARDS",
-        hint: "16 thẻ (8 cặp): Đạt chọn mở 1 thẻ, Tuyến chọn mở 1 thẻ. Nếu giống nhau 2 thẻ sẽ biến mất!"
-      },
-      {
-        id: 4,
-        name: "Bức thư",
-        x: 800, y: 600,
-        imgUrl: "https://pixnio.com/free-images/2025/05/15/2025-05-15-04-10-53-1152x788.jpeg",
-        fallbackUrl: createSvgIcon("💌", "#ffccd5"),
-        message: `Vậy là hành trình nhỏ của chúng mình đến đây là hết rồi nè bé.
-
-Anh hong biết ngoài kia có bao nhiêu lời chúc dành cho bé hôm nay, nhưng anh vẫn muốn tự mình nói với bé một vài điều.
-
-Chúc bé 20/10 thật vui vẻ nhaaa. Anh mong bé sẽ luôn có thật nhiều điều khiến bé mỉm cười, có đủ dũng khí để làm những điều bé muốn, và có thể yêu thương bản thân mình nhiều hơn một chút mỗi ngày.
-
-Anh mong những ngày bé vui, anh có thể vui cùng bé. Những ngày bé mệt, bé có thể kể anh nghe hoặc cứ ở cạnh anh một chút cũng được. Bé hong cần lúc nào cũng phải vui vẻ, hong cần lúc nào cũng phải giỏi giang hay trở thành một người thật hoàn hảo đâu. Bé cứ là bé thoiii.
-
-Anh biết đôi khi hai đứa mình vẫn còn vụng về, vẫn có những lúc chưa hiểu được nhau. Nhưng anh mong tụi mình sẽ ngày càng hiểu nhau hơn, biết cách thương nhau tốt hơn, và cùng nhau trải qua thật nhiều ngày bình thường nữa.
-
-Cảm ơn bé vì đã xuất hiện trong cuộc sống của anh, vì đã cho anh được thương bé, được lắng nghe những câu chuyện của bé và được trở thành một phần trong thế giới của bé.
-
-Mong rằng khi nhìn lại hôm nay, bé sẽ nhớ rằng đã có một người rất vui vì được gặp bé, rất trân trọng bé, và thật lòng mong bé hạnh phúc.
-
-Chúc bé 20/10 vui vẻ nhaaa, cô gái của anh.
-Anh thương bé nhiều lắmmm. ❤️`,
-        puzzleType: "MASH_HEART",
-        hint: "Thanh năng lượng đang tuột dần! Hai người hãy nhấn XEN KẼ nhau để nạp đầy!"
-      },
-      {
-        id: 5,
-        name: "Trò chơi 6 - Sudoku",
-        x: 800, y: 200,
-        imgUrl: createSvgIcon("🔢", "#e0fbfc"),
-        fallbackUrl: createSvgIcon("🔢", "#e0fbfc"),
-        message: "Giải mã hoàn hảo! Bà chã tính toán đỉnh thật sự!",
-        puzzleType: "SUDOKU",
-        hint: "Điền số 1-9 vào ô trống. Lưu ý: Chọn sai sẽ bị trừ 1 phút ở đồng hồ chính!"
-      },
-      {
-        id: 6,
-        name: "Trò chơi 7 - Cờ Caro",
-        x: 200, y: 600,
-        imgUrl: createSvgIcon("⭕", "#ffd6ff"),
-        fallbackUrl: createSvgIcon("⭕", "#ffd6ff"),
-        message: "Bà chã đánh cờ cao tay quá! Ăm chã xin chịu thua tâm phục khẩu phục 💖!",
-        puzzleType: "CARO",
-        hint: "Tuyến chọn X hoặc O (X đi trước). Đánh 5 quân liên tiếp để thắng. Chỉ khi Tuyến đánh bại ăm chã húi mới qua ải!"
-      },
-      {
-        id: 7,
-        name: "Trò chơi 8 - Ghép Ảnh",
-        x: 1400, y: 600,
-        imgUrl: createSvgIcon("🖼️", "#ffccd5"),
-        fallbackUrl: createSvgIcon("🖼️", "#ffccd5"),
-        message: "Mảnh ghép hoàn hảo nhất trong cuộc đời anh chính là em!",
-        puzzleType: "JIGSAW_12",
-        hint: "Bấm chọn 2 mảnh bất kỳ để tráo đổi vị trí cho nhau đến khi hiện ra đúng bức hình của em!"
-      },
-      {
-        id: 8,
-        name: "Trò chơi 9 - Đố Vui",
-        x: 800, y: 1020,
-        imgUrl: createSvgIcon("💑", "#fff3b0"),
-        fallbackUrl: createSvgIcon("💑", "#fff3b0"),
-        message: "1 + 1 = Chúng mình bên nhau mãi mãi! Chúc mừng 20/10 cục dàng của anh!",
-        puzzleType: "MATH_LOVE",
-        hint: "Câu hỏi siêu dễ: 1 + 1 bằng mấy? Hãy tìm đáp án thật sự nhé!"
-      }
-    ];
-
-    const loadedGiftImages = {};
-    GIFT_CONFIGS.forEach(g => {
-      const img = new Image();
-      img.onerror = () => {
-        if (img.src !== g.fallbackUrl) img.src = g.fallbackUrl;
-      };
-      img.src = g.imgUrl;
-      loadedGiftImages[g.id] = img;
-    });
-
-    // =========================================================================
-    // 4. CẬP NHẬT VỊ TRÍ & BIỂU CẢM CHO MODEL CHIBI DOM
-    // =========================================================================
-    const spriteLayer = document.getElementById("sprite-layer");
-    const domP1 = document.getElementById("dom-p1");
-    const domP2 = document.getElementById("dom-p2");
-
-    function updateDomCharacters(camera) {
-      const canvas = document.getElementById("gameCanvas");
-      const scale = canvas.clientWidth / 900;
-      spriteLayer.style.transform = `scale(${scale})`;
-
-      [
-        { p: p1, el: domP1 },
-        { p: p2, el: domP2 }
-      ].forEach(({ p, el }) => {
-        const isMoving = Math.abs(p.vx) > 0.1 || Math.abs(p.vy) > 0.1;
-        el.classList.toggle("moving", isMoving);
-
-        const screenX = p.x - camera.x - 28;
-        const screenY = p.y - camera.y - 46;
-        el.style.transform = `translate3d(${screenX}px, ${screenY}px, 0)`;
-
-        const eyes = el.querySelectorAll(".cb-eye");
-        const lookX = p.dirX * 2.5;
-        const lookY = p.dirY * 1.8;
-        eyes.forEach(eye => {
-          eye.style.transform = `translate(${lookX}px, ${lookY}px)`;
-        });
-      });
-    }
-
-    // =========================================================================
-    // 5. KHỞI TẠO BẢN ĐỒ MỞ, HOA ĐA SẮC & BƯỚM BAY LƯỢN (THỜI GIAN 1 TIẾNG = 3600s)
-    // =========================================================================
-    const canvas = document.getElementById("gameCanvas");
-    const ctx = canvas.getContext("2d");
-    const WORLD_W = 1600;
-    const WORLD_H = 1200;
-
-    let role = "OFFLINE"; // "OFFLINE" | "HOST" | "CLIENT"
-    let offlineActiveId = 1;
-    let timeLeft = 3600; // 1 tiếng = 3600 giây
-    let gameEnded = false;
-    let showMinimap = true;
-    let fireworksActive = false;
-
-    const p1 = { id: 1, label: "Ăm chã húi 💙", x: 740, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#4facfe" };
-    const p2 = { id: 2, label: "Bà chã hơm 💖", x: 860, y: 680, vx: 0, vy: 0, dirX: 0, dirY: 1, color: "#ff758c" };
-
-    let giftsState = GIFT_CONFIGS.map(g => ({
-      id: g.id,
-      unlocked: false,
-      plateProgress: 0
-    }));
-
-    const trees = [
-      { x: 160, y: 180, r: 45 }, { x: 540, y: 150, r: 40 }, { x: 1050, y: 150, r: 45 }, { x: 1440, y: 180, r: 50 },
-      { x: 140, y: 420, r: 42 }, { x: 1460, y: 420, r: 42 }, { x: 160, y: 1060, r: 48 }, { x: 1440, y: 1060, r: 45 },
-      { x: 600, y: 420, r: 36 }, { x: 1000, y: 420, r: 36 }, { x: 600, y: 780, r: 36 }, { x: 1000, y: 780, r: 36 }
-    ];
-
-    const FLOWER_PALETTE = ["#ff758c", "#ffd166", "#b388eb", "#ffffff", "#70d6ff", "#ff9f1c", "#ff4d6d"];
-    const meadowFlowers = [];
-    for (let i = 0; i < 95; i++) {
-      const fx = 60 + Math.random() * (WORLD_W - 120);
-      const fy = 60 + Math.random() * (WORLD_H - 120);
-      if (Math.hypot(fx - 800, fy - 600) < 145) continue;
-      meadowFlowers.push({
-        x: fx,
-        y: fy,
-        color: FLOWER_PALETTE[i % FLOWER_PALETTE.length],
-        centerColor: i % 2 === 0 ? "#ffe066" : "#fff",
-        size: 4.5 + (i % 3) * 1.2,
-        seed: Math.random() * Math.PI * 2
-      });
-    }
-
-    const BUTTERFLY_COLORS = [
-      { wing: "#ff85a1", spot: "#fff0f3" },
-      { wing: "#ffd166", spot: "#ffffff" },
-      { wing: "#70d6ff", spot: "#e0fbfc" },
-      { wing: "#cdb4db", spot: "#fff0f5" },
-      { wing: "#ff9f1c", spot: "#fff3b0" }
-    ];
-    const butterflies = Array.from({ length: 14 }, (_, i) => ({
-      x: 150 + Math.random() * (WORLD_W - 300),
-      y: 150 + Math.random() * (WORLD_H - 300),
-      angle: Math.random() * Math.PI * 2,
-      speed: 1.1 + Math.random() * 0.7,
-      turnSpeed: (Math.random() - 0.5) * 0.03,
-      phase: Math.random() * Math.PI * 2,
-      palette: BUTTERFLY_COLORS[i % BUTTERFLY_COLORS.length]
-    }));
-
-    const particles = [];
-    for (let i = 0; i < 35; i++) {
-      particles.push({
-        type: "petal",
-        x: Math.random() * WORLD_W,
-        y: Math.random() * WORLD_H,
-        vx: 0.4 + Math.random() * 0.5,
-        vy: 0.6 + Math.random() * 0.6,
-        size: 4 + Math.random() * 4,
-        angle: Math.random() * Math.PI * 2
-      });
-    }
-
-    function spawnHeartParticle(x, y) {
-      particles.push({
-        type: "heart",
-        x: x + (Math.random() - 0.5) * 30,
-        y: y - 10,
-        vx: (Math.random() - 0.5) * 1,
-        vy: -1.2 - Math.random() * 1,
-        alpha: 1,
-        size: 12 + Math.random() * 6
-      });
-    }
-
-    document.getElementById("btn-toggle-map").addEventListener("click", () => {
-      if (role === "CLIENT") sendPuzzleEvent({ cmd: "TOGGLE_MAP" });
-      else showMinimap = !showMinimap;
-    });
-
-    // =========================================================================
-    // 6. HỆ THỐNG 9 MINI-GAME ĐỒNG BỘ
-    // =========================================================================
-    let activePuzzle = {
-      giftId: null,
-      type: null,
-      // Maze Escape
-      mzP1: { x: 14, y: 42, dx: 1, dy: 0, moving: false },
-      mzP2: { x: 40, y: 42, dx: 1, dy: 0, moving: false },
-      // Simon Memory
-      simonRound: 1,
-      simonStep: 0,
-      simonPhase: "WATCH",
-      simonSeq: [],
-      simonLitPad: null,
-      simonSoundTick: 0,
-      // Memory Cards
-      cards: [],
-      cardTurn: 1,
-      firstCardIdx: null,
-      secondCardIdx: null,
-      cardLock: false,
-      matchedPairs: 0,
-      // Mash Heart
-      mashPower: 20,
-      mashTurn: 1,
-      // Game 6: Sudoku
-      sudokuBoard: [],
-      sudokuSel: { r: null, c: null },
-      sudokuHighlightNum: null,
-      sudokuMsg: "Chọn 1 ô trống rồi bấm số (1-9). Bấm vào số nào sẽ làm nổi bật các ô đã giải của số đó!",
-      // Game 7: Caro
-      caroSize: 20,
-      caroP2Char: null,
-      caroTurn: "X",
-      caroMoves: {},
-      caroWinLine: [],
-      caroLock: false,
-      caroMsg: "Tuyến hãy chọn quân X hoặc O để bắt đầu nhé (X được đi trước)!",
-      // Game 8: Jigsaw 12 mảnh (Khổ dọc 3x4)
-      jigsawTiles: [],
-      jigsawFirst: null,
-      jigsawDone: false,
-      // Game 9: 1 + 1 bằng mấy?
-      mathP1Clicked: false,
-      mathP2Clicked: false,
-      mathFlying: false,
-      mathFeedback: "Hãy nhập đáp án vào ô bên dưới nhé!"
-    };
-
-    let simonTimers = [];
-    let cardFlipTimer = null;
-    let lastClientSoundTick = 0;
-    let lastRenderedCaroSize = null;
-
-    function clearSimonTimers() {
-      simonTimers.forEach(t => clearTimeout(t));
-      simonTimers = [];
-      if (cardFlipTimer) {
-        clearTimeout(cardFlipTimer);
-        cardFlipTimer = null;
-      }
-    }
-
-    function startSimonWatchSequence() {
-      clearSimonTimers();
-      activePuzzle.simonPhase = "WATCH";
-      activePuzzle.simonStep = 0;
-      activePuzzle.simonLitPad = null;
-
-      const currentRoundLen = activePuzzle.simonRound;
-      let delay = 500;
-
-      for (let i = 0; i < currentRoundLen; i++) {
-        const padIdx = activePuzzle.simonSeq[i];
-        simonTimers.push(setTimeout(() => {
-          activePuzzle.simonLitPad = padIdx;
-          activePuzzle.simonSoundTick++;
-          playSimonTone(padIdx, 0.3);
-        }, delay));
-
-        simonTimers.push(setTimeout(() => {
-          activePuzzle.simonLitPad = null;
-        }, delay + 320));
-
-        delay += 480;
-      }
-
-      simonTimers.push(setTimeout(() => {
-        activePuzzle.simonLitPad = null;
-        activePuzzle.simonPhase = "PLAY";
-        activePuzzle.simonStep = 0;
-      }, delay + 100));
-    }
-
-    function initMemoryCards() {
-      const pairIcons = ["🌹", "🧸", "🍰", "💄", "💌", "💍", "🎀", "🍓"];
-      const deck = [...pairIcons, ...pairIcons];
-      for (let i = deck.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [deck[i], deck[j]] = [deck[j], deck[i]];
-      }
-      activePuzzle.cards = deck.map(icon => ({ icon, state: "DOWN", by: 0 }));
-      activePuzzle.cardTurn = 1;
-      activePuzzle.firstCardIdx = null;
-      activePuzzle.secondCardIdx = null;
-      activePuzzle.cardLock = false;
-      activePuzzle.matchedPairs = 0;
-    }
-
-    function initSudokuGame() {
-      activePuzzle.sudokuBoard = SUDOKU_INIT.map(row => [...row]);
-      activePuzzle.sudokuSel = { r: null, c: null };
-      activePuzzle.sudokuHighlightNum = null;
-      activePuzzle.sudokuMsg = "Chọn ô trống rồi bấm số 1-9 (Chọn sai bị trừ 1 phút!). Bấm số bất kỳ để làm nổi nền số đó.";
-    }
-
-    function initCaroGame(keepChoice = false) {
-      if (!keepChoice) {
-        activePuzzle.caroP2Char = null;
-        activePuzzle.caroSize = 20;
-        activePuzzle.caroMsg = "Tuyến hãy chọn quân X hoặc O để bắt đầu nhé (X được đánh trước)!";
-      } else {
-        const whoFirst = activePuzzle.caroP2Char === "X" ? "Tuyến (X)" : "Đạt (X)";
-        activePuzzle.caroMsg = `Ván mới! Quân X đi trước: Lượt của ${whoFirst}`;
-      }
-      activePuzzle.caroTurn = "X";
-      activePuzzle.caroMoves = {};
-      activePuzzle.caroWinLine = [];
-      activePuzzle.caroLock = false;
-      lastRenderedCaroSize = null;
-    }
-
-    function checkCaroFiveInRow(r, c, sym, size, moves) {
-      const dirs = [[0, 1], [1, 0], [1, 1], [1, -1]];
-      for (const [dr, dc] of dirs) {
-        const line = [{ r, c }];
-        for (let step = 1; step < 5; step++) {
-          const nr = r + dr * step, nc = c + dc * step;
-          if (nr < 0 || nr >= size || nc < 0 || nc >= size || moves[`${nr}_${nc}`] !== sym) break;
-          line.push({ r: nr, c: nc });
-        }
-        for (let step = 1; step < 5; step++) {
-          const nr = r - dr * step, nc = c - dc * step;
-          if (nr < 0 || nr >= size || nc < 0 || nc >= size || moves[`${nr}_${nc}`] !== sym) break;
-          line.push({ r: nr, c: nc });
-        }
-        if (line.length >= 5) return line;
-      }
-      return null;
-    }
-
-    function initJigsaw12Game() {
-      const arr = Array.from({ length: 12 }, (_, i) => i);
-      do {
-        for (let i = arr.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [arr[i], arr[j]] = [arr[j], arr[i]];
-        }
-      } while (arr.every((v, idx) => v === idx));
-      activePuzzle.jigsawTiles = arr;
-      activePuzzle.jigsawFirst = null;
-      activePuzzle.jigsawDone = false;
-    }
-
-    function initMathLoveGame() {
-      activePuzzle.mathP1Clicked = false;
-      activePuzzle.mathP2Clicked = false;
-      activePuzzle.mathFlying = false;
-      activePuzzle.mathFeedback = "Hãy nhập đáp án vào ô rồi bấm Trả lời nhé!";
-    }
-
-    function canMoveInMaze(nx, ny) {
-      const radius = 7;
-      const points = [
-        { x: nx - radius, y: ny - radius },
-        { x: nx + radius, y: ny - radius },
-        { x: nx - radius, y: ny + radius },
-        { x: nx + radius, y: ny + radius }
-      ];
-      for (const pt of points) {
-        const col = Math.floor(pt.x / MAZE_TILE);
-        const row = Math.floor(pt.y / MAZE_TILE);
-        if (row < 0 || row >= MAZE_ROWS || col < 0 || col >= MAZE_COLS) return false;
-        if (MAZE_GRID[row][col] === 1) return false;
-      }
-      return true;
-    }
-
-    function moveMazePlayer(mp, inp, timestamp) {
-      const speed = 2.5;
-      let vx = 0, vy = 0;
-      if (inp.left) { vx -= speed; mp.dx = -1; mp.dy = 0; }
-      if (inp.right) { vx += speed; mp.dx = 1; mp.dy = 0; }
-      if (inp.up) { vy -= speed; mp.dy = -1; if (!inp.left && !inp.right) mp.dx = 0; }
-      if (inp.down) { vy += speed; mp.dy = 1; if (!inp.left && !inp.right) mp.dx = 0; }
-
-      if (vx !== 0 && vy !== 0) {
-        vx *= 0.7071;
-        vy *= 0.7071;
-      }
-
-      if (vx !== 0 && canMoveInMaze(mp.x + vx, mp.y)) mp.x += vx;
-      if (vy !== 0 && canMoveInMaze(mp.x, mp.y + vy)) mp.y += vy;
-
-      mp.moving = (vx !== 0 || vy !== 0);
-      if (mp.moving) playSoftFootstep(timestamp);
-    }
-
-    const puzzleModal = document.getElementById("puzzle-modal");
-    const puzTitle = document.getElementById("puz-title");
-    const puzDesc = document.getElementById("puz-desc");
-    const puzContent = document.getElementById("puz-content");
-
-    document.getElementById("btn-close-puz").addEventListener("click", () => {
-      if (role === "CLIENT") sendPuzzleEvent({ cmd: "CLOSE" });
-      else closePuzzleModal();
-    });
-
-    document.getElementById("btn-close-reward").addEventListener("click", () => {
-      document.getElementById("reward-modal").style.display = "none";
-      checkAllGiftsUnlocked();
-    });
-
-    document.getElementById("btn-show-fireworks").addEventListener("click", () => {
-      if (role === "CLIENT") sendPuzzleEvent({ cmd: "START_FIREWORKS" });
-      else triggerFireworksFinale();
-    });
-
-    document.getElementById("btn-restart").addEventListener("click", () => {
-      if (role === "CLIENT") sendPuzzleEvent({ cmd: "RESTART" });
-      else restartFullGame();
-    });
-
-    function triggerFireworksFinale() {
-      fireworksActive = true;
-      initBouquetFinale();
-      document.getElementById("end-modal").style.display = "none";
-      document.getElementById("fireworks-overlay").style.display = "flex";
-    }
-
-    function restartFullGame() {
-      clearSimonTimers();
-      timeLeft = 3600;
-      gameEnded = false;
-      fireworksActive = false;
-      p1.x = 740; p1.y = 680;
-      p2.x = 860; p2.y = 680;
-      giftsState.forEach(g => { g.unlocked = false; g.plateProgress = 0; });
-      closePuzzleModal();
-      document.getElementById("end-modal").style.display = "none";
-      document.getElementById("reward-modal").style.display = "none";
-      document.getElementById("fireworks-overlay").style.display = "none";
-    }
-
-    function openPuzzle(giftId) {
-      clearSimonTimers();
-      const cfg = GIFT_CONFIGS[giftId];
-      activePuzzle.giftId = giftId;
-      activePuzzle.type = cfg.puzzleType;
-
-      if (cfg.puzzleType === "MAZE_ESCAPE") {
-        activePuzzle.mzP1 = { x: MAZE_TILE * 0.5, y: MAZE_TILE * 1.5, dx: 1, dy: 0, moving: false };
-        activePuzzle.mzP2 = { x: MAZE_TILE * 1.5, y: MAZE_TILE * 1.5, dx: 1, dy: 0, moving: false };
-      } else if (cfg.puzzleType === "SIMON_MEMORY") {
-        activePuzzle.simonRound = 1;
-        activePuzzle.simonStep = 0;
-        activePuzzle.simonSeq = Array.from({ length: 8 }, () => Math.floor(Math.random() * 4));
-        startSimonWatchSequence();
-      } else if (cfg.puzzleType === "MEMORY_CARDS") {
-        initMemoryCards();
-      } else if (cfg.puzzleType === "MASH_HEART") {
-        activePuzzle.mashPower = 20;
-        activePuzzle.mashTurn = 1;
-      } else if (cfg.puzzleType === "SUDOKU") {
-        initSudokuGame();
-      } else if (cfg.puzzleType === "CARO") {
-        initCaroGame(false);
-      } else if (cfg.puzzleType === "JIGSAW_12") {
-        initJigsaw12Game();
-      } else if (cfg.puzzleType === "MATH_LOVE") {
-        initMathLoveGame();
-      }
-
-      renderPuzzleModalUI();
-    }
-
-    function closePuzzleModal() {
-      clearSimonTimers();
-      activePuzzle.giftId = null;
-      activePuzzle.type = null;
-      puzzleModal.style.display = "none";
-    }
-
-    function unlockGiftSuccess(giftId) {
-      clearSimonTimers();
-      if (giftsState[giftId].unlocked) return;
-      giftsState[giftId].unlocked = true;
-      closePuzzleModal();
-      playTone(880, 0.35, "triangle", 0.2);
-
-      const cfg = GIFT_CONFIGS[giftId];
-      const rewardImg = document.getElementById("reward-img");
-      rewardImg.onerror = () => { rewardImg.src = cfg.fallbackUrl; };
-      rewardImg.src = cfg.puzzleType === "JIGSAW_12" ? HER_PHOTO_URL : cfg.imgUrl;
-      document.getElementById("reward-name").innerText = cfg.name;
-      document.getElementById("reward-msg").innerText = cfg.message;
-      document.getElementById("reward-modal").style.display = "flex";
-
-      for (let i = 0; i < 20; i++) spawnHeartParticle(cfg.x, cfg.y);
-      if (role === "HOST" && conn && conn.open) {
-        conn.send({ type: "UNLOCK_EVENT", giftId });
-      }
-    }
-
-    function checkAllGiftsUnlocked() {
-      const unlockedCount = giftsState.filter(g => g.unlocked).length;
-      if (unlockedCount >= GIFT_CONFIGS.length && !gameEnded) {
-        showEndModal(true);
-      }
-    }
-
-    function showEndModal(isWin) {
-      gameEnded = true;
-      const endModal = document.getElementById("end-modal");
-      const title = document.getElementById("end-title");
-      const desc = document.getElementById("end-desc");
-      const gallery = document.getElementById("end-gallery");
-
-      if (isWin) {
-        title.innerText = "💖 Chúc mừng 20/10! 💖";
-        desc.innerText = "+9 ly matcha :>";
-      } else {
-        title.innerText = "⏰ Hết Giờ Rồi 💖";
-        desc.innerText = "Dù thời gian thử thách đã khép lại, những món quà và bầu trời pháo hoa rực rỡ nhất ngày 20/10 vẫn luôn dành trọn cho em!";
-      }
-
-      gallery.innerHTML = "";
-      GIFT_CONFIGS.forEach(cfg => {
-        const img = document.createElement("img");
-        img.onerror = () => { img.src = cfg.fallbackUrl; };
-        img.src = cfg.puzzleType === "JIGSAW_12" ? HER_PHOTO_URL : cfg.imgUrl;
-        img.className = "gallery-item";
-        img.title = cfg.name;
-        gallery.appendChild(img);
-      });
-
-      endModal.style.display = "flex";
-    }
-
-    // =========================================================================
-    // DỰNG GIAO DIỆN CHO TẤT CẢ 9 TRÒ CHƠI
-    // =========================================================================
-    function renderPuzzleModalUI() {
-      if (activePuzzle.giftId === null) {
-        puzzleModal.style.display = "none";
-        return;
-      }
-      const cfg = GIFT_CONFIGS[activePuzzle.giftId];
-      puzzleModal.style.display = "flex";
-      puzTitle.innerText = `🎁 ${cfg.name}`;
-      puzDesc.innerText = cfg.hint;
-
-      if (activePuzzle.type === "MAZE_ESCAPE") {
-        puzContent.innerHTML = `
-          <div class="simon-header">
-            <span style="color:#4facfe;">💙 Đạt &amp; 💖 Tuyến</span>
-            <span id="maze-status-txt" style="color:#ff4d6d;">Tìm lối ra ở góc dưới phải 🚪</span>
-          </div>
-          <div id="maze-stage">
-            <canvas id="mazeCanvas" width="420" height="300"></canvas>
-            <div id="maze-sprite-layer">
-              <div id="mz-dom-p1" class="player male">
-                <div class="player-shadow"></div>
-                <div class="chibi">
-                  <div class="cb-backhair"></div>
-                  <div class="cb-head">
-                    <div class="cb-ahoge"></div>
-                    <div class="cb-hair"></div>
-                    <div class="cb-eye e1"></div>
-                    <div class="cb-eye e2"></div>
-                    <div class="cb-blush b1"></div>
-                    <div class="cb-blush b2"></div>
-                    <div class="cb-mouth"></div>
-                  </div>
-                  <div class="cb-body">
-                    <div class="cb-collar"></div>
-                    <div class="cb-tie"></div>
-                  </div>
-                  <div class="avatar-acc acc-cap"><i></i></div>
-                </div>
-              </div>
-              <div id="mz-dom-p2" class="player female">
-                <div class="player-shadow"></div>
-                <div class="chibi">
-                  <div class="cb-backhair"></div>
-                  <div class="cb-head">
-                    <div class="cb-hair"></div>
-                    <div class="cb-eye e1"></div>
-                    <div class="cb-eye e2"></div>
-                    <div class="cb-blush b1"></div>
-                    <div class="cb-blush b2"></div>
-                    <div class="cb-mouth"></div>
-                  </div>
-                  <div class="cb-body"></div>
-                  <div class="avatar-acc acc-bow"><i></i><span></span><b></b></div>
-                </div>
-              </div>
-            </div>
-            <canvas id="mazeFogCanvas" width="420" height="300"></canvas>
-          </div>
-          <div style="font-size:11.5px; color:#6c757d; margin-top:6px;">
-            Dùng phím W/A/S/D, Mũi tên hoặc Phím Ảo để đi. (Offline: Bấm Tab để đổi người)
-          </div>
-        `;
-      }
-      else if (activePuzzle.type === "SIMON_MEMORY") {
-        const icons = ["🌸", "💎", "⭐", "🔮"];
-        puzContent.innerHTML = `
-          <div class="simon-header">
-            <span style="color:#ff4d6d;">🎵 Lượt nhớ: <span id="simon-round-txt">1 / 8</span></span>
-            <span style="color:#3a86ff;">Đầu lượt: Tuyến 💖</span>
-          </div>
-          <div id="simon-turn-banner" class="simon-turn-banner">👀 Hãy chú ý thứ tự phát sáng...</div>
-          <div class="simon-grid">
-            ${icons.map((ic, idx) => `
-              <div id="simon-pad-${idx}" class="simon-pad simon-pad-${idx}" onclick="triggerPuzzleInput('SIMON_${idx}')">
-                <span>${ic}</span>
-              </div>
-            `).join("")}
-          </div>
-          <div id="simon-dots" class="simon-steps-dots"></div>
-        `;
-      }
-      else if (activePuzzle.type === "MEMORY_CARDS") {
-        puzContent.innerHTML = `
-          <div class="simon-header">
-            <span style="color:#ff4d6d;">🃏 Đã ghép: <span id="mem-pair-txt">0 / 8</span> cặp</span>
-            <span id="mem-turn-txt" style="color:#4facfe;">Lượt Đạt 💙 chọn thẻ 1</span>
-          </div>
-          <div class="memory-grid">
-            ${Array.from({ length: 16 }, (_, idx) => `
-              <div id="mem-card-${idx}" class="mem-card" onclick="triggerPuzzleInput('CARD_${idx}')">❓</div>
-            `).join("")}
-          </div>
-        `;
-      }
-      else if (activePuzzle.type === "MASH_HEART") {
-        puzContent.innerHTML = `
-          <div style="font-size:44px; margin:4px 0; animation: popIn 0.5s infinite alternate;">💌</div>
-          <div id="mash-turn-hint" style="font-weight:800; font-size:14px; margin-bottom:6px; color:#4facfe;">
-            Nút đang màu XANH: Đến lượt ANH bấm!
-          </div>
-          <div class="sync-bar-bg" style="height:30px;">
-            <div id="mash-fill" style="height:100%; width:20%; background:linear-gradient(90deg, #4facfe, #ff758c); transition:width 0.08s;"></div>
-          </div>
-          <button id="btn-mash" class="mash-alt-btn turn-blue">💙 LƯỢT ANH BẤM! (NÚT XANH) ⚡</button>
-        `;
-        document.getElementById("btn-mash").onclick = () => triggerPuzzleInput("MASH");
-      }
-      else if (activePuzzle.type === "SUDOKU") {
-        let cellsHtml = "";
-        for (let r = 0; r < 9; r++) {
-          for (let c = 0; c < 9; c++) {
-            const bRight = (c === 2 || c === 5) ? "b-right" : "";
-            const bBottom = (r === 2 || r === 5) ? "b-bottom" : "";
-            const fixedCls = SUDOKU_INIT[r][c] !== 0 ? "fixed" : "user-solved";
-            cellsHtml += `<div id="sdk-${r}-${c}" class="sdk-cell ${bRight} ${bBottom} ${fixedCls}" onclick="triggerPuzzleInput('SDK_CELL_${r}_${c}')"></div>`;
-          }
-        }
-        puzContent.innerHTML = `
-          <div id="sdk-status" style="font-size:12px; font-weight:700; color:#c9184a; margin-bottom:6px; min-height:18px;"></div>
-          <div class="sudoku-grid">${cellsHtml}</div>
-          <div class="sdk-numpad">
-            ${[1,2,3,4,5,6,7,8,9].map(n => `
-              <button id="sdk-btn-${n}" class="sdk-num-btn" onclick="triggerPuzzleInput('SDK_NUM_${n}')">${n}</button>
-            `).join("")}
-          </div>
-        `;
-      }
-      else if (activePuzzle.type === "CARO") {
-        lastRenderedCaroSize = null;
-        puzContent.innerHTML = `
-          <div id="caro-choose-box" style="margin-bottom:10px; padding:10px; background:#fff0f5; border-radius:12px; border:2px dashed #ff8fa3;">
-            <div style="font-weight:800; color:#c9184a; margin-bottom:8px;">💖 Tuyến muốn cầm quân nào? (X được đi trước)</div>
-            <div style="display:flex; gap:10px; justify-content:center;">
-              <button class="btn btn-blue" onclick="triggerPuzzleInput('CARO_PICK_X')">Chọn ❌ (Đi trước)</button>
-              <button class="btn" onclick="triggerPuzzleInput('CARO_PICK_O')">Chọn ⭕ (Đi sau)</button>
-            </div>
-          </div>
-          <div class="caro-toolbar">
-            <span id="caro-msg-txt" style="font-weight:800; font-size:12.5px; color:#ff4d6d;"></span>
-            <div class="caro-size-btns">
-              <button id="caro-sz-20" onclick="triggerPuzzleInput('CARO_SIZE_20')">20×20</button>
-              <button id="caro-sz-30" onclick="triggerPuzzleInput('CARO_SIZE_30')">30×30</button>
-              <button id="caro-sz-50" onclick="triggerPuzzleInput('CARO_SIZE_50')">50×50</button>
-            </div>
-          </div>
-          <div class="caro-viewport">
-            <div id="caro-grid-el" class="caro-grid"></div>
-          </div>
-        `;
-      }
-      else if (activePuzzle.type === "JIGSAW_12") {
-        puzContent.innerHTML = `
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; font-size:12px;">
-            <span style="font-weight:700; color:#ff4d6d;">Bấm 2 mảnh để tráo vị trí (Khổ ảnh dọc 3×4)</span>
-            <label class="btn btn-purple" style="padding:4px 10px; font-size:11px; cursor:pointer;">
-              📷 Chọn ảnh từ máy
-              <input type="file" id="jigsaw-file-inp" accept="image/*" style="display:none;" />
-            </label>
-          </div>
-          <div id="jigsaw-board-el" class="jigsaw-board">
-            ${Array.from({ length: 12 }, (_, pos) => `
-              <div id="jg-tile-${pos}" class="jigsaw-tile" onclick="triggerPuzzleInput('JG_CLICK_${pos}')"></div>
-            `).join("")}
-          </div>
-          <div id="jigsaw-love-box" class="jigsaw-love-banner">
-            <div style="font-family:'Great Vibes',cursive; font-size:28px; color:#c9184a;">
-              💖 Người con gái xinh đẹp nhất trong tim anh 💖
-            </div>
-            <div style="font-size:13px; color:#495057; margin:4px 0 8px;">
-              Từng mảnh ghép nhỏ đã hợp lại thành nụ cười rạng rỡ của Tuyến. Anh iu em rất nhiu!
-            </div>
-            <button class="btn" onclick="triggerPuzzleInput('JG_FINISH')">💝 Nhận Quà Tình Yêu 💝</button>
-          </div>
-        `;
-        const fileInp = document.getElementById("jigsaw-file-inp");
-        if (fileInp) {
-          fileInp.addEventListener("change", (ev) => {
-            const file = ev.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = () => {
-              HER_PHOTO_URL = reader.result;
-              if (conn && conn.open) conn.send({ type: "CUSTOM_PHOTO", dataUrl: HER_PHOTO_URL });
-            };
-            reader.readAsDataURL(file);
-          });
-        }
-      }
-      else if (activePuzzle.type === "MATH_LOVE") {
-        puzContent.innerHTML = `
-          <div class="math-stage">
-            <div class="math-question">Câu đố: 1 + 1 bằng mấy? 🤔</div>
-            <div id="math-ans-slot" class="math-ans-slot">
-              <input type="text" id="math-inp" placeholder="Nhập đáp án..." style="width:130px; text-align:center; font-weight:bold;" />
-              <button class="btn" style="margin-left:6px;" onclick="submitMathWrongAnswer()">Trả lời</button>
-            </div>
-            <div id="math-feedback-txt" style="font-size:13px; font-weight:700; color:#c9184a; min-height:20px; margin-top:6px;"></div>
-
-            <!-- Nhân vật Đạt ở góc dưới trái -->
-            <div id="math-char-p1" class="player male math-corner-char left-char" onclick="triggerPuzzleInput('MATH_CLICK_P1')" title="Bấm vào Đạt!">
-              <div class="player-name-tag">Đạt 💙</div>
-              <div class="player-shadow"></div>
-              <div class="chibi">
-                <div class="cb-backhair"></div>
-                <div class="cb-head">
-                  <div class="cb-ahoge"></div>
-                  <div class="cb-hair"></div>
-                  <div class="cb-eye e1"></div>
-                  <div class="cb-eye e2"></div>
-                  <div class="cb-blush b1"></div>
-                  <div class="cb-blush b2"></div>
-                  <div class="cb-mouth"></div>
-                </div>
-                <div class="cb-body">
-                  <div class="cb-collar"></div>
-                  <div class="cb-tie"></div>
-                </div>
-                <div class="avatar-acc acc-cap"><i></i></div>
-              </div>
-            </div>
-
-            <!-- Nhân vật Tuyến ở góc dưới phải -->
-            <div id="math-char-p2" class="player female math-corner-char right-char" onclick="triggerPuzzleInput('MATH_CLICK_P2')" title="Bấm vào Tuyến!">
-              <div class="player-name-tag">Tuyến 💖</div>
-              <div class="player-shadow"></div>
-              <div class="chibi">
-                <div class="cb-backhair"></div>
-                <div class="cb-head">
-                  <div class="cb-hair"></div>
-                  <div class="cb-eye e1"></div>
-                  <div class="cb-eye e2"></div>
-                  <div class="cb-blush b1"></div>
-                  <div class="cb-blush b2"></div>
-                  <div class="cb-mouth"></div>
-                </div>
-                <div class="cb-body"></div>
-                <div class="avatar-acc acc-bow"><i></i><span></span><b></b></div>
-              </div>
-            </div>
-          </div>
-        `;
-      }
-    }
-
-    window.submitMathWrongAnswer = function() {
-      const inp = document.getElementById("math-inp");
-      const val = inp ? inp.value.trim() : "";
-      if (inp) inp.value = "";
-      triggerPuzzleInput("MATH_WRONG_" + (val || "?"));
-    };
-
-    window.triggerPuzzleInput = function(actionStr) {
-      if (role === "CLIENT") {
-        sendPuzzleEvent({ cmd: "INPUT", action: actionStr, player: 2 });
-      } else {
-        const pId = role === "OFFLINE" ? offlineActiveId : 1;
-        handlePuzzleInputOnHost(actionStr, pId);
-      }
-    };
-
-    function penalizeOneMinute() {
-      timeLeft = Math.max(0, timeLeft - 60);
-      playTone(150, 0.35, "sawtooth", 0.2);
-      const tBox = document.getElementById("timer-box");
-      if (tBox) {
-        tBox.style.background = "#ffe5ec";
-        tBox.style.transform = "scale(1.15)";
-        setTimeout(() => {
-          tBox.style.background = "#fff";
-          tBox.style.transform = "scale(1)";
-        }, 450);
-      }
-      if (timeLeft === 0 && !gameEnded) showEndModal(false);
-    }
-
-    function handlePuzzleInputOnHost(actionStr, playerId) {
-      if (activePuzzle.giftId === null) return;
-
-      // SIMON 8 LƯỢT
-      if (activePuzzle.type === "SIMON_MEMORY" && actionStr.startsWith("SIMON_")) {
-        if (activePuzzle.simonPhase !== "PLAY") return;
-        const expectedPlayer = (activePuzzle.simonStep % 2 === 0) ? 2 : 1;
-        if (role !== "OFFLINE" && playerId !== expectedPlayer) return;
-
-        const padIdx = parseInt(actionStr.split("_")[1], 10);
-        activePuzzle.simonLitPad = padIdx;
-        activePuzzle.simonSoundTick++;
-        playSimonTone(padIdx, 0.25);
-
-        setTimeout(() => {
-          if (activePuzzle.simonPhase === "PLAY") activePuzzle.simonLitPad = null;
-        }, 200);
-
-        const correctPad = activePuzzle.simonSeq[activePuzzle.simonStep];
-        if (padIdx === correctPad) {
-          activePuzzle.simonStep++;
-          if (activePuzzle.simonStep >= activePuzzle.simonRound) {
-            if (activePuzzle.simonRound >= 8) {
-              unlockGiftSuccess(activePuzzle.giftId);
-            } else {
-              activePuzzle.simonPhase = "ROUND_OK";
-              simonTimers.push(setTimeout(() => {
-                activePuzzle.simonRound++;
-                activePuzzle.simonStep = 0;
-                startSimonWatchSequence();
-              }, 700));
-            }
-          }
-        } else {
-          activePuzzle.simonPhase = "FAIL";
-          simonTimers.push(setTimeout(() => {
-            activePuzzle.simonStep = 0;
-            startSimonWatchSequence();
-          }, 900));
-        }
-      }
-
-      // LẬT 16 THẺ
-      else if (activePuzzle.type === "MEMORY_CARDS" && actionStr.startsWith("CARD_")) {
-        if (activePuzzle.cardLock) return;
-        if (role !== "OFFLINE" && playerId !== activePuzzle.cardTurn) return;
-
-        const idx = parseInt(actionStr.split("_")[1], 10);
-        const card = activePuzzle.cards[idx];
-        if (!card || card.state !== "DOWN") return;
-
-        card.state = "UP";
-        card.by = activePuzzle.cardTurn;
-        playTone(activePuzzle.cardTurn === 1 ? 587.33 : 783.99, 0.15);
-
-        if (activePuzzle.firstCardIdx === null) {
-          activePuzzle.firstCardIdx = idx;
-          activePuzzle.cardTurn = 2;
-        } else {
-          activePuzzle.secondCardIdx = idx;
-          activePuzzle.cardLock = true;
-
-          const c1 = activePuzzle.cards[activePuzzle.firstCardIdx];
-          const c2 = activePuzzle.cards[activePuzzle.secondCardIdx];
-
-          if (c1.icon === c2.icon) {
-            cardFlipTimer = setTimeout(() => {
-              c1.state = "MATCHED";
-              c2.state = "MATCHED";
-              activePuzzle.matchedPairs++;
-              activePuzzle.firstCardIdx = null;
-              activePuzzle.secondCardIdx = null;
-              activePuzzle.cardLock = false;
-              activePuzzle.cardTurn = 1;
-              playTone(987.77, 0.25, "triangle");
-
-              if (activePuzzle.matchedPairs >= 8) {
-                unlockGiftSuccess(activePuzzle.giftId);
-              }
-            }, 480);
-          } else {
-            cardFlipTimer = setTimeout(() => {
-              c1.state = "DOWN";
-              c2.state = "DOWN";
-              c1.by = 0;
-              c2.by = 0;
-              activePuzzle.firstCardIdx = null;
-              activePuzzle.secondCardIdx = null;
-              activePuzzle.cardLock = false;
-              activePuzzle.cardTurn = 1;
-            }, 820);
-          }
-        }
-      }
-
-      // BỨC THƯ TÌNH
-      else if (activePuzzle.type === "MASH_HEART" && actionStr === "MASH") {
-        if (role !== "OFFLINE" && playerId !== activePuzzle.mashTurn) return;
-        activePuzzle.mashPower = Math.min(100, activePuzzle.mashPower + 9.5);
-        playTone(activePuzzle.mashTurn === 1 ? 523.25 : 659.25, 0.12);
-        activePuzzle.mashTurn = activePuzzle.mashTurn === 1 ? 2 : 1;
-
-        if (activePuzzle.mashPower >= 100) {
-          unlockGiftSuccess(activePuzzle.giftId);
-        }
-      }
-
-      // TRÒ CHƠI 6: SUDOKU
-      else if (activePuzzle.type === "SUDOKU") {
-        if (actionStr.startsWith("SDK_CELL_")) {
-          const parts = actionStr.split("_");
-          const r = parseInt(parts[2], 10);
-          const c = parseInt(parts[3], 10);
-          activePuzzle.sudokuSel = { r, c };
-          const val = activePuzzle.sudokuBoard[r][c];
-          if (val !== 0) {
-            activePuzzle.sudokuHighlightNum = val;
-            playTone(523.25, 0.1);
-          }
-        } else if (actionStr.startsWith("SDK_NUM_")) {
-          const num = parseInt(actionStr.split("_")[2], 10);
-          activePuzzle.sudokuHighlightNum = num;
-
-          const { r, c } = activePuzzle.sudokuSel;
-          if (r !== null && c !== null && activePuzzle.sudokuBoard[r][c] === 0) {
-            if (SUDOKU_SOL[r][c] === num) {
-              activePuzzle.sudokuBoard[r][c] = num;
-              activePuzzle.sudokuMsg = `✨ Chính xác! Ô (${r + 1}, ${c + 1}) là số ${num}.`;
-              playTone(783.99, 0.18, "triangle");
-
-              const allSolved = activePuzzle.sudokuBoard.every((row, ri) =>
-                row.every((v, ci) => v === SUDOKU_SOL[ri][ci])
-              );
-              if (allSolved) {
-                unlockGiftSuccess(activePuzzle.giftId);
-              }
-            } else {
-              penalizeOneMinute();
-              activePuzzle.sudokuMsg = `❌ Sai rồi! Ô (${r + 1}, ${c + 1}) không phải số ${num}. Bị trừ 1 phút (-60s)!`;
-            }
-          }
-        }
-      }
-
-      // TRÒ CHƠI 7: CỜ CARO
-      else if (activePuzzle.type === "CARO") {
-        if (actionStr === "CARO_PICK_X" || actionStr === "CARO_PICK_O") {
-          const chosen = actionStr.endsWith("X") ? "X" : "O";
-          activePuzzle.caroP2Char = chosen;
-          activePuzzle.caroTurn = "X";
-          activePuzzle.caroMoves = {};
-          activePuzzle.caroWinLine = [];
-          activePuzzle.caroLock = false;
-          const firstWho = chosen === "X" ? "Tuyến (X)" : "Đạt (X)";
-          activePuzzle.caroMsg = `Tuyến cầm ${chosen}. Quân X đi trước: Đến lượt ${firstWho}!`;
-          playTone(659.25, 0.18);
-        }
-        else if (actionStr.startsWith("CARO_SIZE_")) {
-          const newSz = parseInt(actionStr.split("_")[2], 10);
-          if ([20, 30, 50].includes(newSz)) {
-            activePuzzle.caroSize = newSz;
-            activePuzzle.caroMoves = {};
-            activePuzzle.caroWinLine = [];
-            activePuzzle.caroTurn = "X";
-            activePuzzle.caroLock = false;
-            activePuzzle.caroMsg = `Đã đổi bàn cờ sang ${newSz}×${newSz}! Quân X đi trước.`;
-          }
-        }
-        else if (actionStr.startsWith("CARO_MOVE_")) {
-          if (!activePuzzle.caroP2Char || activePuzzle.caroLock) return;
-          const p2Sym = activePuzzle.caroP2Char;
-          const expectedPlayer = (activePuzzle.caroTurn === p2Sym) ? 2 : 1;
-          if (role !== "OFFLINE" && playerId !== expectedPlayer) return;
-
-          const parts = actionStr.split("_");
-          const r = parseInt(parts[2], 10);
-          const c = parseInt(parts[3], 10);
-          const key = `${r}_${c}`;
-          if (activePuzzle.caroMoves[key]) return;
-
-          const curSym = activePuzzle.caroTurn;
-          activePuzzle.caroMoves[key] = curSym;
-          playTone(curSym === "X" ? 587.33 : 783.99, 0.12);
-
-          const winLine = checkCaroFiveInRow(r, c, curSym, activePuzzle.caroSize, activePuzzle.caroMoves);
-          if (winLine) {
-            activePuzzle.caroWinLine = winLine;
-            activePuzzle.caroLock = true;
-            if (curSym === p2Sym) {
-              activePuzzle.caroMsg = "🎉 Tuyệt đỉnh! Tuyến đã đánh bại Đạt (5 quân liên tiếp)!";
-              playTone(987.77, 0.35, "triangle");
-              setTimeout(() => unlockGiftSuccess(activePuzzle.giftId), 1100);
-            } else {
-              activePuzzle.caroMsg = "😝 Đạt thắng mất rồi! Luật là Tuyến thắng mới qua ải cơ, đánh ván mới nhé!";
-              playTone(280, 0.3, "sawtooth");
-              setTimeout(() => initCaroGame(true), 2200);
-            }
-          } else {
-            activePuzzle.caroTurn = curSym === "X" ? "O" : "X";
-            const nextWho = activePuzzle.caroTurn === p2Sym ? "Tuyến" : "Đạt";
-            activePuzzle.caroMsg = `Đến lượt ${nextWho} (${activePuzzle.caroTurn}) đánh!`;
-          }
-        }
-      }
-
-      // TRÒ CHƠI 8: GHÉP HÌNH 12 MẢNH (KHỔ DỌC 3x4)
-      else if (activePuzzle.type === "JIGSAW_12") {
-        if (actionStr === "JG_FINISH" && activePuzzle.jigsawDone) {
-          unlockGiftSuccess(activePuzzle.giftId);
-          return;
-        }
-        if (activePuzzle.jigsawDone) return;
-        if (actionStr.startsWith("JG_CLICK_")) {
-          const pos = parseInt(actionStr.split("_")[2], 10);
-          if (activePuzzle.jigsawFirst === null) {
-            activePuzzle.jigsawFirst = pos;
-            playTone(523.25, 0.1);
-          } else if (activePuzzle.jigsawFirst === pos) {
-            activePuzzle.jigsawFirst = null;
-          } else {
-            const first = activePuzzle.jigsawFirst;
-            const tmp = activePuzzle.jigsawTiles[first];
-            activePuzzle.jigsawTiles[first] = activePuzzle.jigsawTiles[pos];
-            activePuzzle.jigsawTiles[pos] = tmp;
-            activePuzzle.jigsawFirst = null;
-            playTone(659.25, 0.14);
-
-            if (activePuzzle.jigsawTiles.every((val, idx) => val === idx)) {
-              activePuzzle.jigsawDone = true;
-              playTone(987.77, 0.4, "triangle");
-            }
-          }
-        }
-      }
-
-      // TRÒ CHƠI 9: 1 + 1 BẰNG MẤY?
-      else if (activePuzzle.type === "MATH_LOVE") {
-        if (activePuzzle.mathFlying) return;
-        if (actionStr.startsWith("MATH_WRONG_")) {
-          const typed = actionStr.replace("MATH_WRONG_", "");
-          const lockMsgs = [
-            `😜 "${typed}" vẫn chưa đúng đâu!`,
-            `🙈 Hổng phải "${typed}" rồi!`,
-            `Sai ròiii`
-          ];
-          activePuzzle.mathFeedback = lockMsgs[Math.floor(Math.random() * lockMsgs.length)];
-          playTone(240, 0.2, "sawtooth");
-        } else if (actionStr === "MATH_CLICK_P1") {
-          activePuzzle.mathP1Clicked = true;
-          playTone(587.33, 0.18);
-        } else if (actionStr === "MATH_CLICK_P2") {
-          activePuzzle.mathP2Clicked = true;
-          playTone(783.99, 0.18);
-        }
-
-        if (activePuzzle.mathP1Clicked && activePuzzle.mathP2Clicked && !activePuzzle.mathFlying) {
-          activePuzzle.mathFlying = true;
-          activePuzzle.mathFeedback = "💖 Chính xác! 1 Đạt + 1 Tuyến = Hạnh Phúc Trọn Đời! 💖";
-          playTone(1046.5, 0.45, "triangle");
-          setTimeout(() => unlockGiftSuccess(activePuzzle.giftId), 2000);
-        }
-      }
-    }
-
-    // Vẽ Mê Cung + Cập nhật 2 Model Chibi DOM + Lớp Sương Mù
-    function renderMazeCanvas(timestamp) {
-      const mCanvas = document.getElementById("mazeCanvas");
-      const fCanvas = document.getElementById("mazeFogCanvas");
-      const mzSpriteLayer = document.getElementById("maze-sprite-layer");
-      if (!mCanvas || !fCanvas || !mzSpriteLayer) return;
-
-      const mCtx = mCanvas.getContext("2d");
-      const fCtx = fCanvas.getContext("2d");
-      const cw = mCanvas.width;
-      const ch = mCanvas.height;
-      const worldSize = MAZE_COLS * MAZE_TILE;
-
-      const stageScale = mCanvas.clientWidth / 420;
-      mzSpriteLayer.style.transform = `scale(${stageScale})`;
-
-      const myMazePos = (role === "CLIENT" || (role === "OFFLINE" && offlineActiveId === 2))
-        ? activePuzzle.mzP2
-        : activePuzzle.mzP1;
-
-      const camX = Math.max(0, Math.min(worldSize - cw, myMazePos.x - cw / 2));
-      const camY = Math.max(0, Math.min(worldSize - ch, myMazePos.y - ch / 2));
-
-      mCtx.clearRect(0, 0, cw, ch);
-      mCtx.save();
-      mCtx.translate(-camX, -camY);
-
-      for (let r = 0; r < MAZE_ROWS; r++) {
-        for (let c = 0; c < MAZE_COLS; c++) {
-          const tx = c * MAZE_TILE;
-          const ty = r * MAZE_TILE;
-          if (tx + MAZE_TILE < camX || tx > camX + cw || ty + MAZE_TILE < camY || ty > camY + ch) continue;
-
-          if (MAZE_GRID[r][c] === 1) {
-            mCtx.fillStyle = "#2d6a4f";
-            mCtx.fillRect(tx, ty, MAZE_TILE, MAZE_TILE);
-            mCtx.fillStyle = "#40916c";
-            mCtx.fillRect(tx + 2, ty + 2, MAZE_TILE - 4, MAZE_TILE - 6);
-          } else {
-            mCtx.fillStyle = (r + c) % 2 === 0 ? "#fff0f3" : "#ffe5ec";
-            mCtx.fillRect(tx, ty, MAZE_TILE, MAZE_TILE);
-          }
-        }
-      }
-
-      const exitX = 29 * MAZE_TILE + MAZE_TILE / 2;
-      const exitY = 28 * MAZE_TILE + MAZE_TILE / 2;
-      const pulse = 9 + Math.sin(timestamp * 0.008) * 3;
-      mCtx.fillStyle = "rgba(46, 213, 115, 0.35)";
-      mCtx.beginPath(); mCtx.arc(exitX, exitY, pulse + 5, 0, Math.PI * 2); mCtx.fill();
-      mCtx.fillStyle = "#2ed573";
-      mCtx.beginPath(); mCtx.arc(exitX, exitY, 8, 0, Math.PI * 2); mCtx.fill();
-      mCtx.font = "bold 10px sans-serif";
-      mCtx.fillStyle = "#1b4332";
-      mCtx.textAlign = "center";
-      mCtx.fillText("LỐI RA", exitX - 10, exitY - 12);
-
-      mCtx.restore();
-
-      const mzEl1 = document.getElementById("mz-dom-p1");
-      const mzEl2 = document.getElementById("mz-dom-p2");
-      [
-        { mp: activePuzzle.mzP1, el: mzEl1 },
-        { mp: activePuzzle.mzP2, el: mzEl2 }
-      ].forEach(({ mp, el }) => {
-        if (!el) return;
-        el.classList.toggle("moving", !!mp.moving);
-        const sx = mp.x - camX - 28;
-        const sy = mp.y - camY - 60;
-        el.style.transform = `translate3d(${sx}px, ${sy}px, 0) scale(0.38)`;
-
-        const eyes = el.querySelectorAll(".cb-eye");
-        const lookX = (mp.dx || 0) * 2.5;
-        const lookY = (mp.dy || 0) * 1.8;
-        eyes.forEach(eye => {
-          eye.style.transform = `translate(${lookX}px, ${lookY}px)`;
-        });
-      });
-
-      fCtx.clearRect(0, 0, cw, ch);
-      fCtx.globalCompositeOperation = "source-over";
-      fCtx.fillStyle = "#000000";
-      fCtx.fillRect(0, 0, cw, ch);
-
-      fCtx.globalCompositeOperation = "destination-out";
-      const cutLight = (wx, wy, rad) => {
-        const sx = wx - camX;
-        const sy = wy - camY;
-        const grad = fCtx.createRadialGradient(sx, sy, rad * 0.25, sx, sy, rad);
-        grad.addColorStop(0, "rgba(0,0,0,1)");
-        grad.addColorStop(0.7, "rgba(0,0,0,0.65)");
-        grad.addColorStop(1, "rgba(0,0,0,0)");
-        fCtx.fillStyle = grad;
-        fCtx.beginPath();
-        fCtx.arc(sx, sy, rad, 0, Math.PI * 2);
-        fCtx.fill();
-      };
-
-      cutLight(myMazePos.x, myMazePos.y, 70);
-      const otherPos = (myMazePos === activePuzzle.mzP1) ? activePuzzle.mzP2 : activePuzzle.mzP1;
-      cutLight(otherPos.x, otherPos.y, 75);
-    }
-
-    function updateActivePuzzle(time, localIn, remoteIn) {
-      if (activePuzzle.giftId === null) return;
-
-      if (role !== "CLIENT") {
-        if (activePuzzle.type === "MAZE_ESCAPE") {
-          if (role === "OFFLINE") {
-            if (offlineActiveId === 1) {
-              moveMazePlayer(activePuzzle.mzP1, localIn, time);
-              activePuzzle.mzP2.moving = false;
-            } else {
-              moveMazePlayer(activePuzzle.mzP2, localIn, time);
-              activePuzzle.mzP1.moving = false;
-            }
-          } else {
-            moveMazePlayer(activePuzzle.mzP1, localIn, time);
-            moveMazePlayer(activePuzzle.mzP2, remoteIn, time);
-          }
-
-          const c1 = Math.floor(activePuzzle.mzP1.x / MAZE_TILE);
-          const r1 = Math.floor(activePuzzle.mzP1.y / MAZE_TILE);
-          const c2 = Math.floor(activePuzzle.mzP2.x / MAZE_TILE);
-          const r2 = Math.floor(activePuzzle.mzP2.y / MAZE_TILE);
-
-          const p1Out = (r1 === 28 && c1 >= 28);
-          const p2Out = (r2 === 28 && c2 >= 28);
-
-          if (p1Out && p2Out) {
-            unlockGiftSuccess(activePuzzle.giftId);
-            return;
-          }
-        }
-        else if (activePuzzle.type === "MASH_HEART") {
-          activePuzzle.mashPower = Math.max(0, activePuzzle.mashPower - 0.16);
-        }
-      }
-
-      if (activePuzzle.type === "MAZE_ESCAPE") {
-        renderMazeCanvas(time);
-        const stTxt = document.getElementById("maze-status-txt");
-        if (stTxt) {
-          const c1 = Math.floor(activePuzzle.mzP1.x / MAZE_TILE);
-          const r1 = Math.floor(activePuzzle.mzP1.y / MAZE_TILE);
-          const c2 = Math.floor(activePuzzle.mzP2.x / MAZE_TILE);
-          const r2 = Math.floor(activePuzzle.mzP2.y / MAZE_TILE);
-          const p1Out = (r1 === 28 && c1 >= 28);
-          const p2Out = (r2 === 28 && c2 >= 28);
-          if (p1Out && !p2Out) stTxt.innerText = "💙 Anh đã tới cửa! Đang đợi Em 💖...";
-          else if (!p1Out && p2Out) stTxt.innerText = "💖 Em đã tới cửa! Đang đợi Anh 💙...";
-          else stTxt.innerText = "Cả 2 hãy tìm đường ra.";
-        }
-      }
-      else if (activePuzzle.type === "SIMON_MEMORY") {
-        if (role === "CLIENT" && activePuzzle.simonSoundTick !== lastClientSoundTick) {
-          lastClientSoundTick = activePuzzle.simonSoundTick;
-          if (activePuzzle.simonLitPad !== null) playSimonTone(activePuzzle.simonLitPad, 0.28);
-        }
-
-        const rTxt = document.getElementById("simon-round-txt");
-        if (rTxt) rTxt.innerText = `${activePuzzle.simonRound} / 8`;
-
-        for (let i = 0; i < 4; i++) {
-          const padEl = document.getElementById(`simon-pad-${i}`);
-          if (padEl) padEl.classList.toggle("lit", activePuzzle.simonLitPad === i);
-        }
-
-        const banner = document.getElementById("simon-turn-banner");
-        if (banner) {
-          if (activePuzzle.simonPhase === "WATCH") {
-            banner.style.background = "#fff3cd";
-            banner.style.color = "#856404";
-            banner.innerText = `👀 Đang phát giai điệu mẫu (Lượt ${activePuzzle.simonRound}/8)...`;
-          } else if (activePuzzle.simonPhase === "FAIL") {
-            banner.style.background = "#f8d7da";
-            banner.style.color = "#721c24";
-            banner.innerText = "🙈 Nhầm nốt rồi! Cùng nghe lại nhé (Em bấm trước)";
-          } else if (activePuzzle.simonPhase === "ROUND_OK") {
-            banner.style.background = "#d4edda";
-            banner.style.color = "#155724";
-            banner.innerText = "✨ Chuẩn luôn! Chuẩn bị sang lượt tiếp theo...";
-          } else if (activePuzzle.simonPhase === "PLAY") {
-            const isGirlTurn = (activePuzzle.simonStep % 2 === 0);
-            if (isGirlTurn) {
-              banner.style.background = "#ffe5ec";
-              banner.style.color = "#c9184a";
-              banner.innerText = `💖 Đến lượt Tuyến bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
-            } else {
-              banner.style.background = "#e0f2fe";
-              banner.style.color = "#0369a1";
-              banner.innerText = `💙 Đến lượt Đạt bấm! (Bước ${activePuzzle.simonStep + 1}/${activePuzzle.simonRound})`;
-            }
-          }
-        }
-
-        const dotsBox = document.getElementById("simon-dots");
-        if (dotsBox) {
-          let html = "";
-          for (let s = 0; s < activePuzzle.simonRound; s++) {
-            const isGirl = (s % 2 === 0);
-            const bg = isGirl ? "#ff758c" : "#4facfe";
-            const cls = s < activePuzzle.simonStep ? "step-dot done" : (s === activePuzzle.simonStep && activePuzzle.simonPhase === "PLAY" ? "step-dot current" : "step-dot");
-            html += `<div class="${cls}" style="background:${bg};">${s + 1}</div>`;
-          }
-          dotsBox.innerHTML = html;
-        }
-      }
-      else if (activePuzzle.type === "MEMORY_CARDS") {
-        const pairTxt = document.getElementById("mem-pair-txt");
-        if (pairTxt) pairTxt.innerText = `${activePuzzle.matchedPairs} / 8`;
-
-        const turnTxt = document.getElementById("mem-turn-txt");
-        if (turnTxt) {
-          if (activePuzzle.cardTurn === 1) {
-            turnTxt.style.color = "#4facfe";
-            turnTxt.innerText = "💙 Lượt Anh chọn thẻ 1";
-          } else {
-            turnTxt.style.color = "#ff4d6d";
-            turnTxt.innerText = "💖 Lượt Em chọn thẻ 2";
-          }
-        }
-
-        activePuzzle.cards.forEach((c, idx) => {
-          const el = document.getElementById(`mem-card-${idx}`);
-          if (!el) return;
-          el.className = "mem-card";
-          if (c.state === "UP") {
-            el.classList.add("up", c.by === 1 ? "by-p1" : "by-p2");
-            el.innerText = c.icon;
-          } else if (c.state === "MATCHED") {
-            el.classList.add("matched");
-            el.innerText = c.icon;
-          } else {
-            el.innerText = "❓";
-          }
-        });
-      }
-      else if (activePuzzle.type === "MASH_HEART") {
-        const mf = document.getElementById("mash-fill");
-        if (mf) mf.style.width = activePuzzle.mashPower + "%";
-
-        const btn = document.getElementById("btn-mash");
-        const hint = document.getElementById("mash-turn-hint");
-        if (btn && hint) {
-          if (activePuzzle.mashTurn === 1) {
-            btn.className = "mash-alt-btn turn-blue";
-            btn.innerText = "💙 LƯỢT ANH BẤM!  ⚡";
-            hint.style.color = "#4facfe";
-            hint.innerText = " Đến lượt ANH nhấn!";
-          } else {
-            btn.className = "mash-alt-btn turn-pink";
-            btn.innerText = "💖 LƯỢT EM BẤM!  ⚡";
-            hint.style.color = "#ff4d6d";
-            hint.innerText = " Đến lượt EM nhấn!";
-          }
-        }
-      }
-      else if (activePuzzle.type === "SUDOKU") {
-        const stEl = document.getElementById("sdk-status");
-        if (stEl) stEl.innerText = activePuzzle.sudokuMsg;
-
-        for (let r = 0; r < 9; r++) {
-          for (let c = 0; c < 9; c++) {
-            const cellEl = document.getElementById(`sdk-${r}-${c}`);
-            if (!cellEl) continue;
-            const val = activePuzzle.sudokuBoard[r] ? activePuzzle.sudokuBoard[r][c] : 0;
-            cellEl.innerText = val === 0 ? "" : val;
-
-            const isSel = activePuzzle.sudokuSel.r === r && activePuzzle.sudokuSel.c === c;
-            const isSameNum = val !== 0 && activePuzzle.sudokuHighlightNum === val;
-            cellEl.classList.toggle("selected", isSel);
-            cellEl.classList.toggle("same-num-highlight", isSameNum);
-          }
-        }
-        for (let n = 1; n <= 9; n++) {
-          const bEl = document.getElementById(`sdk-btn-${n}`);
-          if (bEl) bEl.classList.toggle("active-num", activePuzzle.sudokuHighlightNum === n);
-        }
-      }
-      else if (activePuzzle.type === "CARO") {
-        const chooseBox = document.getElementById("caro-choose-box");
-        if (chooseBox) chooseBox.style.display = activePuzzle.caroP2Char ? "none" : "block";
-
-        const msgEl = document.getElementById("caro-msg-txt");
-        if (msgEl) msgEl.innerText = activePuzzle.caroMsg;
-
-        [20, 30, 50].forEach(sz => {
-          const b = document.getElementById(`caro-sz-${sz}`);
-          if (b) b.classList.toggle("active", activePuzzle.caroSize === sz);
-        });
-
-        const gridEl = document.getElementById("caro-grid-el");
-        if (gridEl && lastRenderedCaroSize !== activePuzzle.caroSize) {
-          lastRenderedCaroSize = activePuzzle.caroSize;
-          const sz = activePuzzle.caroSize;
-          const cellPx = sz === 20 ? 21 : (sz === 30 ? 18 : 15);
-          gridEl.style.gridTemplateColumns = `repeat(${sz}, ${cellPx}px)`;
-          let html = "";
-          for (let r = 0; r < sz; r++) {
-            for (let c = 0; c < sz; c++) {
-              html += `<div id="cr-${r}-${c}" class="caro-cell" style="width:${cellPx}px;height:${cellPx}px;font-size:${cellPx - 5}px;" onclick="triggerPuzzleInput('CARO_MOVE_${r}_${c}')"></div>`;
-            }
-          }
-          gridEl.innerHTML = html;
-        }
-
-        if (gridEl) {
-          const sz = activePuzzle.caroSize;
-          const winSet = new Set((activePuzzle.caroWinLine || []).map(pt => `${pt.r}_${pt.c}`));
-          for (let r = 0; r < sz; r++) {
-            for (let c = 0; c < sz; c++) {
-              const key = `${r}_${c}`;
-              const cell = document.getElementById(`cr-${r}-${c}`);
-              if (!cell) continue;
-              const val = activePuzzle.caroMoves[key] || "";
-              if (cell.innerText !== val) cell.innerText = val;
-              cell.className = "caro-cell" + (val === "X" ? " x-mark" : (val === "O" ? " o-mark" : "")) + (winSet.has(key) ? " win-cell" : "");
-            }
-          }
-        }
-      }
-      else if (activePuzzle.type === "JIGSAW_12") {
-        const boardEl = document.getElementById("jigsaw-board-el");
-        if (boardEl) boardEl.classList.toggle("completed", activePuzzle.jigsawDone);
-
-        const loveBox = document.getElementById("jigsaw-love-box");
-        if (loveBox) loveBox.style.display = activePuzzle.jigsawDone ? "block" : "none";
-
-        // Chia 12 mảnh theo lưới ảnh dọc: 3 cột × 4 hàng
-        activePuzzle.jigsawTiles.forEach((origIdx, pos) => {
-          const tEl = document.getElementById(`jg-tile-${pos}`);
-          if (!tEl) return;
-          const col = origIdx % 3;
-          const row = Math.floor(origIdx / 3);
-          tEl.style.backgroundImage = `url('${HER_PHOTO_URL}')`;
-          tEl.style.backgroundPosition = `${(col / 2) * 100}% ${(row / 3) * 100}%`;
-          tEl.classList.toggle("selected", activePuzzle.jigsawFirst === pos && !activePuzzle.jigsawDone);
-        });
-      }
-      else if (activePuzzle.type === "MATH_LOVE") {
-        const fb = document.getElementById("math-feedback-txt");
-        if (fb) fb.innerText = activePuzzle.mathFeedback;
-
-        const c1 = document.getElementById("math-char-p1");
-        const c2 = document.getElementById("math-char-p2");
-        if (c1) {
-          c1.classList.toggle("clicked-Wait", activePuzzle.mathP1Clicked && !activePuzzle.mathFlying);
-          c1.classList.toggle("fly-center-left", activePuzzle.mathFlying);
-        }
-        if (c2) {
-          c2.classList.toggle("clicked-Wait", activePuzzle.mathP2Clicked && !activePuzzle.mathFlying);
-          c2.classList.toggle("fly-center-right", activePuzzle.mathFlying);
-        }
-        const slot = document.getElementById("math-ans-slot");
-        if (slot && activePuzzle.mathFlying) {
-          slot.innerHTML = `<span style="color:#ff4d6d; font-size:15px;">💙 Đạt + 💖 Tuyến = Mãi Bên Nhau!</span>`;
-        }
-      }
-    }
-
-    // =========================================================================
-    // 7. HỆ THỐNG ĐIỀU KHIỂN (BÀN PHÍM + CẢM ỨNG ĐỘNG)
-    // =========================================================================
-    const keys = {};
-    const touchState = { up: false, down: false, left: false, right: false, action: false };
 
     window.addEventListener("pointerdown", () => initAudio(), { once: true });
 
-    window.addEventListener("keydown", (e) => {
-      initAudio();
-      const k = e.key.toLowerCase();
+    // =========================================================================
+    // 3. TƯƠNG TÁC CHẠM VÀO HOA & HIỆU ỨNG CÁNH HOA RƠI / ĐOM ĐÓM
+    // =========================================================================
+    const bgCanvas = document.getElementById("bgCanvas");
+    const bgCtx = bgCanvas.getContext("2d");
 
-      if (activePuzzle.giftId !== null && activePuzzle.type === "SUDOKU" && k >= "1" && k <= "9") {
-        triggerPuzzleInput(`SDK_NUM_${k}`);
-        return;
-      }
+    function resizeCanvases() {
+      bgCanvas.width = window.innerWidth;
+      bgCanvas.height = window.innerHeight;
+      fwCanvas.width = window.innerWidth;
+      fwCanvas.height = window.innerHeight;
+    }
 
-      if ([" ", "arrowup", "arrowdown", "arrowleft", "arrowright", "tab"].includes(k)) {
-        if (document.activeElement && document.activeElement.id === "math-inp") return;
-        e.preventDefault();
-      }
-      
-      if (k === "tab" && role === "OFFLINE") {
-        offlineActiveId = offlineActiveId === 1 ? 2 : 1;
-      }
-      if ((k === " " || k === "enter") && !keys[k]) {
-        if (document.activeElement && document.activeElement.id === "math-inp") {
-          submitMathWrongAnswer();
-          return;
-        }
-        handleActionKeyPress();
-      }
-      keys[k] = true;
-    });
+    const fallingPetals = Array.from({ length: 32 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: -0.4 + Math.random() * 1.1,
+      vy: 0.7 + Math.random() * 1.1,
+      size: 6 + Math.random() * 6,
+      rot: Math.random() * Math.PI * 2,
+      vRot: (Math.random() - 0.5) * 0.025,
+      color: ["#ff8fa3", "#ffb3c6", "#ffcad4", "#ff4d6d"][Math.floor(Math.random() * 4)]
+    }));
 
-    window.addEventListener("keyup", (e) => {
-      keys[e.key.toLowerCase()] = false;
-    });
+    const fireflies = Array.from({ length: 24 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      vx: (Math.random() - 0.5) * 0.5,
+      vy: (Math.random() - 0.5) * 0.5,
+      r: 2 + Math.random() * 2.5,
+      phase: Math.random() * Math.PI * 2
+    }));
 
-    const touchControls = document.getElementById("touch-controls");
-    let touchVisible = false;
-    document.getElementById("btn-toggle-touch").addEventListener("click", () => {
-      touchVisible = !touchVisible;
-      touchControls.style.display = touchVisible ? "flex" : "none";
-    });
+    const burstHearts = [];
 
-    function handleTouches(e) {
-      initAudio();
-      const activeSet = new Set();
-      for (let i = 0; i < e.touches.length; i++) {
-        const t = e.touches[i];
-        const el = document.elementFromPoint(t.clientX, t.clientY);
-        if (el && el.classList.contains("t-btn")) {
-          activeSet.add(el.getAttribute("data-key"));
-        }
+    function spawnHeartBurst(clientX, clientY, count = 12) {
+      const symbols = ["💖", "💗", "🌸", "✨", "💝"];
+      for (let i = 0; i < count; i++) {
+        const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
+        const spd = 1.5 + Math.random() * 3.5;
+        burstHearts.push({
+          x: clientX,
+          y: clientY,
+          vx: Math.cos(ang) * spd,
+          vy: Math.sin(ang) * spd - 1.2,
+          alpha: 1,
+          size: 15 + Math.random() * 10,
+          sym: symbols[Math.floor(Math.random() * symbols.length)]
+        });
       }
-      ["up", "down", "left", "right", "action"].forEach(k => {
-        const pressed = activeSet.has(k);
-        if (k === "action" && pressed && !touchState.action) handleActionKeyPress();
-        touchState[k] = pressed;
-        const btn = document.querySelector(`.t-btn[data-key="${k}"]`);
-        if (btn) btn.classList.toggle("active", pressed);
+    }
+
+    // Gắn sự kiện chạm vào từng bông hoa trong bó hoa
+    document.querySelectorAll(".flower-head").forEach((fl) => {
+      fl.addEventListener("pointerdown", (e) => {
+        e.stopPropagation();
+        const noteIdx = parseInt(fl.getAttribute("data-note") || "0", 10);
+        playChime(FLOWER_CHIMES[noteIdx % FLOWER_CHIMES.length], 0.4, 0.22);
+        spawnHeartBurst(e.clientX, e.clientY, 14);
       });
-    }
-
-    touchControls.addEventListener("touchstart", e => { e.preventDefault(); handleTouches(e); }, { passive: false });
-    touchControls.addEventListener("touchmove", e => { e.preventDefault(); handleTouches(e); }, { passive: false });
-    touchControls.addEventListener("touchend", e => { e.preventDefault(); handleTouches(e); }, { passive: false });
-
-    function getLocalPlayerInput() {
-      return {
-        up: !!keys["w"] || !!keys["arrowup"] || touchState.up,
-        down: !!keys["s"] || !!keys["arrowdown"] || touchState.down,
-        left: !!keys["a"] || !!keys["arrowleft"] || touchState.left,
-        right: !!keys["d"] || !!keys["arrowright"] || touchState.right
-      };
-    }
-
-    function handleActionKeyPress() {
-      if (activePuzzle.giftId !== null) {
-        if (activePuzzle.type === "MASH_HEART") triggerPuzzleInput("MASH");
-        return;
-      }
-
-      const myPlayer = (role === "CLIENT" || (role === "OFFLINE" && offlineActiveId === 2)) ? p2 : p1;
-      GIFT_CONFIGS.forEach(cfg => {
-        if (giftsState[cfg.id].unlocked) return;
-        const dist = Math.hypot(myPlayer.x - cfg.x, myPlayer.y - cfg.y);
-        if (dist < 75 && cfg.puzzleType !== "PLATES") {
-          if (role === "CLIENT") sendPuzzleEvent({ cmd: "OPEN", giftId: cfg.id });
-          else openPuzzle(cfg.id);
-        }
-      });
-    }
+    });
 
     // =========================================================================
-    // 8. KẾT NỐI MẠNG P2P PEERJS (TÍCH HỢP SẴN TURN SERVER CỦA BẠN)
+    // 4. XỬ LÝ MỞ THƯ TÌNH & CHUYỂN SANG MÀN KẾT PHÁO HOA
     // =========================================================================
-    let conn = null;
-    let remoteInputs = { up: false, down: false, left: false, right: false };
+    const letterModal = document.getElementById("letter-modal");
+    const letterTextEl = document.getElementById("letter-text");
+    const fireworksOverlay = document.getElementById("fireworks-overlay");
+    let typingTimer = null;
+    let fireworksActive = false;
 
-    const peer = new Peer({
-      config: {
-        iceServers: [
-          { urls: "stun:stun.relay.metered.ca:80" },
-          {
-            urls: "turn:global.relay.metered.ca:80",
-            username: "8a9147e70a62e057ae66290f",
-            credential: "GhlDl9OroRDzeCzf",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:80?transport=tcp",
-            username: "8a9147e70a62e057ae66290f",
-            credential: "GhlDl9OroRDzeCzf",
-          },
-          {
-            urls: "turn:global.relay.metered.ca:443",
-            username: "8a9147e70a62e057ae66290f",
-            credential: "GhlDl9OroRDzeCzf",
-          },
-          {
-            urls: "turns:global.relay.metered.ca:443?transport=tcp",
-            username: "8a9147e70a62e057ae66290f",
-            credential: "GhlDl9OroRDzeCzf",
-          }
-        ],
-        iceCandidatePoolSize: 10
-      }
-    });
-
-    peer.on("open", id => { document.getElementById("my-id").innerText = id; });
-    peer.on("error", err => {
-      document.getElementById("status").innerText = "Lỗi kết nối: " + err.type;
-    });
-
-    peer.on("connection", c => {
-      conn = c;
-      role = "HOST";
-      restartFullGame();
-      conn.on("open", () => {
-        document.getElementById("status").innerText = "💑 Bạn là Đạt";
-        document.getElementById("status").style.color = "#2ed573";
-      });
-      setupConnEvents();
-    });
-
-    document.getElementById("btn-connect").addEventListener("click", () => {
-      initAudio();
-      const target = document.getElementById("target-id").value.trim();
-      if (!target || target === peer.id) return;
-      if (conn) conn.close();
-
-      conn = peer.connect(target);
-      role = "CLIENT";
-      document.getElementById("status").innerText = "Đang kết nối...";
-      conn.on("open", () => {
-        document.getElementById("status").innerText = "💑 Bạn là Tuyến (Bà chã hơm)";
-        document.getElementById("status").style.color = "#ff4d6d";
-        setupConnEvents();
-      });
-    });
-
-    function sendPuzzleEvent(payload) {
-      if (conn && conn.open) conn.send({ type: "PUZ_CMD", payload });
+    function startTypewriterLetter() {
+      if (typingTimer) clearInterval(typingTimer);
+      letterTextEl.innerHTML = "";
+      let idx = 0;
+      typingTimer = setInterval(() => {
+        if (idx < LOVE_LETTER_CONTENT.length) {
+          const ch = LOVE_LETTER_CONTENT[idx];
+          letterTextEl.innerHTML += ch === "\n" ? "<br/>" : ch;
+          idx++;
+        } else {
+          clearInterval(typingTimer);
+        }
+      }, 32);
     }
 
-    function setupConnEvents() {
-      conn.on("data", data => {
-        if (data.type === "CUSTOM_PHOTO") {
-          HER_PHOTO_URL = data.dataUrl;
-          return;
-        }
-        if (role === "HOST") {
-          if (data.type === "INPUT") remoteInputs = data.inputs;
-          else if (data.type === "PUZ_CMD") {
-            const p = data.payload;
-            if (p.cmd === "OPEN") openPuzzle(p.giftId);
-            else if (p.cmd === "CLOSE") closePuzzleModal();
-            else if (p.cmd === "RESTART") restartFullGame();
-            else if (p.cmd === "TOGGLE_MAP") showMinimap = !showMinimap;
-            else if (p.cmd === "START_FIREWORKS") triggerFireworksFinale();
-            else if (p.cmd === "INPUT") handlePuzzleInputOnHost(p.action, 2);
-          }
-        } 
-        else if (role === "CLIENT") {
-          if (data.type === "UNLOCK_EVENT") {
-            unlockGiftSuccess(data.giftId);
-            return;
-          }
-          if (data.type === "STATE") {
-            p1.x = data.p1.x; p1.y = data.p1.y; p1.vx = data.p1.vx; p1.vy = data.p1.vy; p1.dirX = data.p1.dx; p1.dirY = data.p1.dy;
-            p2.x = data.p2.x; p2.y = data.p2.y; p2.vx = data.p2.vx; p2.vy = data.p2.vy; p2.dirX = data.p2.dx; p2.dirY = data.p2.dy;
-            timeLeft = data.timeLeft;
-            giftsState = data.giftsState;
-            showMinimap = data.showMinimap;
+    document.getElementById("btn-open-letter").addEventListener("click", (e) => {
+      playChime(783.99, 0.4);
+      spawnHeartBurst(e.clientX, e.clientY, 18);
+      letterModal.style.display = "flex";
+      startTypewriterLetter();
+    });
 
-            if (data.fireworksActive && !fireworksActive) {
-              triggerFireworksFinale();
-            } else if (!data.fireworksActive && fireworksActive) {
-              fireworksActive = false;
-              document.getElementById("fireworks-overlay").style.display = "none";
-            }
+    document.getElementById("btn-back-bouquet").addEventListener("click", () => {
+      if (typingTimer) clearInterval(typingTimer);
+      letterModal.style.display = "none";
+    });
 
-            if (data.gameEnded && !gameEnded && !fireworksActive) {
-              const allDone = giftsState.every(g => g.unlocked);
-              showEndModal(allDone);
-            } else if (!data.gameEnded && gameEnded) {
-              gameEnded = false;
-              document.getElementById("end-modal").style.display = "none";
-            }
+    document.getElementById("btn-to-fireworks").addEventListener("click", () => {
+      if (typingTimer) clearInterval(typingTimer);
+      letterModal.style.display = "none";
+      fireworksActive = true;
+      fireworksOverlay.style.display = "flex";
+      playChime(1046.50, 0.5);
+    });
 
-            const prevGiftId = activePuzzle.giftId;
-            activePuzzle = data.activePuzzle;
-            if (prevGiftId !== activePuzzle.giftId) {
-              renderPuzzleModalUI();
-            }
-          }
-        }
-      });
-    }
+    document.getElementById("btn-replay-all").addEventListener("click", () => {
+      fireworksActive = false;
+      fireworksOverlay.style.display = "none";
+    });
 
-    setInterval(() => {
-      if (role !== "CLIENT" && !gameEnded) {
-        if (timeLeft > 0) {
-          timeLeft--;
-          if (timeLeft === 0) showEndModal(false);
-        }
-      }
-    }, 1000);
-
-// =========================================================================
-    // 9. HIỆU ỨNG NHIỀU BÔNG HOA TỪ TỪ TRỒI RA KẾT THÀNH BÓ HOA (FINALE)
+    // =========================================================================
+    // 5. HỆ THỐNG PHÁO HOA RỰC RỠ (CÓ CẢ PHÁO HOA HÌNH TRÁI TIM)
     // =========================================================================
     const fwCanvas = document.getElementById("fwCanvas");
     const fwCtx = fwCanvas.getContext("2d");
+    const rockets = [];
+    const sparks = [];
+    const FW_COLORS = ["#ff4d6d", "#ffd166", "#4facfe", "#ff758c", "#7bed9f", "#f3c4fb", "#ffffff", "#ff9f1c"];
 
-    let bouquetStartTime = 0;
-    let bouquetFlowers = [];
-    let bouquetLeaves = [];
-    let bouquetSparkles = [];
-    let lastBloomChime = 0;
+    resizeCanvases();
+    window.addEventListener("resize", resizeCanvases);
 
-    function easeOutBack(x) {
-      const c1 = 1.70158;
-      const c3 = c1 + 1;
-      return 1 + c3 * Math.pow(x - 1, 3) + c1 * Math.pow(x - 1, 2);
-    }
-
-    function easeOutCubic(x) {
-      return 1 - Math.pow(1 - x, 3);
-    }
-
-    function initBouquetFinale() {
-      bouquetStartTime = performance.now();
-      bouquetFlowers = [];
-      bouquetLeaves = [];
-      bouquetSparkles = [];
-      lastBloomChime = 0;
-
-      const cx = 450;
-      const cy = 215;
-      const gatherX = 450;
-      const gatherY = 365;
-
-      // 1. Tạo tán lá xanh trồi ra làm nền phía sau bó hoa
-      for (let i = 0; i < 24; i++) {
-        const angle = Math.PI + (i / 23) * Math.PI + (Math.random() - 0.5) * 0.15;
-        const dist = 125 + (i % 3) * 28;
-        bouquetLeaves.push({
-          tx: cx + Math.cos(angle) * dist * 1.15,
-          ty: cy + Math.sin(angle) * dist * 0.78 + 15,
-          angle: angle - Math.PI / 2,
-          size: 28 + (i % 3) * 8,
-          delay: 300 + i * 70,
-          dur: 1100,
-          color: i % 2 === 0 ? "#40916c" : "#52b788"
+    function explodeHeartFirework(rx, ry, color) {
+      const steps = 46;
+      for (let i = 0; i < steps; i++) {
+        const t = (Math.PI * 2 * i) / steps;
+        // Phương trình tham số hình Trái Tim
+        const hx = 16 * Math.pow(Math.sin(t), 3);
+        const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
+        sparks.push({
+          x: rx,
+          y: ry,
+          vx: hx * 0.22,
+          vy: hy * 0.22,
+          color,
+          alpha: 1,
+          size: 2.6
         });
       }
-
-      // 2. Tạo 45 bông hoa chính (Hồng, Cúc, Tulip) xếp theo tầng từ sau ra trước
-      const palettes = [
-        { main: "#ff4d6d", light: "#ff8fa3", core: "#c9184a" },
-        { main: "#ff758c", light: "#ffb3c6", core: "#ff4d6d" },
-        { main: "#f72585", light: "#ff70a6", core: "#b5179e" },
-        { main: "#ff9ebb", light: "#ffe5ec", core: "#ff4d6d" },
-        { main: "#ffd166", light: "#fff3b0", core: "#f77f00" },
-        { main: "#cdb4db", light: "#f3c4fb", core: "#9d4edd" }
-      ];
-
-      const rings = [
-        { count: 16, rx: 145, ry: 95, yOff: -12, sizeMin: 24, sizeMax: 30 },
-        { count: 14, rx: 105, ry: 68, yOff: 5,   sizeMin: 26, sizeMax: 32 },
-        { count: 10, rx: 62,  ry: 42, yOff: 18,  sizeMin: 28, sizeMax: 35 },
-        { count: 5,  rx: 25,  ry: 18, yOff: 25,  sizeMin: 30, sizeMax: 36 }
-      ];
-
-      let flowerIdx = 0;
-      rings.forEach((ring) => {
-        for (let i = 0; i < ring.count; i++) {
-          const a = (i / ring.count) * Math.PI * 2 + (flowerIdx * 0.3);
-          const jitterX = (Math.random() - 0.5) * 18;
-          const jitterY = (Math.random() - 0.5) * 14;
-          const tx = cx + Math.cos(a) * ring.rx + jitterX;
-          const ty = cy + Math.sin(a) * ring.ry + ring.yOff + jitterY;
-
-          const types = ["rose", "rose", "daisy", "tulip"];
-          bouquetFlowers.push({
-            startX: gatherX + (Math.random() - 0.5) * 30,
-            startY: gatherY + 20,
-            tx,
-            ty,
-            size: ring.sizeMin + Math.random() * (ring.sizeMax - ring.sizeMin),
-            type: types[flowerIdx % types.length],
-            palette: palettes[flowerIdx % palettes.length],
-            rot: Math.random() * Math.PI * 2,
-            delay: 800 + flowerIdx * 105,
-            dur: 1250
-          });
-          flowerIdx++;
-        }
-      });
-
-      // Sắp xếp để hoa ở cao (phía sau) vẽ trước, hoa ở thấp (phía trước) đè lên trên
-      bouquetFlowers.sort((a, b) => a.ty - b.ty);
-
-      // 3. Thêm 28 nhánh hoa Baby trắng nhỏ li ti xen kẽ
-      for (let i = 0; i < 28; i++) {
-        const a = Math.random() * Math.PI * 2;
-        const r = 40 + Math.random() * 125;
-        bouquetFlowers.push({
-          startX: gatherX,
-          startY: gatherY,
-          tx: cx + Math.cos(a) * r * 1.15,
-          ty: cy + Math.sin(a) * r * 0.78,
-          size: 6 + Math.random() * 4,
-          type: "baby",
-          palette: { main: "#ffffff", light: "#fff0f5", core: "#ffe066" },
-          rot: Math.random() * Math.PI,
-          delay: 1800 + i * 110,
-          dur: 1000
-        });
-      }
-
-      // 4. Hạt đom đóm & trái tim lấp lánh bay xung quanh
-      for (let i = 0; i < 35; i++) {
-        bouquetSparkles.push({
-          x: Math.random() * fwCanvas.width,
-          y: Math.random() * fwCanvas.height,
-          vy: -(0.35 + Math.random() * 0.65),
-          vx: (Math.random() - 0.5) * 0.5,
-          size: 2 + Math.random() * 3.5,
-          phase: Math.random() * Math.PI * 2,
-          isHeart: i % 5 === 0
-        });
-      }
-    }
-
-    function drawSingleFlower(ctx, f, progress, timestamp) {
-      const posP = easeOutCubic(progress);
-      const scaleP = Math.max(0, easeOutBack(progress));
-
-      // Hoa từ từ trồi theo đường cong từ gốc bó hoa lên vị trí trên vòm hoa
-      const curX = f.startX + (f.tx - f.startX) * posP;
-      const arcLift = Math.sin(posP * Math.PI) * 28;
-      const swayX = progress >= 1 ? Math.sin(timestamp * 0.0025 + f.delay) * 2.2 : 0;
-      const swayY = progress >= 1 ? Math.cos(timestamp * 0.002 + f.delay) * 1.5 : 0;
-      const curY = f.startY + (f.ty - f.startY) * posP - arcLift + swayY;
-
-      // Vẽ cành hoa nối từ điểm thắt nơ tới bông hoa
-      ctx.save();
-      ctx.strokeStyle = "#2d6a4f";
-      ctx.lineWidth = f.type === "baby" ? 1.3 : 3;
-      ctx.beginPath();
-      ctx.moveTo(450, 370);
-      ctx.quadraticCurveTo(450 + (curX - 450) * 0.4, 300, curX + swayX, curY);
-      ctx.stroke();
-      ctx.restore();
-
-      // Vẽ đầu bông hoa đang nở
-      ctx.save();
-      ctx.translate(curX + swayX, curY);
-      ctx.scale(scaleP, scaleP);
-      ctx.rotate(f.rot);
-
-      const r = f.size;
-
-      if (f.type === "baby") {
-        ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "#ffccd5";
-        ctx.shadowBlur = 6;
-        for (let p = 0; p < 5; p++) {
-          const ang = (p * Math.PI * 2) / 5;
-          ctx.beginPath();
-          ctx.arc(Math.cos(ang) * r * 0.55, Math.sin(ang) * r * 0.55, r * 0.48, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = "#ffe066";
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (f.type === "daisy") {
-        // Hoa cúc 8 cánh mềm mại
-        ctx.fillStyle = f.palette.light;
-        for (let p = 0; p < 8; p++) {
-          ctx.save();
-          ctx.rotate((p * Math.PI * 2) / 8);
-          ctx.beginPath();
-          ctx.ellipse(0, -r * 0.58, r * 0.28, r * 0.52, 0, 0, Math.PI * 2);
-          ctx.fill();
-          ctx.restore();
-        }
-        ctx.fillStyle = "#ffd166";
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 0.32, 0, Math.PI * 2);
-        ctx.fill();
-      } else if (f.type === "tulip") {
-        // Hoa Tulip 3 lớp cánh ôm tròn
-        ctx.fillStyle = f.palette.main;
-        ctx.beginPath();
-        ctx.ellipse(-r * 0.24, -r * 0.08, r * 0.36, r * 0.58, -0.22, 0, Math.PI * 2);
-        ctx.ellipse(r * 0.24, -r * 0.08, r * 0.36, r * 0.58, 0.22, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = f.palette.light;
-        ctx.beginPath();
-        ctx.ellipse(0, -r * 0.14, r * 0.38, r * 0.62, 0, 0, Math.PI * 2);
-        ctx.fill();
-      } else {
-        // Hoa Hồng nhiều tầng cánh xoáy
-        ctx.fillStyle = f.palette.main;
-        for (let p = 0; p < 6; p++) {
-          const ang = (p * Math.PI * 2) / 6;
-          ctx.beginPath();
-          ctx.arc(Math.cos(ang) * r * 0.36, Math.sin(ang) * r * 0.36, r * 0.52, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = f.palette.light;
-        for (let p = 0; p < 5; p++) {
-          const ang = (p * Math.PI * 2) / 5 + 0.5;
-          ctx.beginPath();
-          ctx.arc(Math.cos(ang) * r * 0.22, Math.sin(ang) * r * 0.22, r * 0.38, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = f.palette.core;
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 0.26, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.strokeStyle = "#fff0f5";
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(0, 0, r * 0.14, 0, Math.PI * 1.4);
-        ctx.stroke();
-      }
-
-      ctx.restore();
     }
 
     function updateAndDrawFireworks() {
       if (!fireworksActive) return;
 
-      const now = performance.now();
-      const elapsed = now - bouquetStartTime;
-
-      // Phát tiếng chuông gió dịu nhẹ mỗi khi có đợt hoa mới trồi lên
-      if (elapsed > 800 && elapsed < 5800 && now - lastBloomChime > 280) {
-        lastBloomChime = now;
-        const notes = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
-        playTone(notes[Math.floor(Math.random() * notes.length)], 0.18, "sine", 0.045);
-      }
-
-      // 1. Nền đêm pastel lung linh kèm hào quang ấm áp phía sau bó hoa
-      const bgGrad = fwCtx.createRadialGradient(450, 230, 40, 450, 260, 520);
-      bgGrad.addColorStop(0, "#3b1846");
-      bgGrad.addColorStop(0.55, "#1f0c29");
-      bgGrad.addColorStop(1, "#0d0414");
-      fwCtx.fillStyle = bgGrad;
+      fwCtx.fillStyle = "rgba(12, 4, 24, 0.2)";
       fwCtx.fillRect(0, 0, fwCanvas.width, fwCanvas.height);
 
-      // Vòng sáng dịu phía sau bó hoa
-      const glowP = Math.min(1, elapsed / 2000);
-      const aura = fwCtx.createRadialGradient(450, 220, 10, 450, 220, 220 * glowP);
-      aura.addColorStop(0, "rgba(255, 143, 163, 0.28)");
-      aura.addColorStop(1, "rgba(255, 143, 163, 0)");
-      fwCtx.fillStyle = aura;
-      fwCtx.beginPath();
-      fwCtx.arc(450, 220, 220, 0, Math.PI * 2);
-      fwCtx.fill();
-
-      // 2. Lớp giấy gói hoa phía sau (mở ra từ giây đầu tiên)
-      const wrapP = easeOutCubic(Math.min(1, elapsed / 1000));
-      fwCtx.save();
-      fwCtx.translate(450, 375);
-      fwCtx.scale(wrapP, wrapP);
-
-      fwCtx.fillStyle = "#ffdde6";
-      fwCtx.strokeStyle = "#ffb3c6";
-      fwCtx.lineWidth = 3;
-      fwCtx.beginPath();
-      fwCtx.moveTo(0, 0);
-      fwCtx.lineTo(-195, -180);
-      fwCtx.quadraticCurveTo(0, -250, 195, -180);
-      fwCtx.closePath();
-      fwCtx.fill();
-      fwCtx.stroke();
-      fwCtx.restore();
-
-      // 3. Vẽ các tán lá xanh trồi ra xung quanh
-      bouquetLeaves.forEach(lf => {
-        if (elapsed < lf.delay) return;
-        const p = Math.min(1, (elapsed - lf.delay) / lf.dur);
-        const ep = easeOutBack(p);
-        const lx = 450 + (lf.tx - 450) * ep;
-        const ly = 360 + (lf.ty - 360) * ep;
-
-        fwCtx.save();
-        fwCtx.translate(lx, ly);
-        fwCtx.rotate(lf.angle);
-        fwCtx.scale(ep, ep);
-        fwCtx.fillStyle = lf.color;
-        fwCtx.beginPath();
-        fwCtx.ellipse(0, 0, lf.size * 0.42, lf.size, 0, 0, Math.PI * 2);
-        fwCtx.fill();
-        fwCtx.restore();
-      });
-
-      // 4. Vẽ từng bông hoa từ từ trồi lên và kết thành bó
-      bouquetFlowers.forEach(f => {
-        if (elapsed < f.delay) return;
-        const p = Math.min(1, (elapsed - f.delay) / f.dur);
-        drawSingleFlower(fwCtx, f, p, now);
-      });
-
-      // 5. Lớp giấy gói phía trước ôm lấy thân hoa & chiếc nơ ruy-băng hồng
-      if (elapsed > 400) {
-        const frontWrapP = easeOutBack(Math.min(1, (elapsed - 400) / 1100));
-        fwCtx.save();
-        fwCtx.translate(450, 375);
-        fwCtx.scale(frontWrapP, frontWrapP);
-
-        // Chân cuống hoa phía dưới
-        fwCtx.fillStyle = "#2d6a4f";
-        fwCtx.beginPath();
-        fwCtx.moveTo(-16, 0);
-        fwCtx.lineTo(16, 0);
-        fwCtx.lineTo(28, 95);
-        fwCtx.lineTo(-28, 95);
-        fwCtx.closePath();
-        fwCtx.fill();
-
-        // Giấy gói vạt trái & phải
-        fwCtx.fillStyle = "#ffc2d1";
-        fwCtx.beginPath();
-        fwCtx.moveTo(-145, -95);
-        fwCtx.lineTo(0, 15);
-        fwCtx.lineTo(-42, 85);
-        fwCtx.lineTo(-95, -10);
-        fwCtx.closePath();
-        fwCtx.fill();
-
-        fwCtx.fillStyle = "#ffb3c6";
-        fwCtx.beginPath();
-        fwCtx.moveTo(145, -95);
-        fwCtx.lineTo(0, 15);
-        fwCtx.lineTo(42, 85);
-        fwCtx.lineTo(95, -10);
-        fwCtx.closePath();
-        fwCtx.fill();
-
-        // Giấy gói chính diện màu kem hồng
-        fwCtx.fillStyle = "#fff0f5";
-        fwCtx.strokeStyle = "#ff8fa3";
-        fwCtx.lineWidth = 2.5;
-        fwCtx.beginPath();
-        fwCtx.moveTo(-105, -70);
-        fwCtx.quadraticCurveTo(0, -30, 105, -70);
-        fwCtx.lineTo(36, 88);
-        fwCtx.quadraticCurveTo(0, 98, -36, 88);
-        fwCtx.closePath();
-        fwCtx.fill();
-        fwCtx.stroke();
-
-        // Dải ruy-băng & Nơ đỏ hồng ở eo bó hoa
-        fwCtx.fillStyle = "#ff4d6d";
-        fwCtx.strokeStyle = "#c9184a";
-        fwCtx.lineWidth = 2;
-
-        // Dải ruy-băng rủ xuống
-        fwCtx.beginPath();
-        fwCtx.moveTo(-6, 12);
-        fwCtx.lineTo(-26, 72);
-        fwCtx.lineTo(-10, 68);
-        fwCtx.closePath();
-        fwCtx.fill();
-
-        fwCtx.beginPath();
-        fwCtx.moveTo(6, 12);
-        fwCtx.lineTo(26, 72);
-        fwCtx.lineTo(10, 68);
-        fwCtx.closePath();
-        fwCtx.fill();
-
-        // Hai cánh nơ
-        fwCtx.beginPath();
-        fwCtx.ellipse(-24, 6, 22, 13, -0.25, 0, Math.PI * 2);
-        fwCtx.fill();
-        fwCtx.stroke();
-
-        fwCtx.beginPath();
-        fwCtx.ellipse(24, 6, 22, 13, 0.25, 0, Math.PI * 2);
-        fwCtx.fill();
-        fwCtx.stroke();
-
-        // Nút thắt giữa nơ
-        fwCtx.fillStyle = "#ffe066";
-        fwCtx.beginPath();
-        fwCtx.arc(0, 6, 8, 0, Math.PI * 2);
-        fwCtx.fill();
-        fwCtx.stroke();
-
-        fwCtx.restore();
+      if (Math.random() < 0.08) {
+        rockets.push({
+          x: 80 + Math.random() * (fwCanvas.width - 160),
+          y: fwCanvas.height,
+          vx: (Math.random() - 0.5) * 2,
+          vy: -(6.8 + Math.random() * 3.5),
+          targetY: 70 + Math.random() * (fwCanvas.height * 0.42),
+          color: FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)],
+          isHeart: Math.random() < 0.4
+        });
       }
 
-      // 6. Hạt ánh sáng & trái tim bay lên quanh bó hoa
-      bouquetSparkles.forEach(sp => {
+      for (let i = rockets.length - 1; i >= 0; i--) {
+        const r = rockets[i];
+        r.x += r.vx;
+        r.y += r.vy;
+
+        fwCtx.fillStyle = r.color;
+        fwCtx.beginPath();
+        fwCtx.arc(r.x, r.y, 3, 0, Math.PI * 2);
+        fwCtx.fill();
+
+        if (r.y <= r.targetY) {
+          if (r.isHeart) {
+            explodeHeartFirework(r.x, r.y, r.color);
+          } else {
+            const count = 44 + Math.floor(Math.random() * 24);
+            for (let s = 0; s < count; s++) {
+              const angle = (Math.PI * 2 * s) / count + (Math.random() - 0.5) * 0.1;
+              const speed = 1.5 + Math.random() * 4.5;
+              sparks.push({
+                x: r.x,
+                y: r.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                color: FW_COLORS[Math.floor(Math.random() * FW_COLORS.length)],
+                alpha: 1,
+                size: 2 + Math.random() * 2.2
+              });
+            }
+          }
+          playChime(240 + Math.random() * 280, 0.15, 0.04);
+          rockets.splice(i, 1);
+        }
+      }
+
+      for (let i = sparks.length - 1; i >= 0; i--) {
+        const sp = sparks[i];
+        sp.x += sp.vx;
         sp.y += sp.vy;
-        sp.x += sp.vx + Math.sin(now * 0.003 + sp.phase) * 0.3;
-        if (sp.y < -20) {
-          sp.y = fwCanvas.height + 10;
-          sp.x = 200 + Math.random() * 500;
+        sp.vy += 0.048;
+        sp.vx *= 0.985;
+        sp.alpha -= 0.014;
+
+        if (sp.alpha <= 0) {
+          sparks.splice(i, 1);
+          continue;
         }
-        const alpha = 0.4 + Math.abs(Math.sin(now * 0.004 + sp.phase)) * 0.6;
+
         fwCtx.save();
-        fwCtx.globalAlpha = alpha;
-        if (sp.isHeart) {
-          fwCtx.font = "14px sans-serif";
-          fwCtx.fillText("💖", sp.x, sp.y);
-        } else {
-          fwCtx.fillStyle = "#ffe066";
-          fwCtx.shadowColor = "#ffe066";
-          fwCtx.shadowBlur = 8;
-          fwCtx.beginPath();
-          fwCtx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
-          fwCtx.fill();
-        }
+        fwCtx.globalAlpha = sp.alpha;
+        fwCtx.fillStyle = sp.color;
+        fwCtx.shadowColor = sp.color;
+        fwCtx.shadowBlur = 8;
+        fwCtx.beginPath();
+        fwCtx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
+        fwCtx.fill();
         fwCtx.restore();
+      }
+    }
+
+    // =========================================================================
+    // 6. VÒNG LẶP ĐỒ HỌA CHÍNH
+    // =========================================================================
+    function animateLoop(timestamp) {
+      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+
+      // Vẽ đom đóm phát sáng dịu dàng
+      fireflies.forEach(f => {
+        f.x += f.vx;
+        f.y += f.vy;
+        if (f.x < 0) f.x = bgCanvas.width;
+        if (f.x > bgCanvas.width) f.x = 0;
+        if (f.y < 0) f.y = bgCanvas.height;
+        if (f.y > bgCanvas.height) f.y = 0;
+
+        const alpha = 0.35 + Math.abs(Math.sin(timestamp * 0.002 + f.phase)) * 0.65;
+        bgCtx.save();
+        bgCtx.globalAlpha = alpha;
+        bgCtx.fillStyle = "#ffe066";
+        bgCtx.shadowColor = "#ffd166";
+        bgCtx.shadowBlur = 10;
+        bgCtx.beginPath();
+        bgCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        bgCtx.fill();
+        bgCtx.restore();
       });
-    }
-    // =========================================================================
-    // 10. VÒNG LẶP GAME & VẼ ĐỒ HỌA BẢN ĐỒ MỞ
-    // =========================================================================
-    const camera = { x: 350, y: 400 };
 
-    function movePlayer(p, inp) {
-      const speed = 4.2;
-      p.vx = 0; p.vy = 0;
-      if (activePuzzle.giftId !== null || gameEnded) return;
+      // Vẽ cánh hoa hồng rơi
+      fallingPetals.forEach(p => {
+        p.x += p.vx + Math.sin(timestamp * 0.0015 + p.rot) * 0.35;
+        p.y += p.vy;
+        p.rot += p.vRot;
 
-      if (inp.left) { p.vx = -speed; p.dirX = -1; p.dirY = 0; }
-      if (inp.right) { p.vx = speed; p.dirX = 1; p.dirY = 0; }
-      if (inp.up) { p.vy = -speed; p.dirY = -1; if (!inp.left && !inp.right) p.dirX = 0; }
-      if (inp.down) { p.vy = speed; p.dirY = 1; if (!inp.left && !inp.right) p.dirX = 0; }
-
-      if (p.vx !== 0 && p.vy !== 0) {
-        p.vx *= 0.7071;
-        p.vy *= 0.7071;
-      }
-
-      p.x = Math.max(40, Math.min(WORLD_W - 40, p.x + p.vx));
-      p.y = Math.max(50, Math.min(WORLD_H - 40, p.y + p.vy));
-    }
-
-    function gameLoop(timestamp) {
-      const localIn = getLocalPlayerInput();
-
-      if (role === "OFFLINE") {
-        if (offlineActiveId === 1) {
-          movePlayer(p1, localIn);
-          p2.vx = 0; p2.vy = 0;
-        } else {
-          movePlayer(p2, localIn);
-          p1.vx = 0; p1.vy = 0;
+        if (p.y > bgCanvas.height + 20) {
+          p.y = -15;
+          p.x = Math.random() * bgCanvas.width;
         }
-        updateActivePuzzle(timestamp, localIn, localIn);
-      } 
-      else if (role === "HOST") {
-        movePlayer(p1, localIn);
-        movePlayer(p2, remoteInputs);
-        updateActivePuzzle(timestamp, localIn, remoteInputs);
+        if (p.x > bgCanvas.width + 20) p.x = -15;
+        if (p.x < -20) p.x = bgCanvas.width + 15;
 
-        if (conn && conn.open) {
-          conn.send({
-            type: "STATE",
-            p1: { x: p1.x, y: p1.y, vx: p1.vx, vy: p1.vy, dx: p1.dirX, dy: p1.dirY },
-            p2: { x: p2.x, y: p2.y, vx: p2.vx, vy: p2.vy, dx: p2.dirX, dy: p2.dirY },
-            timeLeft,
-            gameEnded,
-            showMinimap,
-            fireworksActive,
-            giftsState,
-            activePuzzle
-          });
-        }
-      } 
-      else if (role === "CLIENT") {
-        if (conn && conn.open) {
-          conn.send({ type: "INPUT", inputs: localIn });
-        }
-        updateActivePuzzle(timestamp, remoteInputs, localIn);
-      }
+        bgCtx.save();
+        bgCtx.translate(p.x, p.y);
+        bgCtx.rotate(p.rot);
+        bgCtx.fillStyle = p.color;
+        bgCtx.beginPath();
+        bgCtx.moveTo(0, -p.size);
+        bgCtx.bezierCurveTo(p.size, -p.size, p.size, p.size, 0, p.size);
+        bgCtx.bezierCurveTo(-p.size, p.size, -p.size, -p.size, 0, -p.size);
+        bgCtx.fill();
+        bgCtx.restore();
+      });
 
-      const anyPlayerMoving = Math.abs(p1.vx) > 0.1 || Math.abs(p1.vy) > 0.1 || Math.abs(p2.vx) > 0.1 || Math.abs(p2.vy) > 0.1;
-      if (anyPlayerMoving && activePuzzle.giftId === null && !gameEnded) {
-        playSoftFootstep(timestamp);
+      // Vẽ các hạt trái tim bung ra khi chạm vào hoa
+      for (let i = burstHearts.length - 1; i >= 0; i--) {
+        const bh = burstHearts[i];
+        bh.x += bh.vx;
+        bh.y += bh.vy;
+        bh.vy += 0.05;
+        bh.alpha -= 0.018;
+        if (bh.alpha <= 0) {
+          burstHearts.splice(i, 1);
+          continue;
+        }
+        bgCtx.save();
+        bgCtx.globalAlpha = bh.alpha;
+        bgCtx.font = `${bh.size}px sans-serif`;
+        bgCtx.textAlign = "center";
+        bgCtx.fillText(bh.sym, bh.x, bh.y);
+        bgCtx.restore();
       }
 
       updateAndDrawFireworks();
-
-      if (role !== "CLIENT" && !giftsState[0].unlocked) {
-        const pad1 = { x: GIFT_CONFIGS[0].x - 65, y: GIFT_CONFIGS[0].y + 55 };
-        const pad2 = { x: GIFT_CONFIGS[0].x + 65, y: GIFT_CONFIGS[0].y + 55 };
-        const onPad1 = Math.hypot(p1.x - pad1.x, p1.y - pad1.y) < 34;
-        const onPad2 = Math.hypot(p2.x - pad2.x, p2.y - pad2.y) < 34;
-
-        if (onPad1 && onPad2) {
-          giftsState[0].plateProgress = Math.min(100, giftsState[0].plateProgress + 0.7);
-          if (giftsState[0].plateProgress >= 100) unlockGiftSuccess(0);
-        } else {
-          giftsState[0].plateProgress = Math.max(0, giftsState[0].plateProgress - 0.5);
-        }
-      }
-
-      const coupleDist = Math.hypot(p1.x - p2.x, p1.y - p2.y);
-      if (coupleDist < 95 && Math.random() < 0.12) {
-        spawnHeartParticle((p1.x + p2.x) / 2, (p1.y + p2.y) / 2);
-      }
-
-      const unlockedCount = giftsState.filter(g => g.unlocked).length;
-      document.getElementById("gift-count-text").innerText = `${unlockedCount} / ${GIFT_CONFIGS.length}`;
-      const mins = String(Math.floor(timeLeft / 60)).padStart(2, "0");
-      const secs = String(timeLeft % 60).padStart(2, "0");
-      document.getElementById("time-text").innerText = `${mins}:${secs}`;
-
-      const targetPlayer = (role === "CLIENT" || (role === "OFFLINE" && offlineActiveId === 2)) ? p2 : p1;
-      const targetCamX = Math.max(0, Math.min(WORLD_W - canvas.width, targetPlayer.x - canvas.width / 2));
-      const targetCamY = Math.max(0, Math.min(WORLD_H - canvas.height, targetPlayer.y - canvas.height / 2));
-      camera.x += (targetCamX - camera.x) * 0.1;
-      camera.y += (targetCamY - camera.y) * 0.1;
-
-      updateDomCharacters(camera);
-
-      // ================= VẼ BẢN ĐỒ CANVAS =================
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      ctx.save();
-      ctx.translate(-camera.x, -camera.y);
-
-      // 1. Nền cỏ Caro tươi sáng
-      ctx.fillStyle = "#b8f2e6";
-      ctx.fillRect(0, 0, WORLD_W, WORLD_H);
-      ctx.fillStyle = "#aef0e2";
-      const tileSize = 80;
-      for (let gx = 0; gx < WORLD_W; gx += tileSize) {
-        for (let gy = 0; gy < WORLD_H; gy += tileSize) {
-          if ((gx / tileSize + gy / tileSize) % 2 === 0) {
-            ctx.fillRect(gx, gy, tileSize, tileSize);
-          }
-        }
-      }
-
-      // 2. Vẽ các Bông Hoa Đa Sắc trên mặt cỏ
-      meadowFlowers.forEach(fl => {
-        if (fl.x < camera.x - 20 || fl.x > camera.x + canvas.width + 20 || fl.y < camera.y - 20 || fl.y > camera.y + canvas.height + 20) return;
-        const swayX = Math.sin(timestamp * 0.003 + fl.seed) * 2.2;
-        const fx = fl.x + swayX;
-        const fy = fl.y;
-
-        ctx.strokeStyle = "#52b788";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(fl.x, fy + 8);
-        ctx.lineTo(fx, fy);
-        ctx.stroke();
-
-        ctx.fillStyle = fl.color;
-        for (let p = 0; p < 5; p++) {
-          const ang = (p * Math.PI * 2) / 5 + fl.seed;
-          ctx.beginPath();
-          ctx.arc(fx + Math.cos(ang) * fl.size, fy + Math.sin(ang) * fl.size, fl.size * 0.68, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.fillStyle = fl.centerColor;
-        ctx.beginPath();
-        ctx.arc(fx, fy, fl.size * 0.48, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      // 3. Đường lát đá hoa hồng nối cả 9 khu vực trò chơi
-      ctx.strokeStyle = "#ffcad4";
-      ctx.lineWidth = 56;
-      ctx.lineCap = "round";
-      ctx.lineJoin = "round";
-      ctx.beginPath();
-      ctx.moveTo(360, 320); ctx.lineTo(800, 600);
-      ctx.moveTo(1240, 280); ctx.lineTo(800, 600);
-      ctx.moveTo(340, 920); ctx.lineTo(800, 600);
-      ctx.moveTo(1280, 900); ctx.lineTo(800, 600);
-      ctx.moveTo(800, 200); ctx.lineTo(800, 1020);
-      ctx.moveTo(200, 600); ctx.lineTo(1400, 600);
-      ctx.stroke();
-
-      // Quảng trường Trái Tim trung tâm
-      ctx.fillStyle = "#ffe5ec";
-      ctx.strokeStyle = "#ff8fa3";
-      ctx.lineWidth = 6;
-      ctx.beginPath();
-      ctx.arc(800, 600, 130, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.stroke();
-
-      // 4. Thảm Ma Thuật cho Quà số 1
-      if (!giftsState[0].unlocked) {
-        const pad1 = { x: GIFT_CONFIGS[0].x - 65, y: GIFT_CONFIGS[0].y + 55 };
-        const pad2 = { x: GIFT_CONFIGS[0].x + 65, y: GIFT_CONFIGS[0].y + 55 };
-
-        ctx.fillStyle = "rgba(79, 172, 254, 0.35)";
-        ctx.strokeStyle = "#4facfe";
-        ctx.lineWidth = 3;
-        ctx.beginPath(); ctx.arc(pad1.x, pad1.y, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#0077b6"; ctx.font = "bold 11px sans-serif"; ctx.textAlign = "center";
-        ctx.fillText("Anh Đứng Đây", pad1.x, pad1.y + 4);
-
-        ctx.fillStyle = "rgba(255, 117, 140, 0.35)";
-        ctx.strokeStyle = "#ff758c";
-        ctx.beginPath(); ctx.arc(pad2.x, pad2.y, 28, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = "#c9184a";
-        ctx.fillText("Em Đứng Đây", pad2.x, pad2.y + 4);
-
-        if (giftsState[0].plateProgress > 0) {
-          ctx.fillStyle = "#fff";
-          ctx.fillRect(GIFT_CONFIGS[0].x - 40, GIFT_CONFIGS[0].y - 60, 80, 10);
-          ctx.fillStyle = "#ff4d6d";
-          ctx.fillRect(GIFT_CONFIGS[0].x - 40, GIFT_CONFIGS[0].y - 60, 80 * (giftsState[0].plateProgress / 100), 10);
-        }
-      }
-
-      // 5. Vẽ các Hộp Quà
-      GIFT_CONFIGS.forEach(cfg => {
-        const st = giftsState[cfg.id];
-        const floatY = Math.sin(timestamp * 0.004 + cfg.id) * 6;
-
-        ctx.fillStyle = st.unlocked ? "rgba(46, 213, 115, 0.25)" : "rgba(255, 117, 140, 0.3)";
-        ctx.beginPath();
-        ctx.ellipse(cfg.x, cfg.y + 24, 34, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#ffffff";
-        ctx.strokeStyle = st.unlocked ? "#2ed573" : "#ff758c";
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.roundRect(cfg.x - 28, cfg.y - 28 + floatY, 56, 56, 16);
-        ctx.fill();
-        ctx.stroke();
-
-        const imgObj = loadedGiftImages[cfg.id];
-        if (imgObj && imgObj.complete && imgObj.naturalWidth > 0) {
-          ctx.drawImage(imgObj, cfg.x - 22, cfg.y - 22 + floatY, 44, 44);
-        }
-
-        ctx.font = "bold 12px 'Segoe UI', sans-serif";
-        ctx.textAlign = "center";
-        ctx.fillStyle = st.unlocked ? "#1dd1a1" : "#c9184a";
-        ctx.fillText(st.unlocked ? "✓ Đã thu thập" : cfg.name, cfg.x, cfg.y + 44);
-
-        const dist = Math.hypot(targetPlayer.x - cfg.x, targetPlayer.y - cfg.y);
-        if (!st.unlocked && dist < 75) {
-          ctx.fillStyle = "#2b2d42";
-          ctx.beginPath();
-          ctx.roundRect(cfg.x - 75, cfg.y - 58 + floatY, 150, 24, 8);
-          ctx.fill();
-          ctx.fillStyle = "#fff";
-          ctx.font = "bold 11px sans-serif";
-          const promptTxt = cfg.puzzleType === "PLATES" ? "Đứng vào 2 vòng tròn!" : "Bấm [Cách] để chơi.";
-          ctx.fillText(promptTxt, cfg.x, cfg.y - 42 + floatY);
-        }
-      });
-
-      // 6. Sợi dây tơ hồng nối 2 nhân vật
-      if (coupleDist < 220) {
-        ctx.strokeStyle = `rgba(255, 77, 109, ${1 - coupleDist / 220})`;
-        ctx.lineWidth = 3;
-        ctx.setLineDash([6, 6]);
-        ctx.beginPath();
-        ctx.moveTo(p1.x, p1.y);
-        ctx.lineTo(p2.x, p2.y);
-        ctx.stroke();
-        ctx.setLineDash([]);
-      }
-
-      // 7. Vẽ Cây Hoa Anh Đào trang trí
-      trees.forEach(t => {
-        ctx.fillStyle = "rgba(0,0,0,0.12)";
-        ctx.beginPath(); ctx.ellipse(t.x, t.y + 28, t.r * 0.8, 14, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#8d5b4c";
-        ctx.fillRect(t.x - 8, t.y, 16, 28);
-        ctx.fillStyle = "#ffafcc";
-        ctx.beginPath(); ctx.arc(t.x, t.y - 10, t.r, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = "#ffc8dd";
-        ctx.beginPath(); ctx.arc(t.x - 10, t.y - 18, t.r * 0.7, 0, Math.PI * 2); ctx.fill();
-      });
-
-      // 8. Vẽ Đàn Bướm Bay Lượn Sinh Động
-      butterflies.forEach(b => {
-        b.angle += b.turnSpeed + Math.sin(timestamp * 0.002 + b.phase) * 0.015;
-        b.x += Math.cos(b.angle) * b.speed;
-        b.y += Math.sin(b.angle) * b.speed;
-
-        if (b.x < 60) b.angle = 0;
-        if (b.x > WORLD_W - 60) b.angle = Math.PI;
-        if (b.y < 60) b.angle = Math.PI / 2;
-        if (b.y > WORLD_H - 60) b.angle = -Math.PI / 2;
-
-        const flap = 0.25 + Math.abs(Math.sin(timestamp * 0.016 + b.phase)) * 0.85;
-        ctx.save();
-        ctx.translate(b.x, b.y);
-        ctx.rotate(b.angle + Math.PI / 2);
-
-        ctx.fillStyle = "rgba(0,0,0,0.08)";
-        ctx.beginPath();
-        ctx.ellipse(4, 14, 5 * flap, 3, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = b.palette.wing;
-        ctx.beginPath();
-        ctx.ellipse(-5 * flap, -2, 6 * flap, 4.5, -0.3, 0, Math.PI * 2);
-        ctx.ellipse(5 * flap, -2, 6 * flap, 4.5, 0.3, 0, Math.PI * 2);
-        ctx.ellipse(-4 * flap, 4, 4.5 * flap, 3.5, 0.3, 0, Math.PI * 2);
-        ctx.ellipse(4 * flap, 4, 4.5 * flap, 3.5, -0.3, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = b.palette.spot;
-        ctx.beginPath();
-        ctx.arc(-5 * flap, -2, 1.6 * flap, 0, Math.PI * 2);
-        ctx.arc(5 * flap, -2, 1.6 * flap, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#2b2d42";
-        ctx.fillRect(-1, -5, 2, 10);
-        ctx.restore();
-      });
-
-      // 9. Hiệu ứng Cánh Hoa & Trái Tim
-      for (let i = particles.length - 1; i >= 0; i--) {
-        const pt = particles[i];
-        pt.x += pt.vx;
-        pt.y += pt.vy;
-
-        if (pt.type === "petal") {
-          if (pt.x > WORLD_W) pt.x = 0;
-          if (pt.y > WORLD_H) pt.y = 0;
-          ctx.fillStyle = "#ff8fa3";
-          ctx.beginPath();
-          ctx.ellipse(pt.x, pt.y, pt.size, pt.size * 0.6, pt.angle, 0, Math.PI * 2);
-          ctx.fill();
-        } else if (pt.type === "heart") {
-          pt.alpha -= 0.018;
-          if (pt.alpha <= 0) {
-            particles.splice(i, 1);
-            continue;
-          }
-          ctx.save();
-          ctx.globalAlpha = pt.alpha;
-          ctx.font = `${pt.size}px sans-serif`;
-          ctx.fillText("💗", pt.x, pt.y);
-          ctx.restore();
-        }
-      }
-
-      ctx.restore();
-
-      // 10. La bàn Mini-map
-      drawRadarMinimap();
-
-      requestAnimationFrame(gameLoop);
+      requestAnimationFrame(animateLoop);
     }
 
-    function drawRadarMinimap() {
-      const btnMap = document.getElementById("btn-toggle-map");
-      if (btnMap) btnMap.innerText = showMinimap ? "🗺️ Ẩn Map" : "🗺️ Hiện Map";
-      if (!showMinimap) return;
-
-      const mw = 136, mh = 102;
-      const mx = canvas.width - mw - 14;
-      const my = canvas.height - mh - 14;
-      const scaleX = mw / WORLD_W;
-      const scaleY = mh / WORLD_H;
-
-      ctx.save();
-      ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-      ctx.strokeStyle = "#ff8fa3";
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.roundRect(mx, my, mw, mh, 10);
-      ctx.fill();
-      ctx.stroke();
-
-      GIFT_CONFIGS.forEach(cfg => {
-        ctx.fillStyle = giftsState[cfg.id].unlocked ? "#2ed573" : "#ffa502";
-        ctx.beginPath();
-        ctx.arc(mx + cfg.x * scaleX, my + cfg.y * scaleY, 3.5, 0, Math.PI * 2);
-        ctx.fill();
-      });
-
-      ctx.fillStyle = "#4facfe";
-      ctx.beginPath(); ctx.arc(mx + p1.x * scaleX, my + p1.y * scaleY, 4.5, 0, Math.PI * 2); ctx.fill();
-      ctx.fillStyle = "#ff758c";
-      ctx.beginPath(); ctx.arc(mx + p2.x * scaleX, my + p2.y * scaleY, 4.5, 0, Math.PI * 2); ctx.fill();
-      ctx.restore();
-    }
-
-    requestAnimationFrame(gameLoop);
+    requestAnimationFrame(animateLoop);
   </script>
 </body>
 </html>
