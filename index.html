@@ -293,7 +293,7 @@
       <div class="romantic-subtitle">✨ Một bó hoa nhỏ gói trọn yêu thương dành tặng bé ✨</div>
     </div>
 
-    <!-- Sân khấu vẽ hoa chân thực & Ảnh 3x4 xuất hiện cuối cùng -->
+    <!-- Sân khấu vẽ hoa & Bức ảnh đan xen -->
     <canvas id="bouquetCanvas"></canvas>
 
     <!-- Cụm nút tương tác phía dưới -->
@@ -822,7 +822,7 @@
     }
 
     // =========================================================================
-    // 8. VÒNG LẶP RENDER CHÍNH
+    // 8. VÒNG LẶP RENDER CHÍNH (CÓ HIỆU ỨNG ĐUNG ĐƯA NHẸ NHÀNG & ẢNH ĐAN XEN)
     // =========================================================================
     initBouquetScene();
 
@@ -835,6 +835,9 @@
       const cy = H * 0.48;
       const gatherX = cx;
       const gatherY = cy + 148 * bouquetScale;
+
+      // Độ đung đưa nhẹ nhàng theo thời gian (gió thổi qua bó hoa)
+      const breezeSway = Math.sin(now * 0.0016) * 3.5 * Math.min(1, elapsed / 1500);
 
       // Nền
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.max(W, H) * 0.75);
@@ -861,6 +864,12 @@
         ctx.restore();
       });
 
+      ctx.save();
+      // Áp dụng độ nghiêng đung đưa chung cho toàn bộ bó hoa
+      ctx.translate(cx + breezeSway, cy);
+      ctx.rotate(breezeSway * 0.002);
+      ctx.translate(-cx, -cy);
+
       // Giấy gói sau
       const backWrapP = Math.min(1, elapsed / 1100);
       if (backWrapP > 0) {
@@ -880,9 +889,13 @@
         ctx.restore();
       });
 
-      // Vẽ toàn bộ các bông hoa lớn
-      flowerList.forEach(f => {
-        if (elapsed < f.delay) return;
+      // Chia đôi mảng hoa để kẹp bức ảnh vào giữa (nửa sau -> ảnh photo34.jpg -> nửa trước)
+      const midFlowerIndex = Math.floor(flowerList.length / 2);
+
+      // 1. Vẽ nửa sau các bông hoa lớn
+      for (let idx = 0; idx < midFlowerIndex; idx++) {
+        const f = flowerList[idx];
+        if (elapsed < f.delay) continue;
         const rawP = Math.min(1, (elapsed - f.delay) / f.dur);
         const posP = easeOutCubic(rawP);
         const bloomP = Math.max(0.05, easeOutBack(rawP));
@@ -912,45 +925,26 @@
         else if (f.type === "tulip") drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
         else drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
         ctx.restore();
-      });
-
-      // Hoa baby
-      babyBreathList.forEach(b => {
-        if (elapsed < b.delay) return;
-        const p = Math.min(1, (elapsed - b.delay) / b.dur);
-        ctx.save();
-        ctx.translate(cx + b.tx * bouquetScale, cy + b.ty * bouquetScale);
-        ctx.scale(bouquetScale, bouquetScale);
-        drawBabyBreath(ctx, b, p);
-        ctx.restore();
-      });
-
-      // Giấy gói trước & Nơ
-      if (elapsed > 350) {
-        const frontP = Math.min(1, (elapsed - 350) / 1200);
-        drawFrontWrappingAndRibbon(ctx, cx, gatherY, bouquetScale, frontP, now);
       }
 
-      // =========================================================================
-      // VẼ KHUNG ẢNH "PHOTO34.JPG" XUẤT HIỆN CUỐI CÙNG Ở VỊ TRÍ CAO HƠN HẲN
-      // =========================================================================
-      const photoAnimP = Math.min(1, Math.max(0, (elapsed - 1800) / 900)); // Đợi bó hoa nở xong mới xuất hiện
+      // 2. VẼ KHUNG ẢNH "PHOTO34.JPG" (KẸP Ở GIỮA, CÓ 3 BÔNG HỒNG PHÍA TRƯỚC CHE HŨNG HỞ)
+      const photoAnimP = Math.min(1, Math.max(0, (elapsed - 1600) / 900));
       if (photoAnimP > 0) {
         const pScale = easeOutBack(photoAnimP);
         const pWidth = 84 * bouquetScale * pScale;
         const pHeight = 112 * bouquetScale * pScale;
         const pX = cx - pWidth / 2;
-        const pY = cy - 105 * bouquetScale; // Đẩy lên cao hơn hẳn so với tâm bó hoa
+        const pY = cy - 45 * bouquetScale; // Đặt ở vị trí trung tâm bó hoa
 
         ctx.save();
         ctx.translate(cx, pY + pHeight / 2);
-        ctx.rotate(-0.035);
+        ctx.rotate(-0.03);
         ctx.translate(-cx, -(pY + pHeight / 2));
 
         // Viền khung Polaroid trắng
         ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "rgba(0, 0, 0, 0.45)";
-        ctx.shadowBlur = 22;
+        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+        ctx.shadowBlur = 20;
         ctx.beginPath();
         ctx.roundRect(pX - 5, pY - 5, pWidth + 10, pHeight + 22, 6);
         ctx.fill();
@@ -980,7 +974,61 @@
         ctx.restore();
       }
 
-      // Cánh hoa rơi nhẹ
+      // 3. Vẽ nửa trước các bông hoa lớn (bao gồm 3 bông hồng nằm thấp phía trước đè nhẹ lên góc dưới bức ảnh)
+      for (let idx = midFlowerIndex; idx < flowerList.length; idx++) {
+        const f = flowerList[idx];
+        if (elapsed < f.delay) continue;
+        const rawP = Math.min(1, (elapsed - f.delay) / f.dur);
+        const posP = easeOutCubic(rawP);
+        const bloomP = Math.max(0.05, easeOutBack(rawP));
+
+        const targetX = cx + f.tx * bouquetScale;
+        const targetY = cy + f.ty * bouquetScale;
+        const arcLift = Math.sin(posP * Math.PI) * 32 * bouquetScale;
+        const curX = gatherX + (targetX - gatherX) * posP;
+        const curY = gatherY + (targetY - gatherY) * posP - arcLift;
+
+        ctx.save();
+        ctx.strokeStyle = "#2d6a4f";
+        ctx.lineWidth = 3.2 * bouquetScale;
+        ctx.beginPath();
+        ctx.moveTo(gatherX, gatherY);
+        ctx.quadraticCurveTo(gatherX + (curX - gatherX) * 0.35, gatherY - 75 * bouquetScale, curX, curY);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(curX, curY);
+        ctx.scale(bouquetScale * bloomP, bouquetScale * bloomP);
+        ctx.rotate(f.rotation * 0.15 + f.tilt);
+
+        if (f.type === "rose") drawRealisticRose(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "peony") drawPeony(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "tulip") drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
+        ctx.restore();
+      }
+
+      // Hoa baby
+      babyBreathList.forEach(b => {
+        if (elapsed < b.delay) return;
+        const p = Math.min(1, (elapsed - b.delay) / b.dur);
+        ctx.save();
+        ctx.translate(cx + b.tx * bouquetScale, cy + b.ty * bouquetScale);
+        ctx.scale(bouquetScale, bouquetScale);
+        drawBabyBreath(ctx, b, p);
+        ctx.restore();
+      });
+
+      // Giấy gói trước & Nơ
+      if (elapsed > 350) {
+        const frontP = Math.min(1, (elapsed - 350) / 1200);
+        drawFrontWrappingAndRibbon(ctx, cx, gatherY, bouquetScale, frontP, now);
+      }
+
+      ctx.restore(); // Kết thúc khối đung đưa
+
+      // Cánh hoa rơi nhẹ phía ngoài
       fallingPetals.forEach(pt => {
         pt.x += pt.vx;
         pt.y += pt.vy;
