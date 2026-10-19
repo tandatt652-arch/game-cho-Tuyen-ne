@@ -293,7 +293,7 @@
       <div class="romantic-subtitle">✨ Một bó hoa nhỏ gói trọn yêu thương dành tặng bé ✨</div>
     </div>
 
-    <!-- Sân khấu vẽ hoa & Bức ảnh đan xen -->
+    <!-- Sân khấu vẽ hoa chân thực & Ảnh 3x4 đan xen -->
     <canvas id="bouquetCanvas"></canvas>
 
     <!-- Cụm nút tương tác phía dưới -->
@@ -822,7 +822,7 @@
     }
 
     // =========================================================================
-    // 8. VÒNG LẶP RENDER CHÍNH (CÓ HIỆU ỨNG ĐUNG ĐƯA NHẸ NHÀNG & ẢNH ĐAN XEN)
+    // 8. VÒNG LẶP RENDER CHÍNH (CÓ HIỆU ỨNG ĐUNG ĐƯA & DỊCH ẢNH LÊN CAO)
     // =========================================================================
     initBouquetScene();
 
@@ -927,14 +927,14 @@
         ctx.restore();
       }
 
-      // 2. VẼ KHUNG ẢNH "PHOTO34.JPG" (KẸP Ở GIỮA, CÓ 3 BÔNG HỒNG PHÍA TRƯỚC CHE HŨNG HỞ)
+      // 2. VẼ KHUNG ẢNH "PHOTO34.JPG" (ĐÃ DỊCH CHUYỂN LÊN TRÊN MỘT KHOẢNG BẰNG ĐƯỜNG KÍNH BÔNG HỒNG ~60px)
       const photoAnimP = Math.min(1, Math.max(0, (elapsed - 1600) / 900));
       if (photoAnimP > 0) {
         const pScale = easeOutBack(photoAnimP);
         const pWidth = 84 * bouquetScale * pScale;
         const pHeight = 112 * bouquetScale * pScale;
         const pX = cx - pWidth / 2;
-        const pY = cy - 45 * bouquetScale; // Đặt ở vị trí trung tâm bó hoa
+        const pY = cy - 105 * bouquetScale; // Đã dịch chuyển lên trên khoảng 60px (~đường kính 1 bông hồng lớn)
 
         ctx.save();
         ctx.translate(cx, pY + pHeight / 2);
@@ -974,7 +974,7 @@
         ctx.restore();
       }
 
-      // 3. Vẽ nửa trước các bông hoa lớn (bao gồm 3 bông hồng nằm thấp phía trước đè nhẹ lên góc dưới bức ảnh)
+      // 3. Vẽ nửa trước các bông hoa lớn (bao gồm các bông hồng thấp phía trước đè nhẹ lên mép dưới bức ảnh)
       for (let idx = midFlowerIndex; idx < flowerList.length; idx++) {
         const f = flowerList[idx];
         if (elapsed < f.delay) continue;
