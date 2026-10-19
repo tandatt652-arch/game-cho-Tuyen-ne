@@ -23,7 +23,7 @@
       color: #4a3540;
     }
 
-    /* Sân khấu chính */
+    /* Sân khấu Canvas toàn màn hình */
     #stage {
       position: relative;
       width: 100vw;
@@ -44,19 +44,17 @@
       z-index: 1;
     }
 
-    /* Khung chứa Tiêu đề & Ảnh 3x4 phía trên bó hoa */
-    .top-content-wrapper {
+    /* Tiêu đề nghệ thuật phía trên */
+    .header-title-box {
       position: relative;
       z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin-top: clamp(10px, 2vh, 22px);
+      text-align: center;
+      margin-top: clamp(14px, 3vh, 32px);
       padding: 0 16px;
       pointer-events: none;
       opacity: 0;
       transform: translateY(-15px);
-      animation: fadeSlideDown 1.8s ease forwards 0.4s;
+      animation: fadeSlideDown 1.8s ease forwards 0.6s;
     }
 
     @keyframes fadeSlideDown {
@@ -66,54 +64,27 @@
       }
     }
 
-    /* Khung ảnh 3x4 nằm dọc phía trên bó hoa */
-    .polaroid-frame {
-      width: clamp(85px, 12vw, 110px);
-      aspect-ratio: 3 / 4;
-      background: #fff;
-      padding: 5px 5px 22px 5px;
-      border-radius: 6px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.3);
-      transform: rotate(-3deg);
-      transition: transform 0.3s ease;
-      margin-bottom: 8px;
-    }
-
-    .polaroid-frame:hover {
-      transform: rotate(0deg) scale(1.04);
-    }
-
-    .polaroid-img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      border-radius: 3px;
-      display: block;
-    }
-
     .romantic-title {
       font-family: 'Great Vibes', cursive;
-      font-size: clamp(30px, 5.5vw, 54px);
+      font-size: clamp(34px, 6vw, 62px);
       font-weight: 400;
       background: linear-gradient(270deg, #ffe5ec, #ffd166, #ffffff, #ff8fa3, #f3c4fb);
       background-size: 300% 300%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shimmerText 6s ease infinite;
-      filter: drop-shadow(0 2px 12px rgba(255, 117, 140, 0.55));
-      line-height: 1.2;
-      text-align: center;
+      filter: drop-shadow(0 2px 14px rgba(255, 117, 140, 0.55));
+      line-height: 1.25;
     }
 
     .romantic-subtitle {
-      font-size: clamp(11.5px, 1.8vw, 14px);
+      font-size: clamp(12.5px, 2vw, 15px);
       color: #ffdde6;
       letter-spacing: 2px;
       text-transform: uppercase;
       opacity: 0.85;
-      margin-top: 1px;
+      margin-top: 2px;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
-      text-align: center;
     }
 
     @keyframes shimmerText {
@@ -126,14 +97,13 @@
     .bottom-actions {
       position: relative;
       z-index: 10;
-      margin-bottom: clamp(16px, 3.5vh, 32px);
+      margin-bottom: clamp(18px, 4vh, 36px);
       display: flex;
-      gap: 12px;
+      gap: 14px;
       align-items: center;
       justify-content: center;
       flex-wrap: wrap;
       padding: 0 16px;
-      pointer-events: auto;
     }
 
     .btn-luxury {
@@ -141,10 +111,10 @@
       border: none;
       outline: none;
       cursor: pointer;
-      padding: 12px 26px;
+      padding: 13px 28px;
       border-radius: 50px;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 14.5px;
+      font-size: 15px;
       font-weight: 700;
       letter-spacing: 0.4px;
       color: #fff;
@@ -153,7 +123,7 @@
       transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 9px;
     }
 
     .btn-luxury:hover {
@@ -184,8 +154,8 @@
       -webkit-backdrop-filter: blur(10px);
       border: 1.5px solid rgba(255, 194, 209, 0.45);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-      font-size: 13.5px;
-      padding: 10px 20px;
+      font-size: 14px;
+      padding: 11px 22px;
       color: #ffe5ec;
     }
 
@@ -317,16 +287,13 @@
 <body>
 
   <div id="stage">
-    <!-- Khung chứa ảnh 3x4 và Tiêu đề lãng mạn phía trên bó hoa -->
-    <div class="top-content-wrapper">
-      <div class="polaroid-frame">
-        <img src="photo34.jpg" alt="Cô công chúa của anh" class="polaroid-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22160%22 viewBox=%220 0 120 160%22><rect width=%22120%22 height=%22160%22 fill=%22%23ffe5ec%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>👸💖</text></svg>'" />
-      </div>
+    <!-- Tiêu đề lãng mạn phía trên -->
+    <div class="header-title-box">
       <div class="romantic-title">Mừng ngày 20/10 cục dàngg của anh</div>
       <div class="romantic-subtitle">✨ Một bó hoa nhỏ gói trọn yêu thương dành tặng bé ✨</div>
     </div>
 
-    <!-- Canvas vẽ bó hoa chân thực (đã tối ưu hiệu năng) -->
+    <!-- Sân khấu vẽ hoa chân thực & Ảnh 3x4 đan xen trong bó hoa -->
     <canvas id="bouquetCanvas"></canvas>
 
     <!-- Cụm nút tương tác phía dưới -->
@@ -397,7 +364,13 @@
     });
 
     // =========================================================================
-    // 2. KHỞI TẠO CANVAS ĐỘ PHÂN GIẢI CAO (RETINA / HIGH-DPI)
+    // 2. TẢI ẢNH "photo34.jpg" ĐỂ ĐAN XEN VÀO BÓ HOA
+    // =========================================================================
+    const photoImg = new Image();
+    photoImg.src = "photo34.jpg";
+
+    // =========================================================================
+    // 3. KHỞI TẠO CANVAS ĐỘ PHÂN GIẢI CAO (RETINA / HIGH-DPI)
     // =========================================================================
     const canvas = document.getElementById("bouquetCanvas");
     const ctx = canvas.getContext("2d");
@@ -418,7 +391,7 @@
     resizeCanvas();
 
     // =========================================================================
-    // 3. CÁC HÀM NỘI SUY CHUYỂN ĐỘNG MƯỢT (EASING)
+    // 4. CÁC HÀM NỘI SUY CHUYỂN ĐỘNG MƯỢT (EASING)
     // =========================================================================
     function easeOutCubic(x) {
       return 1 - Math.pow(1 - x, 3);
@@ -435,7 +408,7 @@
     }
 
     // =========================================================================
-    // 4. BẢNG MÀU HOA & CẤU TRÚC DỮ LIỆU
+    // 5. BẢNG MÀU HOA & CẤU TRÚC DỮ LIỆU
     // =========================================================================
     const ROSE_PALETTES = [
       { deep: "#640d14", mid: "#a4133c", bright: "#ff4d6d", edge: "#ff8fa3", glow: "rgba(255, 77, 109, 0.25)" },
@@ -457,7 +430,7 @@
       flowerList = [];
       babyBreathList = [];
 
-      // Cành lá
+      // Cành lá nền
       const leafCount = 26;
       for (let i = 0; i < leafCount; i++) {
         const t = i / (leafCount - 1);
@@ -547,7 +520,7 @@
     }
 
     // =========================================================================
-    // 5. CÁC HÀM VẼ CHI TIẾT TỪNG LOÀI HOA
+    // 6. CÁC HÀM VẼ CHI TIẾT HOA
     // =========================================================================
     function drawCurvedPetal(ctx, length, width, fillStyle, strokeStyle) {
       ctx.beginPath();
@@ -753,7 +726,7 @@
     }
 
     // =========================================================================
-    // 6. GIẤY GÓI & NƠ RUY-BĂNG
+    // 7. VẼ GIẤY GÓI VÀ NƠ
     // =========================================================================
     function drawBackWrappingPaper(ctx, cx, cy, gatherY, scaleFactor, progress) {
       const p = easeOutCubic(progress);
@@ -853,7 +826,7 @@
     }
 
     // =========================================================================
-    // 7. VÒNG LẶP RENDER CHÍNH
+    // 8. VÒNG LẶP RENDER CHÍNH
     // =========================================================================
     initBouquetScene();
 
@@ -861,16 +834,16 @@
       const elapsed = now - startTime;
 
       const minDim = Math.min(W, H);
-      const bouquetScale = Math.max(0.65, Math.min(1.12, minDim / 660));
+      const bouquetScale = Math.max(0.68, Math.min(1.18, minDim / 640));
       const cx = W / 2;
-      const cy = H * 0.48; // Đẩy thấp xuống để có không gian cho khung ảnh phía trên
+      const cy = H * 0.48;
       const gatherX = cx;
-      const gatherY = cy + 140 * bouquetScale;
+      const gatherY = cy + 148 * bouquetScale;
 
       // Nền
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.max(W, H) * 0.75);
       bgGrad.addColorStop(0, "#431232");
-      bgGrad.addColorStop(0.5, "#230920");
+      bgGrad.addColorStop(0.45, "#230920");
       bgGrad.addColorStop(1, "#0b0310");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
@@ -893,7 +866,7 @@
       });
 
       // Giấy gói sau
-      const backWrapP = Math.min(1, elapsed / 900);
+      const backWrapP = Math.min(1, elapsed / 1100);
       if (backWrapP > 0) {
         drawBackWrappingPaper(ctx, cx, cy, gatherY, bouquetScale, backWrapP);
       }
@@ -911,26 +884,32 @@
         ctx.restore();
       });
 
-      // Hoa lớn
-      flowerList.forEach(f => {
-        if (elapsed < f.delay) return;
+      // =========================================================================
+      // CHIA ĐÔI MẢNG HOA: VẼ NỬA SAU -> KHUNG ẢNH "PHOTO34.JPG" -> NỬA TRƯỚC
+      // Giúp bức ảnh kẹp lấp ló đan xen vào giữa các bông hoa
+      // =========================================================================
+      const midFlowerIndex = Math.floor(flowerList.length / 2);
+
+      // 1. Vẽ nửa sau các bông hoa lớn
+      for (let idx = 0; idx < midFlowerIndex; idx++) {
+        const f = flowerList[idx];
+        if (elapsed < f.delay) continue;
         const rawP = Math.min(1, (elapsed - f.delay) / f.dur);
         const posP = easeOutCubic(rawP);
         const bloomP = Math.max(0.05, easeOutBack(rawP));
 
         const targetX = cx + f.tx * bouquetScale;
         const targetY = cy + f.ty * bouquetScale;
-        const arcLift = Math.sin(posP * Math.PI) * 28 * bouquetScale;
-
+        const arcLift = Math.sin(posP * Math.PI) * 32 * bouquetScale;
         const curX = gatherX + (targetX - gatherX) * posP;
         const curY = gatherY + (targetY - gatherY) * posP - arcLift;
 
         ctx.save();
         ctx.strokeStyle = "#2d6a4f";
-        ctx.lineWidth = 2.8 * bouquetScale;
+        ctx.lineWidth = 3.2 * bouquetScale;
         ctx.beginPath();
         ctx.moveTo(gatherX, gatherY);
-        ctx.quadraticCurveTo(gatherX + (curX - gatherX) * 0.35, gatherY - 70 * bouquetScale, curX, curY);
+        ctx.quadraticCurveTo(gatherX + (curX - gatherX) * 0.35, gatherY - 75 * bouquetScale, curX, curY);
         ctx.stroke();
         ctx.restore();
 
@@ -944,7 +923,90 @@
         else if (f.type === "tulip") drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
         else drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
         ctx.restore();
-      });
+      }
+
+      // 2. VẼ KHUNG ẢNH "PHOTO34.JPG" (KẸP NGAY GIỮA BÓ HOA, LỘ NỬA TRÊN)
+      const photoAnimP = Math.min(1, Math.max(0, (elapsed - 900) / 1000));
+      if (photoAnimP > 0) {
+        const pScale = easeOutBack(photoAnimP);
+        const pWidth = 84 * bouquetScale * pScale;
+        const pHeight = 112 * bouquetScale * pScale; // Tỷ lệ 3:4 nằm dọc
+        const pX = cx - pWidth / 2;
+        const pY = cy - 22 * bouquetScale; // Nằm tự nhiên ở vòm trung tâm
+
+        ctx.save();
+        ctx.translate(cx, pY + pHeight / 2);
+        ctx.rotate(-0.035); // Nghiêng nhẹ tự nhiên
+        ctx.translate(-cx, -(pY + pHeight / 2));
+
+        // Viền khung Polaroid trắng
+        ctx.fillStyle = "#ffffff";
+        ctx.shadowColor = "rgba(0, 0, 0, 0.4)";
+        ctx.shadowBlur = 18;
+        ctx.beginPath();
+        ctx.roundRect(pX - 5, pY - 5, pWidth + 10, pHeight + 22, 6);
+        ctx.fill();
+
+        // Vẽ ảnh photo34.jpg
+        ctx.save();
+        ctx.beginPath();
+        ctx.roundRect(pX, pY, pWidth, pHeight, 3);
+        ctx.clip();
+        if (photoImg.complete && photoImg.naturalWidth > 0) {
+          ctx.drawImage(photoImg, pX, pY, pWidth, pHeight);
+        } else {
+          // Fallback nếu chưa tải kịp ảnh
+          ctx.fillStyle = "#ffe5ec";
+          ctx.fillRect(pX, pY, pWidth, pHeight);
+          ctx.fillStyle = "#c9184a";
+          ctx.font = `${14 * bouquetScale}px sans-serif`;
+          ctx.textAlign = "center";
+          ctx.fillText("👸💖", pX + pWidth / 2, pY + pHeight / 2);
+        }
+        ctx.restore();
+
+        // Viền nhũ vàng quanh khung ảnh
+        ctx.strokeStyle = "rgba(255, 209, 102, 0.8)";
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(pX - 5, pY - 5, pWidth + 10, pHeight + 22);
+
+        ctx.restore();
+      }
+
+      // 3. Vẽ nửa trước các bông hoa lớn (đè lên phần dưới khung ảnh)
+      for (let idx = midFlowerIndex; idx < flowerList.length; idx++) {
+        const f = flowerList[idx];
+        if (elapsed < f.delay) continue;
+        const rawP = Math.min(1, (elapsed - f.delay) / f.dur);
+        const posP = easeOutCubic(rawP);
+        const bloomP = Math.max(0.05, easeOutBack(rawP));
+
+        const targetX = cx + f.tx * bouquetScale;
+        const targetY = cy + f.ty * bouquetScale;
+        const arcLift = Math.sin(posP * Math.PI) * 32 * bouquetScale;
+        const curX = gatherX + (targetX - gatherX) * posP;
+        const curY = gatherY + (targetY - gatherY) * posP - arcLift;
+
+        ctx.save();
+        ctx.strokeStyle = "#2d6a4f";
+        ctx.lineWidth = 3.2 * bouquetScale;
+        ctx.beginPath();
+        ctx.moveTo(gatherX, gatherY);
+        ctx.quadraticCurveTo(gatherX + (curX - gatherX) * 0.35, gatherY - 75 * bouquetScale, curX, curY);
+        ctx.stroke();
+        ctx.restore();
+
+        ctx.save();
+        ctx.translate(curX, curY);
+        ctx.scale(bouquetScale * bloomP, bouquetScale * bloomP);
+        ctx.rotate(f.rotation * 0.15 + f.tilt);
+
+        if (f.type === "rose") drawRealisticRose(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "peony") drawPeony(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "tulip") drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
+        ctx.restore();
+      }
 
       // Hoa baby
       babyBreathList.forEach(b => {
@@ -958,12 +1020,12 @@
       });
 
       // Giấy gói trước & Nơ
-      if (elapsed > 300) {
-        const frontP = Math.min(1, (elapsed - 300) / 1000);
+      if (elapsed > 350) {
+        const frontP = Math.min(1, (elapsed - 350) / 1200);
         drawFrontWrappingAndRibbon(ctx, cx, gatherY, bouquetScale, frontP, now);
       }
 
-      // Cánh hoa rơi
+      // Cánh hoa rơi nhẹ
       fallingPetals.forEach(pt => {
         pt.x += pt.vx;
         pt.y += pt.vy;
@@ -976,7 +1038,7 @@
         ctx.translate(pt.x, pt.y);
         ctx.rotate(pt.rot);
         ctx.fillStyle = pt.color;
-        ctx.globalAlpha = 0.7;
+        ctx.globalAlpha = 0.75;
         ctx.beginPath();
         ctx.ellipse(0, 0, pt.size, pt.size * 0.6, 0, 0, Math.PI * 2);
         ctx.fill();
