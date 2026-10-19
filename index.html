@@ -8,337 +8,251 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; -webkit-user-select: none; }
     body {
-      background: radial-gradient(circle at 50% 35%, #fffbfb 0%, #ffe5ec 52%, #ffc2d1 100%);
-      color: #4a3540;
+      background: radial-gradient(circle at 50% 32%, #fffdfd 0%, #ffe8ef 52%, #ffc8d6 100%);
+      color: #4a303a;
       font-family: 'Quicksand', -apple-system, BlinkMacSystemFont, sans-serif;
-      min-height: 100vh;
+      height: 100vh;
+      width: 100vw;
       overflow: hidden;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
+      justify-content: flex-end;
       position: relative;
       touch-action: manipulation;
     }
 
-    /* Canvas nền: Cánh hoa hồng rơi & Đom đóm lấp lánh */
-    #bgCanvas {
+    /* Canvas hạt phấn hoa & cánh hoa bay nhẹ ngoài không gian */
+    #ambientCanvas {
       position: fixed;
       inset: 0;
       width: 100%;
       height: 100%;
       pointer-events: none;
-      z-index: 2;
+      z-index: 1;
     }
 
-    /* Thanh công cụ nhỏ gọn phía trên */
-    #top-bar {
+    /* Nút xem lại hiệu ứng hoa trồi lên */
+    #top-controls {
       position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 25;
-      background: rgba(255, 255, 255, 0.88);
-      backdrop-filter: blur(12px);
-      border: 2px solid #ffb3c6;
-      border-radius: 30px;
-      padding: 6px 16px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      box-shadow: 0 8px 24px rgba(201, 24, 74, 0.12);
+      top: 16px;
+      right: 16px;
+      z-index: 35;
     }
     .replay-btn {
-      background: linear-gradient(135deg, #ff4d6d 0%, #ff758f 100%);
-      color: #fff;
-      border: none;
-      padding: 5px 12px;
-      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(8px);
+      color: #c9184a;
+      border: 2px solid #ffb3c6;
+      padding: 8px 16px;
+      border-radius: 25px;
       font-family: inherit;
       font-weight: 700;
-      font-size: 12.5px;
+      font-size: 13px;
       cursor: pointer;
-      box-shadow: 0 3px 10px rgba(255, 77, 109, 0.3);
-      transition: transform 0.15s;
-      white-space: nowrap;
+      box-shadow: 0 6px 18px rgba(201, 24, 74, 0.14);
+      transition: transform 0.2s, background 0.2s;
     }
-    .replay-btn:hover { transform: scale(1.04); }
-    .replay-btn:active { transform: scale(0.96); }
-
-    .music-ctrl {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: #fff0f5;
-      border: 1.5px solid #ffc2d1;
-      padding: 3px 10px;
-      border-radius: 20px;
-    }
-    .music-btn {
-      background: none;
-      border: none;
-      font-size: 15px;
-      cursor: pointer;
-      line-height: 1;
-    }
-    #bgm-volume {
-      width: 66px;
-      accent-color: #ff4d6d;
-      cursor: pointer;
-      height: 5px;
-    }
+    .replay-btn:hover { background: #fff; transform: translateY(-2px); }
+    .replay-btn:active { transform: scale(0.95); }
 
     /* =========================================================================
-       KHU VỰC SÂN KHẤU BÓ HOA HỒNG NẢY NỞ
+       SÂN KHẤU ĐA THỰC THỂ (MỖI CÀNH HOA, LÁ, GIẤY GÓI LÀ 1 THỰC THỂ RIÊNG)
        ========================================================================= */
-    #bouquet-stage {
+    #bouquet-world {
       position: relative;
+      width: 560px;
+      height: 650px;
       z-index: 10;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-top: 24px;
+      transform-origin: bottom center;
+      pointer-events: none;
     }
 
-    .bouquet-aura {
+    /* Hào quang sáng dịu phía sau các thực thể */
+    .stage-glow {
       position: absolute;
-      width: 420px;
-      height: 420px;
-      background: radial-gradient(circle, rgba(255, 255, 255, 0.95) 0%, rgba(255, 183, 197, 0.5) 48%, rgba(255, 183, 197, 0) 72%);
+      left: 50%;
+      top: 42%;
+      width: 440px;
+      height: 440px;
+      transform: translate(-50%, -50%);
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0%, rgba(255, 182, 193, 0.4) 48%, rgba(255, 182, 193, 0) 72%);
       border-radius: 50%;
-      z-index: -1;
-      animation: auraPulse 4s ease-in-out infinite;
-    }
-    @keyframes auraPulse {
-      0%, 100% { transform: scale(0.95); opacity: 0.8; }
-      50% { transform: scale(1.08); opacity: 1; }
+      z-index: 0;
     }
 
-    .bouquet-wrapper {
-      width: min(95vw, 480px);
-      height: min(76vh, 540px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      animation: bouquetFloat 5s ease-in-out infinite;
-      filter: drop-shadow(0 20px 32px rgba(140, 20, 60, 0.22));
-    }
-    @keyframes bouquetFloat {
-      0%, 100% { transform: translateY(0px) rotate(0deg); }
-      50% { transform: translateY(-8px) rotate(0.6deg); }
-    }
-
-    /* Hiệu ứng kết cấu từng phần của bó hoa khi nảy nở */
-    .bloom-wrap-back {
-      transform-box: fill-box;
+    /* Class chung cho mỗi Thực Thể Độc Lập (Hoa, Lá, Giấy gói, Nơ, Thư) */
+    .entity {
+      position: absolute;
+      left: 50%;
+      bottom: 85px; /* Điểm hội tụ gốc bó hoa */
       transform-origin: bottom center;
-      opacity: 0;
-      transform: scale(0.7) translateY(30px);
-      transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .bloom-wrap-back.show {
-      opacity: 1;
-      transform: scale(1) translateY(0);
+      will-change: transform;
+      pointer-events: auto;
     }
 
-    .bloom-foliage {
-      transform-box: fill-box;
-      transform-origin: bottom center;
-      opacity: 0;
-      transform: scale(0.2) translateY(40px);
-      transition: opacity 0.6s ease, transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .bloom-foliage.show {
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-
-    .bloom-wrap-front {
-      transform-box: fill-box;
-      transform-origin: bottom center;
-      opacity: 0;
-      transform: scaleY(0.6) translateY(35px);
-      transition: opacity 0.7s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-    }
-    .bloom-wrap-front.show {
-      opacity: 1;
-      transform: scaleY(1) translateY(0);
-    }
-
-    /* Hiệu ứng từng đóa hoa hồng bung nở từ nụ thành bông */
-    .rose-item {
+    /* Đầu bông hoa hồng bung nở riêng biệt khi cành đã trồi lên */
+    .rose-head-group {
       transform-box: fill-box;
       transform-origin: center;
-      opacity: 0;
-      transform: scale(0) rotate(-35deg);
-      transition: opacity 0.45s ease, transform 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+      transform: scale(0.18) rotate(-25deg);
+      transition: transform 0.85s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
       cursor: pointer;
     }
-    .rose-item.bloomed {
-      opacity: 1;
+    .entity.bloomed .rose-head-group {
       transform: scale(1) rotate(0deg);
     }
-    .rose-item.bloomed:hover {
-      transform: scale(1.13) rotate(4deg);
-      filter: brightness(1.06) drop-shadow(0 0 12px rgba(255, 77, 109, 0.55));
-    }
-    .rose-item.bloomed:active {
-      transform: scale(0.95);
+    .entity.bloomed .rose-head-group:hover {
+      filter: brightness(1.07) drop-shadow(0 0 12px rgba(255, 77, 109, 0.55));
     }
 
-    /* Hoa Baby trắng lấp lánh */
-    .baby-cluster {
-      transform-box: fill-box;
-      transform-origin: center;
-      opacity: 0;
-      transform: scale(0);
-      transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-    .baby-cluster.bloomed {
-      opacity: 1;
-      transform: scale(1);
-    }
-    .baby-cluster circle {
-      animation: twinkleStar 2.4s ease-in-out infinite alternate;
-    }
-    @keyframes twinkleStar {
-      0% { opacity: 0.65; }
-      100% { opacity: 1; filter: drop-shadow(0 0 4px #fff); }
-    }
-
-    /* =========================================================================
-       BỨC THƯ ĐƯỢC KẸP VÀO THÂN BÓ HOA
-       ========================================================================= */
-    #tucked-letter-group {
-      transform-box: fill-box;
-      transform-origin: center;
-      opacity: 0;
-      transform: translateY(-25px) scale(0.4) rotate(-15deg);
-      transition: opacity 0.6s ease, transform 0.75s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
+    /* Thực thể Bức Thư Kẹp Trong Thân Bó Hoa */
+    #tucked-letter-entity {
+      position: absolute;
+      left: 50%;
+      bottom: 205px;
+      width: 140px;
+      height: 96px;
+      transform-origin: bottom center;
       cursor: pointer;
+      z-index: 82;
+      pointer-events: auto;
+      will-change: transform;
     }
-    #tucked-letter-group.show {
-      opacity: 1;
-      transform: translateY(0) scale(1) rotate(0deg);
-      animation: tuckedLetterPulse 2.4s ease-in-out infinite;
+    .tucked-envelope-card {
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.3s;
+      filter: drop-shadow(0 8px 16px rgba(128, 15, 47, 0.32));
     }
-    #tucked-letter-group.show:hover {
-      filter: brightness(1.06) drop-shadow(0 0 18px rgba(255, 77, 109, 0.85));
+    #tucked-letter-entity.ready .tucked-envelope-card {
+      animation: letterBreath 2.4s ease-in-out infinite;
     }
-    @keyframes tuckedLetterPulse {
-      0%, 100% { transform: translateY(0) scale(1) rotate(0deg); filter: drop-shadow(0 4px 10px rgba(201, 24, 74, 0.35)); }
-      50% { transform: translateY(-4px) scale(1.05) rotate(-2deg); filter: drop-shadow(0 0 18px rgba(255, 77, 109, 0.8)); }
+    #tucked-letter-entity:hover .tucked-envelope-card {
+      transform: scale(1.09) translateY(-5px) rotate(-3deg);
+      filter: drop-shadow(0 12px 22px rgba(255, 77, 109, 0.75));
+    }
+    @keyframes letterBreath {
+      0%, 100% { transform: scale(1) translateY(0); }
+      50% { transform: scale(1.04) translateY(-4px); }
     }
 
-    .guide-banner {
-      margin-top: 2px;
-      background: rgba(255, 255, 255, 0.85);
-      border: 1.5px solid #ffb3c6;
+    /* Dòng nhắc mở thư bên dưới */
+    #bottom-hint {
+      position: fixed;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%) translateY(40px);
+      opacity: 0;
+      z-index: 30;
+      background: rgba(255, 255, 255, 0.92);
+      border: 2px solid #ffb3c6;
       color: #c9184a;
-      padding: 7px 18px;
-      border-radius: 25px;
+      padding: 8px 22px;
+      border-radius: 30px;
       font-weight: 700;
-      font-size: 13.5px;
-      box-shadow: 0 6px 18px rgba(255, 77, 109, 0.15);
-      transition: all 0.3s;
+      font-size: 14px;
+      box-shadow: 0 8px 24px rgba(201, 24, 74, 0.18);
       cursor: pointer;
+      transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+      white-space: nowrap;
     }
-    .guide-banner:hover {
+    #bottom-hint.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+    #bottom-hint:hover {
       background: #fff;
-      transform: translateY(-2px);
+      transform: translateX(-50%) translateY(-2px);
     }
 
     /* =========================================================================
-       HIỆU ỨNG 3D LẬT MỞ LÁ THƯ (3D BOOK / PAPER FLIP UNFOLD)
+       HIỆU ỨNG LẬT MỞ LÁ THƯ 3D (3D BOOK / PAPER FLIP UNFOLD)
        ========================================================================= */
-    #letter-overlay {
+    #letter-modal {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(45, 12, 26, 0.62);
+      background: rgba(42, 10, 24, 0.62);
       backdrop-filter: blur(7px);
-      z-index: 40;
+      z-index: 100;
       align-items: center;
       justify-content: center;
       padding: 16px;
-      perspective: 1600px;
+      perspective: 1800px;
     }
 
-    /* Sân khấu 3D chứa phong bì & trang thư lật mở */
-    .flip-scene {
+    .book-flip-container {
       position: relative;
       width: 100%;
-      max-width: 550px;
+      max-width: 560px;
+      max-height: 88vh;
       transform-style: preserve-3d;
       display: flex;
       flex-direction: column;
-      align-items: center;
     }
 
-    /* Tờ thư chính với hiệu ứng lật mở 3D từ gập đôi sang phẳng */
-    .letter-book {
+    /* Tờ giấy thư thực hiện hiệu ứng lật mở 3D từ gập đôi ra phẳng */
+    .letter-sheet {
       position: relative;
       width: 100%;
-      background: linear-gradient(180deg, #fffdf9 0%, #fff5f8 100%);
+      background: linear-gradient(180deg, #fffefb 0%, #fff4f7 100%);
       border: 3px solid #ff8fa3;
       border-radius: 22px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.38), inset 0 0 0 6px rgba(255, 194, 209, 0.35);
-      padding: 26px 26px 22px;
-      transform-origin: top center;
-      transform: rotateX(-88deg) scale(0.75);
+      padding: 26px 26px 20px;
+      box-shadow: 0 28px 65px rgba(0, 0, 0, 0.42), inset 0 0 0 6px rgba(255, 194, 209, 0.35);
+      transform-origin: left center;
+      transform: rotateY(-95deg) rotateX(12deg) scale(0.8);
       opacity: 0;
-      transition: transform 0.85s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
-      max-height: 86vh;
+      transition: transform 0.9s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.45s ease;
       display: flex;
       flex-direction: column;
+      max-height: 86vh;
     }
 
-    /* Nắp giấy lật phía trên tạo cảm giác lật mở trang thư thật */
-    .letter-flap-cover {
+    /* Trang bìa phong bì lật mở sang bên trái như mở thiệp / mở thư */
+    .letter-cover-leaf {
       position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 50%;
-      background: linear-gradient(135deg, #ffe5ec 0%, #ffc2d1 100%);
-      border-radius: 20px 20px 0 0;
-      border-bottom: 2px dashed #ff8fa3;
-      transform-origin: top center;
-      transform: rotateX(0deg);
-      transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease 0.3s;
-      z-index: 10;
+      inset: 0;
+      background: linear-gradient(135deg, #ffe5ec 0%, #ffb3c6 100%);
+      border-radius: 20px;
+      border: 3px solid #ff8fa3;
+      transform-origin: left center;
+      transform: rotateY(0deg);
+      transition: transform 0.95s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.55s ease 0.35s;
+      z-index: 15;
       pointer-events: none;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       backface-visibility: hidden;
     }
-    .wax-seal-big {
-      width: 58px;
-      height: 58px;
+    .seal-badge {
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
       background: radial-gradient(circle at 35% 35%, #ff4d6d, #a4133c 70%, #590d22);
-      border: 3px solid #ffb3c6;
-      box-shadow: 0 6px 15px rgba(164, 19, 60, 0.45);
+      border: 3px solid #ffe5ec;
+      box-shadow: 0 8px 20px rgba(164, 19, 60, 0.45);
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 26px;
+      font-size: 28px;
       color: #fff;
+      margin-bottom: 10px;
     }
 
-    /* Khi kích hoạt class .open -> Lật nắp thư 180 độ và trải phẳng trang giấy */
-    #letter-overlay.open .letter-book {
-      transform: rotateX(0deg) scale(1);
+    #letter-modal.open .letter-sheet {
+      transform: rotateY(0deg) rotateX(0deg) scale(1);
       opacity: 1;
     }
-    #letter-overlay.open .letter-flap-cover {
-      transform: rotateX(180deg);
+    #letter-modal.open .letter-cover-leaf {
+      transform: rotateY(-165deg);
       opacity: 0;
     }
 
-    .letter-header {
+    .letter-title {
       font-family: 'Great Vibes', cursive;
       font-size: clamp(32px, 6vw, 42px);
       color: #c9184a;
@@ -348,415 +262,98 @@
       flex-shrink: 0;
     }
 
-    /* Nội dung bức thư có thanh cuộn mượt và nền kẻ dòng nhật ký */
-    .letter-scroll-area {
+    .letter-lines-box {
       overflow-y: auto;
-      padding: 14px 16px;
+      padding: 14px 18px;
       background:
-        linear-gradient(transparent, transparent 31px, rgba(255, 179, 198, 0.38) 32px);
+        linear-gradient(transparent, transparent 31px, rgba(255, 179, 198, 0.4) 32px);
       background-size: 100% 32px;
+      background-color: rgba(255, 255, 255, 0.82);
       border-radius: 14px;
       border: 1.5px solid #ffd6e0;
-      background-color: rgba(255, 255, 255, 0.78);
       line-height: 32px;
       font-size: 16.5px;
       font-weight: 600;
-      color: #3d2630;
+      color: #3d242e;
       text-align: left;
-      max-height: 58vh;
-      box-shadow: inset 0 2px 10px rgba(255, 143, 163, 0.1);
+      max-height: 60vh;
+      box-shadow: inset 0 2px 10px rgba(255, 143, 163, 0.12);
     }
-    .letter-scroll-area::-webkit-scrollbar {
-      width: 6px;
-    }
-    .letter-scroll-area::-webkit-scrollbar-thumb {
-      background: #ff8fa3;
-      border-radius: 10px;
-    }
+    .letter-lines-box::-webkit-scrollbar { width: 6px; }
+    .letter-lines-box::-webkit-scrollbar-thumb { background: #ff8fa3; border-radius: 10px; }
 
-    .letter-paragraph {
+    .letter-p {
       margin-bottom: 14px;
       opacity: 0;
-      transform: translateY(8px);
+      transform: translateY(10px);
       transition: opacity 0.6s ease, transform 0.6s ease;
     }
-    .letter-paragraph.visible {
+    .letter-p.show {
       opacity: 1;
       transform: translateY(0);
     }
-    .letter-paragraph:last-child {
+    .letter-p:last-child {
       margin-bottom: 0;
       color: #c9184a;
       font-weight: 700;
-      font-size: 17.5px;
+      font-size: 18px;
     }
 
-    .letter-footer {
+    .letter-actions {
       display: flex;
       justify-content: center;
-      gap: 12px;
       margin-top: 14px;
       flex-shrink: 0;
     }
-    .close-letter-btn {
+    .btn-fold-back {
       background: linear-gradient(135deg, #ff4d6d 0%, #ff758f 100%);
       color: #fff;
       border: none;
-      padding: 9px 24px;
+      padding: 10px 26px;
       border-radius: 25px;
       font-family: inherit;
       font-weight: 700;
-      font-size: 14px;
+      font-size: 14.5px;
       cursor: pointer;
-      box-shadow: 0 6px 16px rgba(255, 77, 109, 0.35);
+      box-shadow: 0 6px 18px rgba(255, 77, 109, 0.35);
       transition: transform 0.15s;
     }
-    .close-letter-btn:hover { transform: translateY(-2px); }
+    .btn-fold-back:hover { transform: translateY(-2px); }
   </style>
 </head>
 <body>
 
-  <!-- Canvas nền hiệu ứng cánh hoa rơi & đom đóm -->
-  <canvas id="bgCanvas"></canvas>
+  <!-- Canvas hạt phấn sáng & cánh hoa rơi -->
+  <canvas id="ambientCanvas"></canvas>
 
-  <!-- Thanh điều khiển trên cùng -->
-  <div id="top-bar">
-    <button id="btn-replay-bloom" class="replay-btn">🌸 Ngắm hoa nở lại</button>
-    <div class="music-ctrl" title="Chỉnh âm lượng nhạc">
-      <button id="btn-bgm-toggle" class="music-btn">🎵</button>
-      <input type="range" id="bgm-volume" min="0" max="100" value="50" />
-    </div>
+  <!-- Nút xem lại hiệu ứng các cành hoa trồi từ dưới lên -->
+  <div id="top-controls">
+    <button id="btn-replay" class="replay-btn">🌹 Cho hoa trồi lên lại</button>
   </div>
 
-  <!-- =========================================================================
-       SÂN KHẤU BÓ HOA HỒNG CHỦ ĐẠO KÈM BỨC THƯ KẸP Ở THÂN HOA
-       ========================================================================= -->
-  <div id="bouquet-stage">
-    <div class="bouquet-aura"></div>
-
-    <div class="bouquet-wrapper">
-      <svg id="bouquet-svg" viewBox="0 0 540 600" width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <filter id="drop-sh" x="-20%" y="-20%" width="140%" height="140%">
-            <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#590d22" flood-opacity="0.22"/>
-          </filter>
-          <filter id="letter-sh" x="-30%" y="-30%" width="160%" height="160%">
-            <feDropShadow dx="0" dy="8" stdDeviation="7" flood-color="#800f2f" flood-opacity="0.35"/>
-          </filter>
-
-          <!-- Gradient Giấy gói lụa Hàn Quốc nhiều lớp -->
-          <linearGradient id="paper-back" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#fff0f3"/>
-            <stop offset="100%" stop-color="#ffccd5"/>
-          </linearGradient>
-          <linearGradient id="paper-left" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#ffccd5"/>
-            <stop offset="55%" stop-color="#ffb3c6"/>
-            <stop offset="100%" stop-color="#ff8fa3"/>
-          </linearGradient>
-          <linearGradient id="paper-right" x1="1" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ffe5ec"/>
-            <stop offset="55%" stop-color="#ffb3c6"/>
-            <stop offset="100%" stop-color="#fb6f92"/>
-          </linearGradient>
-          <linearGradient id="paper-inner" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#ffffff"/>
-            <stop offset="100%" stop-color="#fff0f3"/>
-          </linearGradient>
-          <linearGradient id="ribbon-silk" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#ff4d6d"/>
-            <stop offset="50%" stop-color="#c9184a"/>
-            <stop offset="100%" stop-color="#800f2f"/>
-          </linearGradient>
-
-          <!-- 5 Sắc độ Hoa Hồng Chủ Đạo (Đỏ Nhung, Đỏ Ruby, Hồng Đào, Hồng Phấn, Hồng Kem) -->
-          <radialGradient id="rose-velvet" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#590d22"/>
-            <stop offset="38%" stop-color="#a4133c"/>
-            <stop offset="76%" stop-color="#df2957"/>
-            <stop offset="100%" stop-color="#ff758f"/>
-          </radialGradient>
-          <radialGradient id="rose-ruby" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#800f2f"/>
-            <stop offset="40%" stop-color="#c9184a"/>
-            <stop offset="78%" stop-color="#ff4d6d"/>
-            <stop offset="100%" stop-color="#ffb3c6"/>
-          </radialGradient>
-          <radialGradient id="rose-peach" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#c9184a"/>
-            <stop offset="42%" stop-color="#ff4d6d"/>
-            <stop offset="78%" stop-color="#ff8fa3"/>
-            <stop offset="100%" stop-color="#ffe5ec"/>
-          </radialGradient>
-          <radialGradient id="rose-blush" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#ff4d6d"/>
-            <stop offset="45%" stop-color="#ff8fa3"/>
-            <stop offset="82%" stop-color="#ffc2d1"/>
-            <stop offset="100%" stop-color="#fff0f3"/>
-          </radialGradient>
-          <radialGradient id="rose-cream" cx="50%" cy="42%" r="55%">
-            <stop offset="0%" stop-color="#ff8fa3"/>
-            <stop offset="38%" stop-color="#ffcad4"/>
-            <stop offset="75%" stop-color="#fff0f3"/>
-            <stop offset="100%" stop-color="#ffffff"/>
-          </radialGradient>
-
-          <linearGradient id="leaf-dark" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0%" stop-color="#52b788"/>
-            <stop offset="100%" stop-color="#1b4332"/>
-          </linearGradient>
-          <linearGradient id="leaf-light" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#95d5b2"/>
-            <stop offset="100%" stop-color="#2d6a4f"/>
-          </linearGradient>
-
-          <!-- MẪU HOA HỒNG NỞ RỘ CHI TIẾT 6 LỚP CÁNH CHÂN THỰC -->
-          <g id="detailed-rose">
-            <!-- Lớp cánh ngoài thứ 1 (5 cánh lớn uốn lượn) -->
-            <path d="M0,-48 C24,-52 45,-34 46,-10 C47,16 32,38 10,46 C-12,52 -36,40 -45,18 C-52,-4 -40,-34 -18,-45 C-8,-50 -3,-47 0,-48 Z" opacity="0.96"/>
-            <path d="M0,-48 C24,-52 45,-34 46,-10 C47,16 32,38 10,46 C-12,52 -36,40 -45,18 C-52,-4 -40,-34 -18,-45 Z" transform="rotate(38)" opacity="0.93"/>
-            <path d="M0,-46 C22,-48 42,-30 43,-8 C44,15 30,36 8,43 C-12,48 -34,38 -42,16 C-48,-4 -38,-32 -16,-42 Z" transform="rotate(76)" opacity="0.9"/>
-
-            <!-- Viền sáng mềm trên cánh ngoài -->
-            <path d="M-28,-36 Q0,-50 28,-36 Q48,-10 32,24 Q0,46 -32,24 Q-48,-10 -28,-36 Z" fill="rgba(255,255,255,0.16)" transform="rotate(18)"/>
-
-            <!-- Lớp cánh giữa xếp chồng tạo độ phồng 3D -->
-            <path d="M-24,-24 C-6,-40 22,-36 32,-16 C42,4 32,28 10,34 C-12,40 -32,26 -35,4 C-38,-12 -30,-19 -24,-24 Z" fill="rgba(0,0,0,0.09)"/>
-            <path d="M0,-35 C19,-37 34,-22 34,-3 C34,16 20,31 2,34 C-16,36 -32,24 -34,5 C-36,-14 -19,-33 0,-35 Z"/>
-            <path d="M0,-32 C17,-34 30,-20 31,-3 C32,14 18,28 2,30 C-14,32 -29,20 -30,3 C-31,-14 -16,-30 0,-32 Z" transform="rotate(48)" fill="rgba(255,255,255,0.18)"/>
-
-            <!-- Lớp cánh cuộn gần tâm -->
-            <path d="M-16,-15 C-4,-26 14,-24 21,-10 C28,3 20,20 5,23 C-10,26 -22,16 -23,1 C-24,-8 -20,-12 -16,-15 Z" fill="rgba(0,0,0,0.12)"/>
-            <path d="M0,-22 C13,-23 22,-13 22,0 C22,12 12,22 0,22 C-12,22 -22,12 -22,0 C-22,-12 -12,-21 0,-22 Z"/>
-
-            <!-- Tâm xoáy cuộn tròn đặc trưng của hoa hồng thật -->
-            <path d="M-12,-4 C-6,-14 8,-14 13,-4 C17,6 8,15 -2,14 C-11,13 -15,3 -9,-5 C-4,-10 5,-9 8,-3 C10,2 5,8 -1,7 C-5,6 -6,1 -3,-2"
-                  fill="none" stroke="rgba(255,255,255,0.72)" stroke-width="2.4" stroke-linecap="round"/>
-          </g>
-
-          <!-- MẪU NỤ HOA HỒNG CHÚM CHÍM DƯỚI ĐÀI LÁ -->
-          <g id="rose-bud">
-            <path d="M0,18 L0,36" stroke="#2d6a4f" stroke-width="3.5" stroke-linecap="round"/>
-            <path d="M0,20 C-14,16 -18,-6 -8,-22 C-2,-14 2,-14 8,-22 C18,-6 14,16 0,20 Z"/>
-            <path d="M0,18 C-9,14 -10,-6 0,-25 C10,-6 9,14 0,18 Z" fill="rgba(255,255,255,0.28)"/>
-            <!-- Đài hoa xanh ôm lấy nụ -->
-            <path d="M0,21 C-12,18 -16,8 -13,-2 C-9,8 -4,15 0,18 C4,15 9,8 13,-2 C16,8 12,18 0,21 Z" fill="#2d6a4f"/>
-          </g>
-        </defs>
-
-        <!-- 1. LỚP GIẤY GÓI LỤA PHÍA SAU -->
-        <g id="wrap-back-layer" class="bloom-wrap-back" filter="url(#drop-sh)">
-          <path d="M90,190 Q270,55 450,190 L365,465 L175,465 Z" fill="url(#paper-back)"/>
-          <path d="M45,235 Q140,120 270,155 L220,460 L125,425 Z" fill="url(#paper-left)"/>
-          <path d="M495,235 Q400,120 270,155 L320,460 L415,425 Z" fill="url(#paper-right)"/>
-          <path d="M120,165 Q270,85 420,165 L350,445 L190,445 Z" fill="url(#paper-inner)" opacity="0.88"/>
-        </g>
-
-        <!-- 2. CÀNH LÁ HỒNG & LÁ KHUYNH DIỆP XÒE RỘNG -->
-        <g id="foliage-layer" class="bloom-foliage" filter="url(#drop-sh)">
-          <!-- Nhánh lá vươn cao bên trái -->
-          <path d="M230,310 Q160,175 115,85" fill="none" stroke="#2d6a4f" stroke-width="3.5"/>
-          <ellipse cx="118" cy="92" rx="12" ry="22" transform="rotate(-35 118 92)" fill="url(#leaf-light)"/>
-          <ellipse cx="145" cy="122" rx="14" ry="24" transform="rotate(-55 145 122)" fill="url(#leaf-dark)"/>
-          <ellipse cx="128" cy="152" rx="14" ry="23" transform="rotate(-18 128 152)" fill="url(#leaf-light)"/>
-
-          <!-- Nhánh lá vươn cao bên phải -->
-          <path d="M310,310 Q380,175 425,85" fill="none" stroke="#2d6a4f" stroke-width="3.5"/>
-          <ellipse cx="422" cy="92" rx="12" ry="22" transform="rotate(35 422 92)" fill="url(#leaf-light)"/>
-          <ellipse cx="395" cy="122" rx="14" ry="24" transform="rotate(55 395 122)" fill="url(#leaf-dark)"/>
-          <ellipse cx="412" cy="152" rx="14" ry="23" transform="rotate(18 412 152)" fill="url(#leaf-light)"/>
-
-          <!-- Nhánh lá trung tâm -->
-          <path d="M270,280 L270,58" fill="none" stroke="#40916c" stroke-width="3.5"/>
-          <ellipse cx="270" cy="56" rx="11" ry="21" fill="url(#leaf-light)"/>
-          <ellipse cx="250" cy="85" rx="13" ry="22" transform="rotate(-32 250 85)" fill="url(#leaf-dark)"/>
-          <ellipse cx="290" cy="85" rx="13" ry="22" transform="rotate(32 290 85)" fill="url(#leaf-dark)"/>
-
-          <!-- Lá hồng viền quanh hai bên hông bó hoa -->
-          <ellipse cx="82" cy="248" rx="28" ry="14" transform="rotate(-25 82 248)" fill="url(#leaf-dark)"/>
-          <ellipse cx="458" cy="248" rx="28" ry="14" transform="rotate(25 458 248)" fill="url(#leaf-dark)"/>
-          <ellipse cx="105" cy="312" rx="26" ry="13" transform="rotate(-15 105 312)" fill="url(#leaf-light)"/>
-          <ellipse cx="435" cy="312" rx="26" ry="13" transform="rotate(15 435 312)" fill="url(#leaf-light)"/>
-        </g>
-
-        <!-- 3. CÁC NỤ HOA HỒNG CHÚM CHÍM VƯƠN LÊN ĐỈNH BÓ HOA -->
-        <g filter="url(#drop-sh)">
-          <g transform="translate(175, 95) rotate(-24)">
-            <use href="#rose-bud" class="rose-item" data-order="1" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(365, 95) rotate(24)">
-            <use href="#rose-bud" class="rose-item" data-order="2" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(222, 82) rotate(-10)">
-            <use href="#rose-bud" class="rose-item" data-order="3" fill="url(#rose-ruby)"/>
-          </g>
-          <g transform="translate(318, 82) rotate(10)">
-            <use href="#rose-bud" class="rose-item" data-order="4" fill="url(#rose-ruby)"/>
-          </g>
-          <g transform="translate(270, 74)">
-            <use href="#rose-bud" class="rose-item" data-order="5" fill="url(#rose-velvet)"/>
-          </g>
-        </g>
-
-        <!-- 4. ĐẠI TIỆC 19 ĐÓA HOA HỒNG CHỦ ĐẠO XẾP TẦNG DÀY ĐẶC -->
-        <g filter="url(#drop-sh)">
-          <!-- Tầng Hồng Thượng (5 bông) -->
-          <g transform="translate(145, 165) scale(0.78) rotate(-25)">
-            <use href="#detailed-rose" class="rose-item" data-order="6" fill="url(#rose-blush)"/>
-          </g>
-          <g transform="translate(395, 165) scale(0.78) rotate(25)">
-            <use href="#detailed-rose" class="rose-item" data-order="7" fill="url(#rose-blush)"/>
-          </g>
-          <g transform="translate(202, 138) scale(0.84) rotate(-12)">
-            <use href="#detailed-rose" class="rose-item" data-order="8" fill="url(#rose-cream)"/>
-          </g>
-          <g transform="translate(338, 138) scale(0.84) rotate(12)">
-            <use href="#detailed-rose" class="rose-item" data-order="9" fill="url(#rose-cream)"/>
-          </g>
-          <g transform="translate(270, 125) scale(0.92)">
-            <use href="#detailed-rose" class="rose-item" data-order="10" fill="url(#rose-peach)"/>
-          </g>
-
-          <!-- Tầng Hồng Giữa (6 bông lớn) -->
-          <g transform="translate(115, 228) scale(0.85) rotate(-30)">
-            <use href="#detailed-rose" class="rose-item" data-order="11" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(425, 228) scale(0.85) rotate(30)">
-            <use href="#detailed-rose" class="rose-item" data-order="12" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(172, 198) scale(0.96) rotate(-16)">
-            <use href="#detailed-rose" class="rose-item" data-order="13" fill="url(#rose-ruby)"/>
-          </g>
-          <g transform="translate(368, 198) scale(0.96) rotate(16)">
-            <use href="#detailed-rose" class="rose-item" data-order="14" fill="url(#rose-ruby)"/>
-          </g>
-          <g transform="translate(230, 182) scale(1.02) rotate(-8)">
-            <use href="#detailed-rose" class="rose-item" data-order="15" fill="url(#rose-blush)"/>
-          </g>
-          <g transform="translate(310, 182) scale(1.02) rotate(8)">
-            <use href="#detailed-rose" class="rose-item" data-order="16" fill="url(#rose-blush)"/>
-          </g>
-
-          <!-- Tầng Hồng Trung Tâm & Tiền Cảnh (8 bông rực rỡ nhất) -->
-          <g transform="translate(138, 288) scale(0.92) rotate(-22)">
-            <use href="#detailed-rose" class="rose-item" data-order="17" fill="url(#rose-cream)"/>
-          </g>
-          <g transform="translate(402, 288) scale(0.92) rotate(22)">
-            <use href="#detailed-rose" class="rose-item" data-order="18" fill="url(#rose-cream)"/>
-          </g>
-          <g transform="translate(195, 265) scale(1.06) rotate(-14)">
-            <use href="#detailed-rose" class="rose-item" data-order="19" fill="url(#rose-velvet)"/>
-          </g>
-          <g transform="translate(345, 265) scale(1.06) rotate(14)">
-            <use href="#detailed-rose" class="rose-item" data-order="20" fill="url(#rose-velvet)"/>
-          </g>
-          <g transform="translate(175, 330) scale(0.95) rotate(-10)">
-            <use href="#detailed-rose" class="rose-item" data-order="21" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(365, 330) scale(0.95) rotate(10)">
-            <use href="#detailed-rose" class="rose-item" data-order="22" fill="url(#rose-peach)"/>
-          </g>
-          <g transform="translate(232, 322) scale(1.04) rotate(-6)">
-            <use href="#detailed-rose" class="rose-item" data-order="23" fill="url(#rose-blush)"/>
-          </g>
-          <g transform="translate(308, 322) scale(1.04) rotate(6)">
-            <use href="#detailed-rose" class="rose-item" data-order="24" fill="url(#rose-cream)"/>
-          </g>
-
-          <!-- ĐÓA HỒNG ĐỎ RUBY NỮ HOÀNG CHÍNH GIỮA BÓ HOA -->
-          <g transform="translate(270, 242) scale(1.28)">
-            <use href="#detailed-rose" class="rose-item" data-order="25" fill="url(#rose-ruby)"/>
-          </g>
-          <g transform="translate(270, 338) scale(1.1) rotate(5)">
-            <use href="#detailed-rose" class="rose-item" data-order="26" fill="url(#rose-velvet)"/>
-          </g>
-        </g>
-
-        <!-- 5. CÁC CHÙM HOA BABY TRẮNG XEN KẼ GIỮA CÁC ĐÓA HỒNG -->
-        <g class="baby-cluster" fill="#ffffff">
-          <circle cx="155" cy="128" r="4"/><circle cx="142" cy="138" r="3.2"/><circle cx="168" cy="122" r="3.5"/>
-          <circle cx="385" cy="128" r="4"/><circle cx="398" cy="138" r="3.2"/><circle cx="372" cy="122" r="3.5"/>
-          <circle cx="242" cy="108" r="3.8"/><circle cx="298" cy="108" r="3.8"/>
-          <circle cx="105" cy="195" r="4"/><circle cx="94" cy="208" r="3.2"/><circle cx="116" cy="186" r="3.2"/>
-          <circle cx="435" cy="195" r="4"/><circle cx="446" cy="208" r="3.2"/><circle cx="424" cy="186" r="3.2"/>
-          <circle cx="212" cy="222" r="4"/><circle cx="328" cy="222" r="4"/>
-          <circle cx="142" cy="252" r="3.8"/><circle cx="398" cy="252" r="3.8"/>
-          <circle cx="205" cy="302" r="4.2"/><circle cx="335" cy="302" r="4.2"/>
-          <circle cx="262" cy="292" r="3.8"/><circle cx="278" cy="295" r="3.5"/>
-        </g>
-
-        <!-- 6. LỚP GIẤY LỤA TRONG & BỨC THƯ TÌNH KẸP VÀO THÂN BÓ HOA -->
-        <g id="wrap-front-layer" class="bloom-wrap-front" filter="url(#drop-sh)">
-          <!-- Lớp giấy lụa trắng mờ ôm sát chân hoa -->
-          <path d="M120,318 Q195,365 270,345 Q345,365 420,318 L345,485 L195,485 Z" fill="url(#paper-inner)" opacity="0.94"/>
-
-          <!-- Vạt giấy gói bên trái ôm chéo qua thân -->
-          <path d="M85,305 Q175,355 288,395 L318,515 L208,530 L150,445 Z" fill="url(#paper-left)"/>
-        </g>
-
-        <!-- ===============================================================
-             BỨC THƯ ĐƯỢC KẸP TRỰC TIẾP VÀO GIỮA THÂN BÓ HOA (CÓ THỂ BẤM)
-             =============================================================== -->
-        <g id="tucked-letter-group" filter="url(#letter-sh)">
-          <g transform="translate(318, 378) rotate(14)">
-            <!-- Thân phong bì thư cổ điển kẹp nghiêng vào bó hoa -->
-            <rect x="-58" y="-38" width="116" height="76" rx="8" fill="#fffdf7" stroke="#ffb3c6" stroke-width="2.5"/>
-            <!-- Đường gấp chéo dưới phong bì -->
-            <path d="M-56,36 L0,-4 L56,36" fill="#fff0f5" stroke="#ffc2d1" stroke-width="1.5"/>
-            <!-- Nắp phong bì phía trên -->
-            <path d="M-56,-36 L0,6 L56,-36 Z" fill="#ffe5ec" stroke="#ffb3c6" stroke-width="2"/>
-            <!-- Dòng chữ nhỏ trên phong bì -->
-            <text x="0" y="-15" text-anchor="middle" fill="#c9184a" font-family="Dancing Script, cursive" font-size="14" font-weight="bold">Gửi Bé ❤️</text>
-            <!-- Con dấu sáp trái tim đỏ niêm phong thư -->
-            <circle cx="0" cy="5" r="13" fill="#c9184a" stroke="#ffe5ec" stroke-width="2"/>
-            <text x="0" y="9" text-anchor="middle" font-size="12">❤️</text>
-          </g>
-        </g>
-
-        <!-- 7. VẠT GIẤY GÓI PHẢI ĐÈ LÊN GÓC DƯỚI PHONG BÌ ĐỂ TẠO HIỆU ỨNG "KẸP" THẬT -->
-        <g id="wrap-front-layer-2" class="bloom-wrap-front" filter="url(#drop-sh)">
-          <path d="M455,305 Q365,365 252,400 L222,515 L332,530 L390,445 Z" fill="url(#paper-right)"/>
-
-          <!-- Chân giấy gói xòe bên dưới -->
-          <path d="M210,492 L330,492 L355,572 Q270,588 185,572 Z" fill="url(#paper-left)"/>
-          <path d="M225,495 L315,495 L330,575 Q270,585 210,575 Z" fill="url(#paper-inner)" opacity="0.75"/>
-
-          <!-- Chiếc Nơ Ruy-băng Lụa Đỏ Thắt Ngang Eo Bó Hoa -->
-          <g transform="translate(270, 480)">
-            <rect x="-56" y="-12" width="112" height="24" rx="9" fill="url(#ribbon-silk)"/>
-            <path d="M-12,8 Q-35,52 -52,96 L-20,90 Q-8,50 -2,10 Z" fill="url(#ribbon-silk)"/>
-            <path d="M12,8 Q35,52 52,96 L20,90 Q8,50 2,10 Z" fill="url(#ribbon-silk)"/>
-            <path d="M-8,-2 C-48,-38 -84,-18 -72,14 C-60,36 -26,20 -6,4 Z" fill="url(#ribbon-silk)" stroke="#ffb3c6" stroke-width="1.5"/>
-            <path d="M8,-2 C48,-38 84,-18 72,14 C60,36 26,20 6,4 Z" fill="url(#ribbon-silk)" stroke="#ffb3c6" stroke-width="1.5"/>
-            <rect x="-14" y="-15" width="28" height="28" rx="9" fill="#800f2f" stroke="#ffc2d1" stroke-width="2"/>
-          </g>
-        </g>
-      </svg>
-    </div>
-
-    <div id="prompt-open-letter" class="guide-banner">
-      💌 Chạm vào bức thư kẹp trên thân bó hoa để mở thư nhé!
-    </div>
+  <!-- Sân khấu chứa 52 Thực Thể Độc Lập trồi từ dưới lên -->
+  <div id="bouquet-world">
+    <div class="stage-glow"></div>
+    <!-- Các thực thể Giấy gói, Lá, Hoa Hồng, Hoa Baby, Nơ và Bức Thư được khởi tạo độc lập tại đây -->
   </div>
 
-  <!-- =========================================================================
-       MODAL LẬT MỞ LÁ THƯ 3D (HIỆU ỨNG LẬT TRANG THƯ & HIỆN DÒNG CHỮ)
-       ========================================================================= -->
-  <div id="letter-overlay">
-    <div class="flip-scene">
-      <div class="letter-book">
-        <!-- Nắp gập 3D lật mở ra khi bấm vào thư -->
-        <div class="letter-flap-cover">
-          <div class="wax-seal-big">❤️</div>
+  <div id="bottom-hint">💌 Chạm vào bức thư kẹp trên thân bó hoa để mở thư nhé!</div>
+
+  <!-- Modal Hiệu ứng Lật Mở Lá Thư 3D -->
+  <div id="letter-modal">
+    <div class="book-flip-container">
+      <div class="letter-sheet">
+        <!-- Bìa thư lật mở 3D sang trái -->
+        <div class="letter-cover-leaf">
+          <div class="seal-badge">❤️</div>
+          <div style="font-family:'Great Vibes',cursive; font-size:34px; color:#a4133c;">Gửi Bé 20/10</div>
         </div>
 
-        <div class="letter-header">Gửi cô gái của anh ❤️</div>
+        <div class="letter-title">Gửi cô gái của anh ❤️</div>
+        <div id="letter-lines" class="letter-lines-box"></div>
 
-        <!-- Vùng nội dung lá thư -->
-        <div id="letter-content-box" class="letter-scroll-area"></div>
-
-        <div class="letter-footer">
-          <button id="btn-close-letter" class="close-letter-btn">💐 Gấp thư lại &amp; Ngắm hoa</button>
+        <div class="letter-actions">
+          <button id="btn-close-letter" class="btn-fold-back">🌹 Gấp thư lại &amp; Ngắm hoa</button>
         </div>
       </div>
     </div>
@@ -764,7 +361,7 @@
 
   <script>
     // =========================================================================
-    // 1. NỘI DUNG BỨC THƯ NGUYÊN VĂN CỦA BẠN
+    // 1. NỘI DUNG LÁ THƯ NGUYÊN VĂN CỦA BẠN
     // =========================================================================
     const LETTER_PARAGRAPHS = [
       "Vậy là hành trình nhỏ của chúng mình đến đây là hết rồi nè bé ❤️",
@@ -779,394 +376,632 @@
     ];
 
     // =========================================================================
-    // 2. HỆ THỐNG ÂM THANH & NHẠC HỘP (MUSIC BOX) DỊU DÀNG
+    // 2. BẢNG MÀU HOA HỒNG CHÂN THỰC & HÀM TẠO SVG TỪNG ĐÓA HỒNG ĐỘC LẬP
     // =========================================================================
-    let audioCtx = null;
-    let bgmMasterGain = null;
-    let bgmPlaying = false;
-    let bgmMuted = false;
-    let bgmVolume = 0.5;
-    let bgmStep = 0;
-
-    const CHIME_NOTES = [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
-
-    function initAudio() {
-      if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        bgmMasterGain = audioCtx.createGain();
-        bgmMasterGain.gain.setValueAtTime(bgmMuted ? 0 : bgmVolume * 0.24, audioCtx.currentTime);
-        bgmMasterGain.connect(audioCtx.destination);
-      }
-      if (audioCtx.state === "suspended") audioCtx.resume();
-      if (!bgmPlaying) startMusicBoxLoop();
-    }
-
-    const N = {
-      _: 0,
-      C3: 130.81, F3: 174.61, G3: 196.00, A3: 220.00,
-      C4: 261.63, D4: 293.66, E4: 329.63, F4: 349.23, G4: 392.00, A4: 440.00, B4: 493.88,
-      C5: 523.25, D5: 587.33, E5: 659.25, F5: 698.46, G5: 783.99, A5: 880.00, B5: 987.77, C6: 1046.50
+    const ROSE_THEMES = {
+      velvet: { c1: "#590d22", c2: "#a4133c", c3: "#df2957", c4: "#ff758f", rim: "#ffccd5" },
+      ruby:   { c1: "#800f2f", c2: "#c9184a", c3: "#ff4d6d", c4: "#ffb3c6", rim: "#ffe5ec" },
+      coral:  { c1: "#b5179e", c2: "#e5383b", c3: "#ff758f", c4: "#ffc2d1", rim: "#fff0f3" },
+      blush:  { c1: "#c9184a", c2: "#ff4d6d", c3: "#ff8fa3", c4: "#ffe5ec", rim: "#ffffff" },
+      cream:  { c1: "#e07a5f", c2: "#ff8fa3", c3: "#ffcad4", c4: "#fff5f7", rim: "#ffffff" }
     };
 
-    const LEAD_MELODY = [
-      N.E5, N._,  N.G5, N.E5, N.C5, N.D5, N.E5, N._,  N.G5, N.A5, N.G5, N.E5, N.D5, N._,  N.C5, N._,
-      N.C5, N.E5, N.A5, N._,  N.G5, N.E5, N.C5, N.D5, N.E5, N._,  N.D5, N._,  N.C5, N._,  N._,  N._,
-      N.F5, N._,  N.A5, N.F5, N.C5, N.F5, N.A5, N._,  N.G5, N.A5, N.B5, N.G5, N.E5, N._,  N.D5, N._,
-      N.E5, N.G5, N.C6, N.B5, N.A5, N.G5, N.E5, N.C5, N.D5, N.E5, N.C5, N._,  N._,  N._,  N._,  N._
-    ];
+    // Tạo một thực thể Cành Hoa Hồng độc lập (có cuống hoa, lá, đài hoa và các tầng cánh hồng 3D)
+    function createRoseEntitySVG(uid, themeKey, stemLen, curveX, headScale, isBud) {
+      const t = ROSE_THEMES[themeKey] || ROSE_THEMES.ruby;
+      const w = 150;
+      const h = stemLen + 110;
+      const cx = w / 2;
+      const topY = 62;
+      const botY = h - 10;
 
-    const ARP_NOTES = [
-      N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4, N.C4, N.E4, N.G4, N.B4,
-      N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4, N.A3, N.C4, N.E4, N.G4,
-      N.F3, N.A3, N.C4, N.E4, N.F3, N.A3, N.C4, N.E4, N.G3, N.B4, N.D4, N.F4, N.G3, N.B4, N.D4, N.F4,
-      N.C4, N.E4, N.G4, N.C5, N.F3, N.A3, N.C4, N.D4, N.G3, N.B4, N.D4, N.G4, N.C4, N.G3, N.E4, N.C4
-    ];
+      const gradId = `rg_${uid}`;
+      const innerGradId = `ig_${uid}`;
 
-    function playBoxNote(freq, dur, waveType, gainVal) {
-      if (!audioCtx || !bgmMasterGain || freq <= 0) return;
-      const now = audioCtx.currentTime;
-      const osc = audioCtx.createOscillator();
-      const gain = audioCtx.createGain();
-      osc.type = waveType;
-      osc.frequency.setValueAtTime(freq, now);
-
-      gain.gain.setValueAtTime(0.001, now);
-      gain.gain.linearRampToValueAtTime(gainVal, now + 0.015);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
-
-      osc.connect(gain);
-      gain.connect(bgmMasterGain);
-      osc.start(now);
-      osc.stop(now + dur + 0.02);
-    }
-
-    function startMusicBoxLoop() {
-      if (bgmPlaying) return;
-      bgmPlaying = true;
-      setInterval(() => {
-        if (!audioCtx || bgmMuted || bgmVolume <= 0.01 || audioCtx.state !== "running") return;
-        const lead = LEAD_MELODY[bgmStep];
-        const arp = ARP_NOTES[bgmStep];
-        if (lead > 0) playBoxNote(lead, 0.34, "sine", 0.25);
-        if (arp > 0) playBoxNote(arp, 0.2, "triangle", 0.14);
-        bgmStep = (bgmStep + 1) % LEAD_MELODY.length;
-      }, 155);
-    }
-
-    function updateBgmGain() {
-      if (!audioCtx || !bgmMasterGain) return;
-      const target = bgmMuted ? 0 : bgmVolume * 0.24;
-      bgmMasterGain.gain.setTargetAtTime(target, audioCtx.currentTime, 0.03);
-    }
-
-    document.getElementById("bgm-volume").addEventListener("input", (e) => {
-      initAudio();
-      bgmVolume = parseInt(e.target.value, 10) / 100;
-      if (bgmVolume > 0 && bgmMuted) bgmMuted = false;
-      document.getElementById("btn-bgm-toggle").innerText = (bgmMuted || bgmVolume === 0) ? "🔇" : "🎵";
-      updateBgmGain();
-    });
-
-    document.getElementById("btn-bgm-toggle").addEventListener("click", () => {
-      initAudio();
-      bgmMuted = !bgmMuted;
-      document.getElementById("btn-bgm-toggle").innerText = (bgmMuted || bgmVolume === 0) ? "🔇" : "🎵";
-      updateBgmGain();
-    });
-
-    function playChime(freq, duration = 0.3, vol = 0.16) {
-      try {
-        initAudio();
-        const now = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = "sine";
-        osc.frequency.setValueAtTime(freq, now);
-        gain.gain.setValueAtTime(0.001, now);
-        gain.gain.linearRampToValueAtTime(vol, now + 0.015);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start(now);
-        osc.stop(now + duration);
-      } catch (e) {}
-    }
-
-    window.addEventListener("pointerdown", () => initAudio(), { once: true });
-
-    // =========================================================================
-    // 3. HIỆU ỨNG HOA HỒNG NẢY NỞ KẾT THÀNH BÓ HOA & KẸP BỨC THƯ
-    // =========================================================================
-    let bloomTimeouts = [];
-
-    function runBouquetBloomSequence() {
-      bloomTimeouts.forEach(t => clearTimeout(t));
-      bloomTimeouts = [];
-
-      const wrapBack = document.getElementById("wrap-back-layer");
-      const foliage = document.getElementById("foliage-layer");
-      const wrapFront1 = document.getElementById("wrap-front-layer");
-      const wrapFront2 = document.getElementById("wrap-front-layer-2");
-      const roses = Array.from(document.querySelectorAll(".rose-item"));
-      const babies = document.querySelector(".baby-cluster");
-      const tuckedLetter = document.getElementById("tucked-letter-group");
-
-      // Reset trạng thái ban đầu
-      wrapBack.classList.remove("show");
-      foliage.classList.remove("show");
-      wrapFront1.classList.remove("show");
-      wrapFront2.classList.remove("show");
-      babies.classList.remove("bloomed");
-      tuckedLetter.classList.remove("show");
-      roses.forEach(r => r.classList.remove("bloomed"));
-
-      // Bước 1: Mở lớp giấy lụa phía sau
-      bloomTimeouts.push(setTimeout(() => {
-        wrapBack.classList.add("show");
-      }, 150));
-
-      // Bước 2: Cành lá vươn lên
-      bloomTimeouts.push(setTimeout(() => {
-        foliage.classList.add("show");
-      }, 500));
-
-      // Bước 3: Lớp giấy gói phía trước ôm lấy bó hoa
-      bloomTimeouts.push(setTimeout(() => {
-        wrapFront1.classList.add("show");
-        wrapFront2.classList.add("show");
-      }, 850));
-
-      // Bước 4: 26 Đóa Hoa Hồng & Nụ Hồng lần lượt nảy nở kết thành bó hoa lớn
-      const sortedRoses = roses.sort((a, b) => {
-        return parseInt(a.getAttribute("data-order") || "0", 10) - parseInt(b.getAttribute("data-order") || "0", 10);
-      });
-
-      sortedRoses.forEach((rose, idx) => {
-        bloomTimeouts.push(setTimeout(() => {
-          rose.classList.add("bloomed");
-          if (audioCtx && audioCtx.state === "running" && idx % 2 === 0) {
-            playChime(CHIME_NOTES[idx % CHIME_NOTES.length], 0.22, 0.08);
-          }
-        }, 1050 + idx * 95));
-      });
-
-      const totalRoseTime = 1050 + sortedRoses.length * 95;
-
-      // Bước 5: Hoa Baby trắng bung nở điểm xuyết
-      bloomTimeouts.push(setTimeout(() => {
-        babies.classList.add("bloomed");
-      }, totalRoseTime));
-
-      // Bước 6: Bức thư tình cài nhẹ vào giữa thân bó hoa
-      bloomTimeouts.push(setTimeout(() => {
-        tuckedLetter.classList.add("show");
-        if (audioCtx && audioCtx.state === "running") {
-          playChime(880, 0.35, 0.14);
-        }
-      }, totalRoseTime + 350));
-    }
-
-    document.getElementById("btn-replay-bloom").addEventListener("click", () => {
-      initAudio();
-      runBouquetBloomSequence();
-    });
-
-    // Chạy hiệu ứng hoa nở ngay khi mở trang
-    window.addEventListener("DOMContentLoaded", () => {
-      runBouquetBloomSequence();
-    });
-
-    // =========================================================================
-    // 4. HIỆU ỨNG LẬT MỞ LÁ THƯ 3D & CHỮ HIỆN TỪNG ĐOẠN
-    // =========================================================================
-    const letterOverlay = document.getElementById("letter-overlay");
-    const letterContentBox = document.getElementById("letter-content-box");
-    let paragraphTimers = [];
-
-    function openAndFlipLetter(e) {
-      if (e && e.clientX) {
-        spawnHeartBurst(e.clientX, e.clientY, 16);
+      let bloomMarkup = "";
+      if (isBud) {
+        // Nụ hoa hồng chúm chím kèm đài lá
+        bloomMarkup = `
+          <g class="rose-head-group" transform="translate(${cx + curveX}, ${topY}) scale(${headScale})">
+            <path d="M0,22 C-16,16 -20,-8 -9,-26 C-2,-16 2,-16 9,-26 C20,-8 16,16 0,22 Z" fill="url(#${gradId})"/>
+            <path d="M0,19 C-10,14 -11,-8 0,-29 C11,-8 10,14 0,19 Z" fill="${t.rim}" opacity="0.45"/>
+            <path d="M0,23 C-14,19 -18,8 -15,-4 C-10,8 -4,16 0,20 C4,16 10,8 15,-4 C18,8 14,19 0,23 Z" fill="#2d6a4f"/>
+          </g>
+        `;
+      } else {
+        // Đóa hoa hồng nở rộ nhiều tầng cánh реалистичный
+        bloomMarkup = `
+          <g class="rose-head-group" transform="translate(${cx + curveX}, ${topY}) scale(${headScale})">
+            <!-- Đài lá xanh phía dưới bông hồng -->
+            <path d="M-28,24 L-40,36 L-18,30 Z M28,24 L40,36 L18,30 Z M0,32 L0,44 L8,32 Z" fill="#2d6a4f"/>
+            <!-- Tầng cánh ngoài cùng (5 cánh lớn uốn lượn) -->
+            <g fill="url(#${gradId})">
+              <path d="M0,-48 C25,-52 46,-33 47,-9 C48,16 33,39 10,46 C-12,52 -37,40 -46,18 C-53,-4 -40,-35 -18,-45 C-8,-50 -3,-47 0,-48 Z"/>
+              <path d="M0,-47 C24,-50 44,-32 45,-8 C46,15 32,37 9,44 C-12,50 -35,38 -44,17 C-50,-4 -38,-33 -17,-43 Z" transform="rotate(42)"/>
+              <path d="M0,-45 C22,-48 42,-30 43,-7 C44,14 30,35 8,42 C-11,48 -33,36 -41,15 C-47,-4 -36,-31 -15,-41 Z" transform="rotate(84)"/>
+            </g>
+            <!-- Ánh sáng viền cánh ngoài -->
+            <path d="M-28,-35 Q0,-51 28,-35 Q48,-9 32,25 Q0,47 -32,25 Q-48,-9 -28,-35 Z" fill="${t.rim}" opacity="0.22" transform="rotate(20)"/>
+            <!-- Tầng cánh giữa xếp lớp tạo chiều sâu -->
+            <path d="M-25,-24 C-6,-41 23,-37 33,-16 C43,4 33,29 10,35 C-12,41 -33,27 -36,4 C-39,-12 -30,-19 -25,-24 Z" fill="${t.c1}" opacity="0.32"/>
+            <path d="M0,-36 C20,-38 35,-23 35,-3 C35,17 21,32 2,35 C-17,37 -33,25 -35,5 C-37,-15 -20,-34 0,-36 Z" fill="url(#${gradId})"/>
+            <path d="M0,-33 C18,-35 31,-20 32,-3 C33,14 19,29 2,31 C-15,33 -30,20 -31,3 C-32,-14 -16,-31 0,-33 Z" transform="rotate(52)" fill="${t.rim}" opacity="0.25"/>
+            <!-- Tầng cánh khum quanh tâm -->
+            <path d="M0,-24 C14,-25 24,-14 24,0 C24,13 13,24 0,24 C-13,24 -24,13 -24,0 C-24,-13 -13,-23 0,-24 Z" fill="url(#${innerGradId})"/>
+            <!-- Xoáy tâm hoa hồng nhiều lớp -->
+            <path d="M-14,-5 C-7,-16 9,-16 14,-5 C19,6 9,17 -2,16 C-12,15 -16,3 -10,-6 C-5,-11 6,-10 9,-3 C11,3 5,9 -1,8 C-6,7 -7,1 -3,-2"
+                  fill="none" stroke="${t.rim}" stroke-width="2.4" stroke-linecap="round" opacity="0.82"/>
+          </g>
+        `;
       }
-      playChime(783.99, 0.4, 0.18);
 
-      // Tạo sẵn các đoạn văn trong thư
-      letterContentBox.innerHTML = LETTER_PARAGRAPHS.map((text, i) =>
-        `<p id="lp-${i}" class="letter-paragraph">${text}</p>`
+      return `
+        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;">
+          <defs>
+            <radialGradient id="${gradId}" cx="50%" cy="42%" r="56%">
+              <stop offset="0%" stop-color="${t.c1}"/>
+              <stop offset="42%" stop-color="${t.c2}"/>
+              <stop offset="78%" stop-color="${t.c3}"/>
+              <stop offset="100%" stop-color="${t.c4}"/>
+            </radialGradient>
+            <radialGradient id="${innerGradId}" cx="48%" cy="42%" r="52%">
+              <stop offset="0%" stop-color="${t.c1}"/>
+              <stop offset="60%" stop-color="${t.c2}"/>
+              <stop offset="100%" stop-color="${t.c3}"/>
+            </radialGradient>
+          </defs>
+          <!-- Cuống hoa hồng riêng biệt của từng bông -->
+          <path d="M${cx},${botY} Q${cx + curveX * 0.45},${(botY + topY) / 2} ${cx + curveX},${topY + 12}"
+                fill="none" stroke="#2d6a4f" stroke-width="4.2" stroke-linecap="round"/>
+          <!-- Lá hồng mọc trên thân cành -->
+          <ellipse cx="${cx + curveX * 0.55 - 14}" cy="${topY + (botY - topY) * 0.42}" rx="13" ry="7"
+                   transform="rotate(-28 ${cx + curveX * 0.55 - 14} ${topY + (botY - topY) * 0.42})" fill="#40916c"/>
+          <ellipse cx="${cx + curveX * 0.65 + 14}" cy="${topY + (botY - topY) * 0.34}" rx="13" ry="7"
+                   transform="rotate(28 ${cx + curveX * 0.65 + 14} ${topY + (botY - topY) * 0.34})" fill="#52b788"/>
+          ${bloomMarkup}
+        </svg>
+      `;
+    }
+
+    // Tạo thực thể Cành Lá Khuynh Diệp độc lập
+    function createFoliageEntitySVG(stemLen, curveX) {
+      const w = 130;
+      const h = stemLen + 70;
+      const cx = w / 2;
+      const topY = 30;
+      const botY = h - 8;
+      let leaves = "";
+      for (let i = 1; i <= 5; i++) {
+        const t = i / 5;
+        const lx = cx + curveX * t;
+        const ly = botY - (botY - topY) * t;
+        const side = i % 2 === 0 ? 1 : -1;
+        leaves += `
+          <ellipse cx="${lx + side * 14}" cy="${ly}" rx="12" ry="19"
+                   transform="rotate(${side * 42} ${lx + side * 14} ${ly})"
+                   fill="${i % 2 === 0 ? '#52b788' : '#2d6a4f'}" opacity="0.95"/>
+        `;
+      }
+      return `
+        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;">
+          <path d="M${cx},${botY} Q${cx + curveX * 0.5},${(botY + topY) / 2} ${cx + curveX},${topY}"
+                fill="none" stroke="#2d6a4f" stroke-width="3.2" stroke-linecap="round"/>
+          ${leaves}
+        </svg>
+      `;
+    }
+
+    // Tạo thực thể Nhánh Hoa Baby Trắng độc lập
+    function createBabysBreathEntitySVG(stemLen, curveX) {
+      const w = 120;
+      const h = stemLen + 60;
+      const cx = w / 2;
+      const topY = 32;
+      const botY = h - 8;
+      const endX = cx + curveX;
+      return `
+        <svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}" style="overflow:visible;">
+          <path d="M${cx},${botY} Q${cx + curveX * 0.5},${(botY + topY) / 2} ${endX},${topY}
+                   M${endX - 6},${topY + 26} L${endX - 24},${topY + 6}
+                   M${endX + 6},${topY + 22} L${endX + 24},${topY + 4}"
+                fill="none" stroke="#74c69d" stroke-width="2" stroke-linecap="round"/>
+          <g fill="#ffffff" filter="drop-shadow(0 0 4px rgba(255,255,255,0.9))">
+            <circle cx="${endX}" cy="${topY}" r="4.5"/>
+            <circle cx="${endX - 14}" cy="${topY - 6}" r="3.8"/>
+            <circle cx="${endX + 14}" cy="${topY - 5}" r="4"/>
+            <circle cx="${endX - 24}" cy="${topY + 6}" r="4.2"/>
+            <circle cx="${endX + 24}" cy="${topY + 4}" r="4.2"/>
+            <circle cx="${endX - 8}" cy="${topY + 12}" r="3.4"/>
+            <circle cx="${endX + 9}" cy="${topY + 11}" r="3.5"/>
+          </g>
+        </svg>
+      `;
+    }
+
+    // =========================================================================
+    // 3. KHỞI TẠO CÁC THỰC THỂ ĐỘC LẬP VÀ HỆ THỐNG VẬT LÝ TRỒI LÊN
+    // =========================================================================
+    const worldEl = document.getElementById("bouquet-world");
+    let entities = [];
+    let pointerX = -9999;
+    let pointerY = -9999;
+
+    function scaleWorldToFit() {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const scale = Math.min(vw / 570, vh / 670, 1.04);
+      worldEl.style.transform = `scale(${scale})`;
+    }
+    window.addEventListener("resize", scaleWorldToFit);
+    scaleWorldToFit();
+
+    // Danh sách cấu hình 28 cành hoa hồng từ thấp đến cao, xếp tầng tự nhiên
+    const ROSE_SPECS = [
+      // Hàng Nụ Hồng & Hồng Đỉnh Cao Nhất (5 cành)
+      { angle: -24, len: 390, curve: -18, scale: 0.85, theme: "coral",  bud: true,  z: 28, delay: 420 },
+      { angle: -11, len: 410, curve: -10, scale: 0.90, theme: "ruby",   bud: true,  z: 29, delay: 460 },
+      { angle:   0, len: 420, curve:   0, scale: 0.95, theme: "velvet", bud: true,  z: 30, delay: 500 },
+      { angle:  11, len: 410, curve:  10, scale: 0.90, theme: "ruby",   bud: true,  z: 29, delay: 540 },
+      { angle:  24, len: 390, curve:  18, scale: 0.85, theme: "coral",  bud: true,  z: 28, delay: 580 },
+
+      // Hàng Hồng Tầng Thượng (6 đóa hồng nở)
+      { angle: -32, len: 350, curve: -22, scale: 0.82, theme: "blush",  bud: false, z: 34, delay: 650 },
+      { angle: -19, len: 368, curve: -12, scale: 0.88, theme: "cream",  bud: false, z: 35, delay: 710 },
+      { angle:  -6, len: 380, curve:  -5, scale: 0.94, theme: "ruby",   bud: false, z: 36, delay: 770 },
+      { angle:   6, len: 380, curve:   5, scale: 0.94, theme: "coral",  bud: false, z: 36, delay: 830 },
+      { angle:  19, len: 368, curve:  12, scale: 0.88, theme: "cream",  bud: false, z: 35, delay: 890 },
+      { angle:  32, len: 350, curve:  22, scale: 0.82, theme: "blush",  bud: false, z: 34, delay: 950 },
+
+      // Hàng Hồng Tầng Giữa (7 đóa hồng lớn)
+      { angle: -38, len: 300, curve: -24, scale: 0.88, theme: "coral",  bud: false, z: 42, delay: 1020 },
+      { angle: -25, len: 320, curve: -16, scale: 0.96, theme: "ruby",   bud: false, z: 44, delay: 1080 },
+      { angle: -12, len: 332, curve:  -8, scale: 1.02, theme: "blush",  bud: false, z: 45, delay: 1140 },
+      { angle:   0, len: 340, curve:   0, scale: 1.08, theme: "velvet", bud: false, z: 46, delay: 1200 },
+      { angle:  12, len: 332, curve:   8, scale: 1.02, theme: "cream",  bud: false, z: 45, delay: 1260 },
+      { angle:  25, len: 320, curve:  16, scale: 0.96, theme: "ruby",   bud: false, z: 44, delay: 1320 },
+      { angle:  38, len: 300, curve:  24, scale: 0.88, theme: "coral",  bud: false, z: 42, delay: 1380 },
+
+      // Hàng Hồng Trung Tâm & Tiền Cảnh (10 đóa hồng rực rỡ nhất)
+      { angle: -34, len: 245, curve: -20, scale: 0.94, theme: "cream",  bud: false, z: 52, delay: 1450 },
+      { angle: -21, len: 265, curve: -12, scale: 1.06, theme: "velvet", bud: false, z: 54, delay: 1510 },
+      { angle:  -8, len: 276, curve:  -5, scale: 1.12, theme: "blush",  bud: false, z: 55, delay: 1570 },
+      { angle:   8, len: 276, curve:   5, scale: 1.12, theme: "coral",  bud: false, z: 55, delay: 1630 },
+      { angle:  21, len: 265, curve:  12, scale: 1.06, theme: "velvet", bud: false, z: 54, delay: 1690 },
+      { angle:  34, len: 245, curve:  20, scale: 0.94, theme: "cream",  bud: false, z: 52, delay: 1750 },
+
+      // 4 Đóa Hồng Chủ Đạo Chính Diện & Sát Mép Giấy Gói
+      { angle: -15, len: 215, curve: -10, scale: 1.05, theme: "ruby",   bud: false, z: 60, delay: 1820 },
+      { angle:  15, len: 215, curve:  10, scale: 1.05, theme: "blush",  bud: false, z: 60, delay: 1880 },
+      { angle:   0, len: 250, curve:   0, scale: 1.30, theme: "ruby",   bud: false, z: 64, delay: 1950 },
+      { angle:   0, len: 195, curve:   0, scale: 1.14, theme: "velvet", bud: false, z: 62, delay: 2020 }
+    ];
+
+    function buildIndependentBouquetEntities() {
+      // Xóa các thực thể cũ nếu bấm xem lại
+      worldEl.querySelectorAll(".entity, #tucked-letter-entity").forEach(el => el.remove());
+      entities = [];
+      document.getElementById("bottom-hint").classList.remove("show");
+
+      // 1. Tạo 3 Thực thể Giấy Gói Lụa Phía Sau (Trồi lên đầu tiên)
+      const backPapers = [
+        { angle: -18, z: 5,  delay: 50,  color1: "#ffe5ec", color2: "#ffb3c6", w: 260, h: 420 },
+        { angle:   0, z: 6,  delay: 110, color1: "#fff0f3", color2: "#ffccd5", w: 310, h: 445 },
+        { angle:  18, z: 5,  delay: 170, color1: "#ffe5ec", color2: "#ffb3c6", w: 260, h: 420 }
+      ];
+      backPapers.forEach((bp, idx) => {
+        const el = document.createElement("div");
+        el.className = "entity";
+        el.style.width = `${bp.w}px`;
+        el.style.height = `${bp.h}px`;
+        el.style.marginLeft = `${-bp.w / 2}px`;
+        el.style.zIndex = bp.z;
+        el.innerHTML = `
+          <svg width="${bp.w}" height="${bp.h}" viewBox="0 0 ${bp.w} ${bp.h}" style="overflow:visible;">
+            <defs>
+              <linearGradient id="bp_${idx}" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%" stop-color="${bp.color1}"/>
+                <stop offset="100%" stop-color="${bp.color2}"/>
+              </linearGradient>
+            </defs>
+            <path d="M15,85 Q${bp.w / 2},0 ${bp.w - 15},85 L${bp.w * 0.72},${bp.h} L${bp.w * 0.28},${bp.h} Z"
+                  fill="url(#bp_${idx})" filter="drop-shadow(0 8px 16px rgba(128,15,47,0.16))"/>
+          </svg>
+        `;
+        worldEl.appendChild(el);
+        registerEntityPhysics(el, bp.angle, bp.delay, false, 0.35);
+      });
+
+      // 2. Tạo 8 Thực thể Cành Lá Khuynh Diệp Độc Lập
+      const foliageAngles = [-36, -24, -12, -4, 4, 12, 24, 36];
+      foliageAngles.forEach((ang, idx) => {
+        const el = document.createElement("div");
+        el.className = "entity";
+        const len = 350 + (idx % 3) * 28;
+        el.style.width = "130px";
+        el.style.height = `${len + 70}px`;
+        el.style.marginLeft = "-65px";
+        el.style.zIndex = 16 + (idx % 3);
+        el.innerHTML = createFoliageEntitySVG(len, ang * 0.6);
+        worldEl.appendChild(el);
+        registerEntityPhysics(el, ang, 220 + idx * 40, false, 0.7);
+      });
+
+      // 3. Tạo 28 Thực thể Cành Hoa Hồng Độc Lập (Trồi từ dưới lên và nở từng bông)
+      ROSE_SPECS.forEach((spec, idx) => {
+        const el = document.createElement("div");
+        el.className = "entity";
+        const w = 150;
+        const h = spec.len + 110;
+        el.style.width = `${w}px`;
+        el.style.height = `${h}px`;
+        el.style.marginLeft = `${-w / 2}px`;
+        el.style.zIndex = spec.z;
+        el.innerHTML = createRoseEntitySVG(idx, spec.theme, spec.len, spec.curve, spec.scale, spec.bud);
+        worldEl.appendChild(el);
+
+        const ent = registerEntityPhysics(el, spec.angle, spec.delay, true, 1.0);
+        // Cho phép chạm vào từng bông hoa để đẩy nhẹ lò xo và bung cánh hoa
+        const head = el.querySelector(".rose-head-group");
+        if (head) {
+          head.addEventListener("pointerdown", (e) => {
+            e.stopPropagation();
+            ent.vAngle += (Math.random() > 0.5 ? 1 : -1) * 6.5;
+            spawnPetalBurst(e.clientX, e.clientY, 12);
+          });
+        }
+      });
+
+      // 4. Tạo 8 Thực thể Nhánh Hoa Baby Trắng Độc Lập
+      const babySpecs = [
+        { angle: -30, len: 340, z: 38, delay: 1600 },
+        { angle: -16, len: 365, z: 48, delay: 1680 },
+        { angle:   0, len: 375, z: 40, delay: 1760 },
+        { angle:  16, len: 365, z: 48, delay: 1840 },
+        { angle:  30, len: 340, z: 38, delay: 1920 },
+        { angle: -22, len: 255, z: 58, delay: 2000 },
+        { angle:  22, len: 255, z: 58, delay: 2060 },
+        { angle:   6, len: 220, z: 63, delay: 2120 }
+      ];
+      babySpecs.forEach((bs) => {
+        const el = document.createElement("div");
+        el.className = "entity";
+        el.style.width = "120px";
+        el.style.height = `${bs.len + 60}px`;
+        el.style.marginLeft = "-60px";
+        el.style.zIndex = bs.z;
+        el.innerHTML = createBabysBreathEntitySVG(bs.len, bs.angle * 0.5);
+        worldEl.appendChild(el);
+        registerEntityPhysics(el, bs.angle, bs.delay, false, 1.25);
+      });
+
+      // 5. Thực thể Vạt Giấy Gói Phía Trước Bên Trái (Z-index 75)
+      const leftWrap = document.createElement("div");
+      leftWrap.className = "entity";
+      leftWrap.style.width = "380px";
+      leftWrap.style.height = "310px";
+      leftWrap.style.marginLeft = "-190px";
+      leftWrap.style.bottom = "25px";
+      leftWrap.style.zIndex = 75;
+      leftWrap.innerHTML = `
+        <svg width="380" height="310" viewBox="0 0 380 310" style="overflow:visible;">
+          <defs>
+            <linearGradient id="lw_grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ffffff"/>
+              <stop offset="35%" stop-color="#ffe5ec"/>
+              <stop offset="100%" stop-color="#ff9ebb"/>
+            </linearGradient>
+          </defs>
+          <!-- Lớp giấy lụa trắng kem lót trong -->
+          <path d="M35,25 Q190,75 345,25 L275,215 L105,215 Z" fill="#fff9fb" opacity="0.92"/>
+          <!-- Vạt giấy hồng bên trái gấp chéo -->
+          <path d="M10,18 Q115,65 225,105 L245,245 L125,255 L65,160 Z"
+                fill="url(#lw_grad)" filter="drop-shadow(0 8px 16px rgba(128,15,47,0.2))"/>
+        </svg>
+      `;
+      worldEl.appendChild(leftWrap);
+      registerEntityPhysics(leftWrap, -3, 2150, false, 0.25);
+
+      // 6. THỰC THỂ BỨC THƯ ĐƯỢC KẸP VÀO GIỮA THÂN BÓ HOA (Z-index 82)
+      // Nằm giữa Vạt giấy trái (z:75)/Hoa hồng (z:64) và Vạt giấy phải (z:88) nên kẹp thật 100%
+      const letterEnt = document.createElement("div");
+      letterEnt.id = "tucked-letter-entity";
+      letterEnt.style.marginLeft = "-10px";
+      letterEnt.innerHTML = `
+        <div class="tucked-envelope-card" title="Bấm vào để mở bức thư của bé ❤️">
+          <svg width="140" height="96" viewBox="0 0 140 96" style="overflow:visible;">
+            <rect x="6" y="6" width="128" height="84" rx="10" fill="#fffdf9" stroke="#ff8fa3" stroke-width="2.5"/>
+            <path d="M8,88 L70,42 L132,88" fill="#fff0f5" stroke="#ffc2d1" stroke-width="1.5"/>
+            <path d="M8,8 L70,54 L132,8 Z" fill="#ffe5ec" stroke="#ff8fa3" stroke-width="2"/>
+            <text x="70" y="30" text-anchor="middle" fill="#c9184a" font-family="Dancing Script, cursive" font-size="16" font-weight="bold">Gửi Bé ❤️</text>
+            <circle cx="70" cy="52" r="14" fill="#c9184a" stroke="#fff0f5" stroke-width="2"/>
+            <text x="70" y="57" text-anchor="middle" font-size="13">❤️</text>
+          </svg>
+        </div>
+      `;
+      letterEnt.addEventListener("click", openFlipLetterModal);
+      worldEl.appendChild(letterEnt);
+      const letterPhys = registerEntityPhysics(letterEnt, 15, 2480, false, 0.55);
+      setTimeout(() => {
+        letterEnt.classList.add("ready");
+        document.getElementById("bottom-hint").classList.add("show");
+      }, 3100);
+
+      // 7. Thực thể Vạt Giấy Gói Phía Trước Bên Phải & Chiếc Nơ Lụa (Z-index 88 - Đè lên góc dưới bức thư)
+      const rightWrap = document.createElement("div");
+      rightWrap.className = "entity";
+      rightWrap.style.width = "380px";
+      rightWrap.style.height = "330px";
+      rightWrap.style.marginLeft = "-190px";
+      rightWrap.style.bottom = "10px";
+      rightWrap.style.zIndex = 88;
+      rightWrap.innerHTML = `
+        <svg width="380" height="330" viewBox="0 0 380 330" style="overflow:visible;">
+          <defs>
+            <linearGradient id="rw_grad" x1="1" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#fff0f3"/>
+              <stop offset="50%" stop-color="#ffb3c6"/>
+              <stop offset="100%" stop-color="#fb6f92"/>
+            </linearGradient>
+            <linearGradient id="rib_grad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0%" stop-color="#ff4d6d"/>
+              <stop offset="55%" stop-color="#c9184a"/>
+              <stop offset="100%" stop-color="#800f2f"/>
+            </linearGradient>
+          </defs>
+          <!-- Vạt giấy phải ôm đè lên phần chân phong bì thư -->
+          <path d="M370,15 Q265,65 155,105 L135,245 L255,255 L315,160 Z"
+                fill="url(#rw_grad)" filter="drop-shadow(0 -4px 14px rgba(128,15,47,0.18))"/>
+          <!-- Chân bó hoa xòe phía dưới eo -->
+          <path d="M135,220 L245,220 L268,305 Q190,322 112,305 Z" fill="url(#rw_grad)"/>
+          <path d="M148,222 L232,222 L246,308 Q190,318 134,308 Z" fill="#fff9fb" opacity="0.78"/>
+          <!-- Chiếc Nơ Ruy-băng Lụa Đỏ Thắt Eo Bó Hoa -->
+          <g transform="translate(190, 212)" filter="drop-shadow(0 6px 12px rgba(89,13,34,0.3))">
+            <rect x="-55" y="-12" width="110" height="24" rx="9" fill="url(#rib_grad)"/>
+            <path d="M-12,8 Q-34,54 -52,98 L-20,90 Q-8,48 -2,10 Z" fill="url(#rib_grad)"/>
+            <path d="M12,8 Q34,54 52,98 L20,90 Q8,48 2,10 Z" fill="url(#rib_grad)"/>
+            <path d="M-8,-2 C-48,-38 -82,-18 -70,14 C-58,36 -25,20 -6,4 Z" fill="url(#rib_grad)" stroke="#ffc2d1" stroke-width="1.5"/>
+            <path d="M8,-2 C48,-38 82,-18 70,14 C58,36 25,20 6,4 Z" fill="url(#rib_grad)" stroke="#ffc2d1" stroke-width="1.5"/>
+            <rect x="-14" y="-14" width="28" height="28" rx="9" fill="#800f2f" stroke="#ffe5ec" stroke-width="2"/>
+          </g>
+        </svg>
+      `;
+      worldEl.appendChild(rightWrap);
+      registerEntityPhysics(rightWrap, 2, 2240, false, 0.25);
+    }
+
+    // Đăng ký từng thực thể vào hệ thống Vật Lý Trồi Từ Dưới Lên & Đung Đưa Độc Lập
+    function registerEntityPhysics(el, targetAngle, delayMs, hasBloom, swayFactor) {
+      const ent = {
+        el,
+        targetAngle,
+        currentAngle: 0, // Lúc mới trồi lên thì thẳng đứng, lên tới nơi mới xòe ra góc targetAngle
+        vAngle: 0,
+        yOffset: 680,    // Bắt đầu ở dưới đáy màn hình (trồi từ dưới lên)
+        vY: 0,
+        started: false,
+        bloomed: false,
+        hasBloom,
+        swayFactor,
+        phase: Math.random() * Math.PI * 2,
+        freq: 0.0014 + Math.random() * 0.0009
+      };
+
+      // Đặt vị trí ban đầu ẩn dưới đáy
+      el.style.transform = `translate3d(0px, ${ent.yOffset}px, 0) rotate(0deg)`;
+
+      setTimeout(() => {
+        ent.started = true;
+      }, delayMs);
+
+      entities.push(ent);
+      return ent;
+    }
+
+    // Theo dõi vị trí chuột/ngón tay để các thực thể hoa nghiêng tránh độc lập
+    window.addEventListener("pointermove", (e) => {
+      pointerX = e.clientX;
+      pointerY = e.clientY;
+    });
+    window.addEventListener("pointerleave", () => {
+      pointerX = -9999;
+      pointerY = -9999;
+    });
+
+    document.getElementById("btn-replay").addEventListener("click", () => {
+      buildIndependentBouquetEntities();
+    });
+
+    // =========================================================================
+    // 4. HIỆU ỨNG LẬT MỞ LÁ THƯ 3D & HIỆN DÒNG ĐOẠN VĂN
+    // =========================================================================
+    const letterModal = document.getElementById("letter-modal");
+    const letterLinesBox = document.getElementById("letter-lines");
+    let textTimers = [];
+
+    function openFlipLetterModal(e) {
+      if (e && e.clientX) {
+        spawnPetalBurst(e.clientX, e.clientY, 16);
+      }
+
+      letterLinesBox.innerHTML = LETTER_PARAGRAPHS.map((txt, idx) =>
+        `<p id="lp_${idx}" class="letter-p">${txt}</p>`
       ).join("");
 
-      letterOverlay.style.display = "flex";
+      letterModal.style.display = "flex";
 
-      // Kích hoạt animation lật nắp phong bì & trải phẳng tờ thư 3D
+      // Kích hoạt hiệu ứng lật bìa thư & mở trang giấy 3D
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          letterOverlay.classList.add("open");
+          letterModal.classList.add("open");
         });
       });
 
-      // Hiện lần lượt từng đoạn tâm sự sau khi lá thư lật mở ra
-      paragraphTimers.forEach(t => clearTimeout(t));
-      paragraphTimers = [];
+      textTimers.forEach(t => clearTimeout(t));
+      textTimers = [];
 
-      LETTER_PARAGRAPHS.forEach((_, i) => {
-        paragraphTimers.push(setTimeout(() => {
-          const pEl = document.getElementById(`lp-${i}`);
-          if (pEl) {
-            pEl.classList.add("visible");
-            // Tự động cuộn nhẹ theo dòng chữ mới xuất hiện
-            letterContentBox.scrollTo({
-              top: letterContentBox.scrollHeight,
+      LETTER_PARAGRAPHS.forEach((_, idx) => {
+        textTimers.push(setTimeout(() => {
+          const p = document.getElementById(`lp_${idx}`);
+          if (p) {
+            p.classList.add("show");
+            letterLinesBox.scrollTo({
+              top: letterLinesBox.scrollHeight,
               behavior: "smooth"
             });
           }
-        }, 650 + i * 650));
+        }, 700 + idx * 620));
       });
     }
 
-    function closeLetterModal() {
-      paragraphTimers.forEach(t => clearTimeout(t));
-      paragraphTimers = [];
-      letterOverlay.classList.remove("open");
+    function closeFlipLetterModal() {
+      textTimers.forEach(t => clearTimeout(t));
+      textTimers = [];
+      letterModal.classList.remove("open");
       setTimeout(() => {
-        letterOverlay.style.display = "none";
-      }, 450);
+        letterModal.style.display = "none";
+      }, 500);
     }
 
-    document.getElementById("tucked-letter-group").addEventListener("click", openAndFlipLetter);
-    document.getElementById("prompt-open-letter").addEventListener("click", openAndFlipLetter);
-    document.getElementById("btn-close-letter").addEventListener("click", closeLetterModal);
-
-    // Chạm vào từng đóa hoa hồng để bung tim & chuông gió
-    document.querySelectorAll(".rose-item").forEach((rose, idx) => {
-      rose.addEventListener("pointerdown", (e) => {
-        e.stopPropagation();
-        playChime(CHIME_NOTES[idx % CHIME_NOTES.length], 0.35, 0.18);
-        spawnHeartBurst(e.clientX, e.clientY, 10);
-      });
-    });
+    document.getElementById("bottom-hint").addEventListener("click", openFlipLetterModal);
+    document.getElementById("btn-close-letter").addEventListener("click", closeFlipLetterModal);
 
     // =========================================================================
-    // 5. HIỆU ỨNG CÁNH HOA HỒNG BAY & ĐOM ĐÓM TRÊN NỀN
+    // 5. VÒNG LẶP VẬT LÝ 60FPS CHO TỪNG THỰC THỂ & CÁNH HOA BAY
     // =========================================================================
-    const bgCanvas = document.getElementById("bgCanvas");
-    const bgCtx = bgCanvas.getContext("2d");
+    const ambCanvas = document.getElementById("ambientCanvas");
+    const ambCtx = ambCanvas.getContext("2d");
 
-    function resizeBg() {
-      bgCanvas.width = window.innerWidth;
-      bgCanvas.height = window.innerHeight;
+    function resizeAmbient() {
+      ambCanvas.width = window.innerWidth;
+      ambCanvas.height = window.innerHeight;
     }
-    resizeBg();
-    window.addEventListener("resize", resizeBg);
+    resizeAmbient();
+    window.addEventListener("resize", resizeAmbient);
 
-    const petals = Array.from({ length: 30 }, () => ({
+    const floatingPetals = Array.from({ length: 26 }, () => ({
       x: Math.random() * window.innerWidth,
       y: Math.random() * window.innerHeight,
-      vx: -0.35 + Math.random() * 1.0,
-      vy: 0.65 + Math.random() * 1.0,
+      vx: -0.3 + Math.random() * 0.9,
+      vy: 0.6 + Math.random() * 0.9,
       size: 6 + Math.random() * 6,
       rot: Math.random() * Math.PI * 2,
-      vRot: (Math.random() - 0.5) * 0.025,
+      vRot: (Math.random() - 0.5) * 0.02,
       color: ["#ff4d6d", "#ff758f", "#ffb3c6", "#ffcad4"][Math.floor(Math.random() * 4)]
     }));
 
-    const fireflies = Array.from({ length: 22 }, () => ({
-      x: Math.random() * window.innerWidth,
-      y: Math.random() * window.innerHeight,
-      vx: (Math.random() - 0.5) * 0.45,
-      vy: (Math.random() - 0.5) * 0.45,
-      r: 2 + Math.random() * 2.5,
-      phase: Math.random() * Math.PI * 2
-    }));
-
-    const burstHearts = [];
-
-    function spawnHeartBurst(x, y, count = 12) {
-      const icons = ["❤️", "💖", "🌹", "✨", "💗"];
+    const burstItems = [];
+    function spawnPetalBurst(x, y, count = 12) {
+      const icons = ["❤️", "🌹", "✨", "💖", "🌸"];
       for (let i = 0; i < count; i++) {
-        const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.4;
-        const spd = 1.4 + Math.random() * 3.2;
-        burstHearts.push({
+        const ang = (Math.PI * 2 * i) / count + (Math.random() - 0.5) * 0.35;
+        const spd = 1.4 + Math.random() * 3.0;
+        burstItems.push({
           x, y,
           vx: Math.cos(ang) * spd,
           vy: Math.sin(ang) * spd - 1.2,
           alpha: 1,
-          size: 14 + Math.random() * 9,
+          size: 14 + Math.random() * 8,
           sym: icons[Math.floor(Math.random() * icons.length)]
         });
       }
     }
 
-    function animateBg(timestamp) {
-      bgCtx.clearRect(0, 0, bgCanvas.width, bgCanvas.height);
+    function physicsTick(timestamp) {
+      // 1. Cập nhật vật lý độc lập của từng thực thể trong bó hoa
+      const centerX = window.innerWidth / 2;
+      const baseY = window.innerHeight - 95;
 
-      // Đom đóm lấp lánh
-      fireflies.forEach(f => {
-        f.x += f.vx;
-        f.y += f.vy;
-        if (f.x < 0) f.x = bgCanvas.width;
-        if (f.x > bgCanvas.width) f.x = 0;
-        if (f.y < 0) f.y = bgCanvas.height;
-        if (f.y > bgCanvas.height) f.y = 0;
+      entities.forEach((ent) => {
+        if (!ent.started) return;
 
-        const alpha = 0.3 + Math.abs(Math.sin(timestamp * 0.002 + f.phase)) * 0.65;
-        bgCtx.save();
-        bgCtx.globalAlpha = alpha;
-        bgCtx.fillStyle = "#ffe066";
-        bgCtx.shadowColor = "#ffd166";
-        bgCtx.shadowBlur = 10;
-        bgCtx.beginPath();
-        bgCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
-        bgCtx.fill();
-        bgCtx.restore();
+        // Lực lò xo kéo thực thể trồi từ dưới đáy (yOffset: 680) lên vị trí (yOffset: 0)
+        const dy = 0 - ent.yOffset;
+        ent.vY = ent.vY * 0.80 + dy * 0.075;
+        ent.yOffset += ent.vY;
+
+        // Khi cành hoa đã trồi lên gần tới đỉnh -> Kích hoạt bung nở các lớp cánh hoa hồng
+        if (ent.hasBloom && !ent.bloomed && ent.yOffset < 75) {
+          ent.bloomed = true;
+          ent.el.classList.add("bloomed");
+        }
+
+        // Góc đung đưa tự nhiên riêng biệt của mỗi cành hoa
+        const windSway = Math.sin(timestamp * ent.freq + ent.phase) * 2.2 * ent.swayFactor;
+
+        // Tương tác vật lý khi lướt chuột/ngón tay qua gần từng cành hoa
+        let interactPush = 0;
+        if (ent.yOffset < 30 && pointerX > 0) {
+          const rad = (ent.currentAngle * Math.PI) / 180;
+          const approxTipX = centerX + Math.sin(rad) * 240;
+          const approxTipY = baseY - Math.cos(rad) * 240;
+          const dist = Math.hypot(pointerX - approxTipX, pointerY - approxTipY);
+          if (dist < 110) {
+            const dir = pointerX < approxTipX ? 1 : -1;
+            interactPush = dir * ((110 - dist) / 110) * 8.5 * ent.swayFactor;
+          }
+        }
+
+        // Chỉ xòe góc cắm hoa khi cành đang trồi lên
+        const riseProgress = Math.max(0, Math.min(1, 1 - ent.yOffset / 500));
+        const desiredAngle = ent.targetAngle * riseProgress + windSway + interactPush;
+
+        const dAng = desiredAngle - ent.currentAngle;
+        ent.vAngle = ent.vAngle * 0.84 + dAng * 0.09;
+        ent.currentAngle += ent.vAngle;
+
+        ent.el.style.transform = `translate3d(0px, ${ent.yOffset.toFixed(2)}px, 0) rotate(${ent.currentAngle.toFixed(2)}deg)`;
       });
 
-      // Cánh hoa hồng rơi
-      petals.forEach(p => {
-        p.x += p.vx + Math.sin(timestamp * 0.0015 + p.rot) * 0.35;
+      // 2. Vẽ cánh hoa bay trong không gian
+      ambCtx.clearRect(0, 0, ambCanvas.width, ambCanvas.height);
+
+      floatingPetals.forEach((p) => {
+        p.x += p.vx + Math.sin(timestamp * 0.0015 + p.rot) * 0.3;
         p.y += p.vy;
         p.rot += p.vRot;
 
-        if (p.y > bgCanvas.height + 20) {
+        if (p.y > ambCanvas.height + 20) {
           p.y = -15;
-          p.x = Math.random() * bgCanvas.width;
+          p.x = Math.random() * ambCanvas.width;
         }
-        if (p.x > bgCanvas.width + 20) p.x = -15;
-        if (p.x < -20) p.x = bgCanvas.width + 15;
+        if (p.x > ambCanvas.width + 20) p.x = -15;
+        if (p.x < -20) p.x = ambCanvas.width + 15;
 
-        bgCtx.save();
-        bgCtx.translate(p.x, p.y);
-        bgCtx.rotate(p.rot);
-        bgCtx.fillStyle = p.color;
-        bgCtx.beginPath();
-        bgCtx.moveTo(0, -p.size);
-        bgCtx.bezierCurveTo(p.size, -p.size, p.size, p.size, 0, p.size);
-        bgCtx.bezierCurveTo(-p.size, p.size, -p.size, -p.size, 0, -p.size);
-        bgCtx.fill();
-        bgCtx.restore();
+        ambCtx.save();
+        ambCtx.translate(p.x, p.y);
+        ambCtx.rotate(p.rot);
+        ambCtx.fillStyle = p.color;
+        ambCtx.beginPath();
+        ambCtx.moveTo(0, -p.size);
+        ambCtx.bezierCurveTo(p.size, -p.size, p.size, p.size, 0, p.size);
+        ambCtx.bezierCurveTo(-p.size, p.size, -p.size, -p.size, 0, -p.size);
+        ambCtx.fill();
+        ambCtx.restore();
       });
 
-      // Hạt tim & hoa khi chạm
-      for (let i = burstHearts.length - 1; i >= 0; i--) {
-        const bh = burstHearts[i];
-        bh.x += bh.vx;
-        bh.y += bh.vy;
-        bh.vy += 0.05;
-        bh.alpha -= 0.018;
-        if (bh.alpha <= 0) {
-          burstHearts.splice(i, 1);
+      for (let i = burstItems.length - 1; i >= 0; i--) {
+        const b = burstItems[i];
+        b.x += b.vx;
+        b.y += b.vy;
+        b.vy += 0.05;
+        b.alpha -= 0.018;
+        if (b.alpha <= 0) {
+          burstItems.splice(i, 1);
           continue;
         }
-        bgCtx.save();
-        bgCtx.globalAlpha = bh.alpha;
-        bgCtx.font = `${bh.size}px sans-serif`;
-        bgCtx.textAlign = "center";
-        bgCtx.fillText(bh.sym, bh.x, bh.y);
-        bgCtx.restore();
+        ambCtx.save();
+        ambCtx.globalAlpha = b.alpha;
+        ambCtx.font = `${b.size}px sans-serif`;
+        ambCtx.textAlign = "center";
+        ambCtx.fillText(b.sym, b.x, b.y);
+        ambCtx.restore();
       }
 
-      requestAnimationFrame(animateBg);
+      requestAnimationFrame(physicsTick);
     }
 
-    requestAnimationFrame(animateBg);
+    buildIndependentBouquetEntities();
+    requestAnimationFrame(physicsTick);
   </script>
 </body>
 </html>
