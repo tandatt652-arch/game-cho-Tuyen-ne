@@ -23,7 +23,7 @@
       color: #4a3540;
     }
 
-    /* Sân khấu Canvas toàn màn hình */
+    /* Sân khấu chính */
     #stage {
       position: relative;
       width: 100vw;
@@ -44,17 +44,19 @@
       z-index: 1;
     }
 
-    /* Tiêu đề nghệ thuật phía trên bó hoa */
-    .header-title-box {
+    /* Khung chứa Tiêu đề & Ảnh 3x4 phía trên bó hoa */
+    .top-content-wrapper {
       position: relative;
       z-index: 10;
-      text-align: center;
-      margin-top: clamp(14px, 3vh, 32px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-top: clamp(10px, 2vh, 22px);
       padding: 0 16px;
       pointer-events: none;
       opacity: 0;
       transform: translateY(-15px);
-      animation: fadeSlideDown 1.8s ease forwards 0.6s;
+      animation: fadeSlideDown 1.8s ease forwards 0.4s;
     }
 
     @keyframes fadeSlideDown {
@@ -64,27 +66,54 @@
       }
     }
 
+    /* Khung ảnh 3x4 nằm dọc phía trên bó hoa */
+    .polaroid-frame {
+      width: clamp(85px, 12vw, 110px);
+      aspect-ratio: 3 / 4;
+      background: #fff;
+      padding: 5px 5px 22px 5px;
+      border-radius: 6px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4), 0 0 0 2px rgba(255, 255, 255, 0.3);
+      transform: rotate(-3deg);
+      transition: transform 0.3s ease;
+      margin-bottom: 8px;
+    }
+
+    .polaroid-frame:hover {
+      transform: rotate(0deg) scale(1.04);
+    }
+
+    .polaroid-img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px;
+      display: block;
+    }
+
     .romantic-title {
       font-family: 'Great Vibes', cursive;
-      font-size: clamp(34px, 6vw, 62px);
+      font-size: clamp(30px, 5.5vw, 54px);
       font-weight: 400;
       background: linear-gradient(270deg, #ffe5ec, #ffd166, #ffffff, #ff8fa3, #f3c4fb);
       background-size: 300% 300%;
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       animation: shimmerText 6s ease infinite;
-      filter: drop-shadow(0 2px 14px rgba(255, 117, 140, 0.55));
-      line-height: 1.25;
+      filter: drop-shadow(0 2px 12px rgba(255, 117, 140, 0.55));
+      line-height: 1.2;
+      text-align: center;
     }
 
     .romantic-subtitle {
-      font-size: clamp(12.5px, 2vw, 15px);
+      font-size: clamp(11.5px, 1.8vw, 14px);
       color: #ffdde6;
       letter-spacing: 2px;
       text-transform: uppercase;
       opacity: 0.85;
-      margin-top: 2px;
+      margin-top: 1px;
       text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+      text-align: center;
     }
 
     @keyframes shimmerText {
@@ -97,13 +126,14 @@
     .bottom-actions {
       position: relative;
       z-index: 10;
-      margin-bottom: clamp(18px, 4vh, 36px);
+      margin-bottom: clamp(16px, 3.5vh, 32px);
       display: flex;
-      gap: 14px;
+      gap: 12px;
       align-items: center;
       justify-content: center;
       flex-wrap: wrap;
       padding: 0 16px;
+      pointer-events: auto;
     }
 
     .btn-luxury {
@@ -111,10 +141,10 @@
       border: none;
       outline: none;
       cursor: pointer;
-      padding: 13px 28px;
+      padding: 12px 26px;
       border-radius: 50px;
       font-family: 'Plus Jakarta Sans', sans-serif;
-      font-size: 15px;
+      font-size: 14.5px;
       font-weight: 700;
       letter-spacing: 0.4px;
       color: #fff;
@@ -123,7 +153,7 @@
       transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease;
       display: flex;
       align-items: center;
-      gap: 9px;
+      gap: 8px;
     }
 
     .btn-luxury:hover {
@@ -154,8 +184,8 @@
       -webkit-backdrop-filter: blur(10px);
       border: 1.5px solid rgba(255, 194, 209, 0.45);
       box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
-      font-size: 14px;
-      padding: 11px 22px;
+      font-size: 13.5px;
+      padding: 10px 20px;
       color: #ffe5ec;
     }
 
@@ -165,7 +195,7 @@
     }
 
     /* =========================================================================
-       MODAL BỨC TÂM THƯ (THIẾT KẾ GIẤY THƯ CAO CẤP)
+       MODAL BỨC TÂM THƯ
        ========================================================================= */
     .letter-overlay {
       position: fixed;
@@ -211,7 +241,6 @@
       transform: translateY(0) scale(1);
     }
 
-    /* Viền hoa văn mảnh bên trong thiệp */
     .letter-inner-border {
       border: 1.5px solid #ffdde6;
       border-radius: 16px;
@@ -272,7 +301,6 @@
       text-align: center;
     }
 
-    /* Thanh cuộn tinh tế cho bức thư */
     .letter-card::-webkit-scrollbar {
       width: 6px;
     }
@@ -289,13 +317,16 @@
 <body>
 
   <div id="stage">
-    <!-- Tiêu đề lãng mạn phía trên -->
-    <div class="header-title-box">
+    <!-- Khung chứa ảnh 3x4 và Tiêu đề lãng mạn phía trên bó hoa -->
+    <div class="top-content-wrapper">
+      <div class="polaroid-frame">
+        <img src="photo34.jpg" alt="Cô công chúa của anh" class="polaroid-img" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22120%22 height=%22160%22 viewBox=%220 0 120 160%22><rect width=%22120%22 height=%22160%22 fill=%22%23ffe5ec%22/><text x=%2250%%22 y=%2250%%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22 font-size=%2240%22>👸💖</text></svg>'" />
+      </div>
       <div class="romantic-title">Mừng ngày 20/10 cục dàngg của anh</div>
       <div class="romantic-subtitle">✨ Một bó hoa nhỏ gói trọn yêu thương dành tặng bé ✨</div>
     </div>
 
-    <!-- Canvas vẽ bó hoa chân thực & hiệu ứng hạt sáng -->
+    <!-- Canvas vẽ bó hoa chân thực (đã tối ưu hiệu năng) -->
     <canvas id="bouquetCanvas"></canvas>
 
     <!-- Cụm nút tương tác phía dưới -->
@@ -404,37 +435,29 @@
     }
 
     // =========================================================================
-    // 4. BẢNG MÀU HOA CHÂN THỰC & CẤU TRÚC DỮ LIỆU BÓ HOA
+    // 4. BẢNG MÀU HOA & CẤU TRÚC DỮ LIỆU
     // =========================================================================
     const ROSE_PALETTES = [
-      // Đỏ Ruby Nhung
-      { deep: "#640d14", mid: "#a4133c", bright: "#ff4d6d", edge: "#ff8fa3", glow: "rgba(255, 77, 109, 0.35)" },
-      // Hồng Đào Pastel
-      { deep: "#a4133c", mid: "#ff4d6d", bright: "#ff8fa3", edge: "#ffe5ec", glow: "rgba(255, 143, 163, 0.35)" },
-      // Hồng Kem Dâu
-      { deep: "#c9184a", mid: "#ff758c", bright: "#ffb3c6", edge: "#fff0f5", glow: "rgba(255, 179, 198, 0.35)" },
-      // Hồng Cam San Hô (Juliet Rose)
-      { deep: "#b5179e", mid: "#f72585", bright: "#ff70a6", edge: "#ffd6ff", glow: "rgba(247, 37, 133, 0.3)" },
-      // Kem Bơ Ánh Hồng
-      { deep: "#d9777f", mid: "#f4acb7", bright: "#ffcad4", edge: "#fffdf9", glow: "rgba(255, 202, 212, 0.35)" }
+      { deep: "#640d14", mid: "#a4133c", bright: "#ff4d6d", edge: "#ff8fa3", glow: "rgba(255, 77, 109, 0.25)" },
+      { deep: "#a4133c", mid: "#ff4d6d", bright: "#ff8fa3", edge: "#ffe5ec", glow: "rgba(255, 143, 163, 0.25)" },
+      { deep: "#c9184a", mid: "#ff758c", bright: "#ffb3c6", edge: "#fff0f5", glow: "rgba(255, 179, 198, 0.25)" },
+      { deep: "#b5179e", mid: "#f72585", bright: "#ff70a6", edge: "#ffd6ff", glow: "rgba(247, 37, 133, 0.2)" },
+      { deep: "#d9777f", mid: "#f4acb7", bright: "#ffcad4", edge: "#fffdf9", glow: "rgba(255, 202, 212, 0.25)" }
     ];
 
     let startTime = 0;
     let foliageList = [];
     let flowerList = [];
     let babyBreathList = [];
-    let bokehOrbs = [];
     let fallingPetals = [];
-    let interactiveSparks = [];
 
     function initBouquetScene() {
       startTime = performance.now();
       foliageList = [];
       flowerList = [];
       babyBreathList = [];
-      interactiveSparks = [];
 
-      // 1. Khởi tạo cành lá Khuynh Diệp (Eucalyptus) & Lá Dương Xỉ làm nền
+      // Cành lá
       const leafCount = 26;
       for (let i = 0; i < leafCount; i++) {
         const t = i / (leafCount - 1);
@@ -445,15 +468,14 @@
           tx: Math.cos(angle) * radius * 1.12,
           ty: Math.sin(angle) * radius * 0.78 - 25,
           length: 55 + (i % 3) * 16,
-          curve: (Math.random() - 0.5) * 35,
-          delay: 250 + i * 55,
-          dur: 1200,
+          delay: 200 + i * 45,
+          dur: 1000,
           type: i % 3 === 0 ? "eucalyptus" : "fern",
           hueShift: i % 2 === 0 ? "#2d6a4f" : "#40916c"
         });
       }
 
-      // 2. Khởi tạo 48 bông hoa lớn (Hồng Nhung, Mẫu Đơn, Tulip, Cúc Họa Mi) xếp theo 4 tầng vòm
+      // 48 bông hoa lớn
       const tiers = [
         { count: 16, rx: 158, ry: 96, yOffset: -52, minSize: 27, maxSize: 33 },
         { count: 14, rx: 118, ry: 72, yOffset: -30, minSize: 30, maxSize: 36 },
@@ -483,19 +505,17 @@
             palette: pal,
             rotation: Math.random() * Math.PI * 2,
             tilt: (tx / 180) * 0.35,
-            delay: 750 + idx * 95,
-            dur: 1450,
-            seed: Math.random() * Math.PI * 2,
-            sparkleEmitted: false
+            delay: 600 + idx * 80,
+            dur: 1200,
+            seed: Math.random() * Math.PI * 2
           });
           idx++;
         }
       });
 
-      // Sắp xếp theo chiều sâu (hoa ở phía sau vẽ trước, hoa ở phía trước đè lên trên)
       flowerList.sort((a, b) => a.ty - b.ty);
 
-      // 3. Khởi tạo 32 chùm Hoa Baby Trắng (Gypsophila) điểm xuyết giữa các đóa hồng
+      // Chùm hoa baby
       for (let i = 0; i < 32; i++) {
         const angle = Math.random() * Math.PI * 2;
         const rad = 30 + Math.random() * 150;
@@ -504,72 +524,31 @@
           ty: Math.sin(angle) * rad * 0.72 - 22,
           size: 12 + Math.random() * 8,
           rotation: Math.random() * Math.PI * 2,
-          delay: 1600 + i * 90,
-          dur: 1100,
+          delay: 1400 + i * 75,
+          dur: 950,
           seed: Math.random() * 10
         });
       }
 
-      // 4. Khởi tạo hạt Bokeh ánh sáng nền và cánh hoa rơi
-      if (bokehOrbs.length === 0) {
-        for (let i = 0; i < 38; i++) {
-          bokehOrbs.push({
-            x: Math.random() * W,
-            y: Math.random() * H,
-            r: 3 + Math.random() * 18,
-            vx: (Math.random() - 0.5) * 0.35,
-            vy: -(0.2 + Math.random() * 0.5),
-            alpha: 0.15 + Math.random() * 0.45,
-            phase: Math.random() * Math.PI * 2,
-            color: ["#ff8fa3", "#ffd166", "#fbc2eb", "#ffffff"][i % 4]
-          });
-        }
-      }
-
       if (fallingPetals.length === 0) {
-        for (let i = 0; i < 24; i++) {
+        for (let i = 0; i < 20; i++) {
           fallingPetals.push({
             x: Math.random() * W,
             y: Math.random() * H,
-            vx: 0.3 + Math.random() * 0.6,
-            vy: 0.6 + Math.random() * 0.8,
-            size: 6 + Math.random() * 6,
+            vx: 0.2 + Math.random() * 0.4,
+            vy: 0.5 + Math.random() * 0.6,
+            size: 5 + Math.random() * 5,
             rot: Math.random() * Math.PI * 2,
-            vRot: (Math.random() - 0.5) * 0.02,
+            vRot: (Math.random() - 0.5) * 0.015,
             color: i % 2 === 0 ? "#ffb3c6" : "#ffe5ec"
           });
         }
       }
     }
 
-    // Tương tác chạm hoặc di chuột tạo hạt bụi tiên & trái tim
-    function spawnInteractiveSpark(x, y, count = 3) {
-      for (let i = 0; i < count; i++) {
-        interactiveSparks.push({
-          x: x + (Math.random() - 0.5) * 24,
-          y: y + (Math.random() - 0.5) * 24,
-          vx: (Math.random() - 0.5) * 1.8,
-          vy: -(0.8 + Math.random() * 1.8),
-          size: 2.5 + Math.random() * 3.5,
-          alpha: 1,
-          isHeart: Math.random() < 0.28,
-          color: ["#ffd166", "#ff758c", "#ffffff", "#f3c4fb"][Math.floor(Math.random() * 4)]
-        });
-      }
-    }
-
-    window.addEventListener("pointermove", (e) => {
-      if (Math.random() < 0.45) spawnInteractiveSpark(e.clientX, e.clientY, 1);
-    });
-    window.addEventListener("pointerdown", (e) => {
-      spawnInteractiveSpark(e.clientX, e.clientY, 8);
-    });
-
     // =========================================================================
-    // 5. CÁC HÀM VẼ CHI TIẾT TỪNG LOÀI HOA CHÂN THỰC (BEZIER & GRADIENT)
+    // 5. CÁC HÀM VẼ CHI TIẾT TỪNG LOÀI HOA
     // =========================================================================
-
-    // Vẽ 1 cánh hoa cong mềm mại bằng Bezier
     function drawCurvedPetal(ctx, length, width, fillStyle, strokeStyle) {
       ctx.beginPath();
       ctx.moveTo(0, 0);
@@ -585,30 +564,18 @@
       }
     }
 
-    // 1. HOA HỒNG NHUNG / PASTEL NHIỀU TẦNG CÁNH XOÁY (REALISTIC LAYERED ROSE)
     function drawRealisticRose(ctx, r, pal, bloomP) {
-      // Hào quang мяг bawah bông hoa
-      ctx.save();
-      ctx.shadowColor = pal.glow;
-      ctx.shadowBlur = 14;
-      ctx.fillStyle = pal.mid;
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.55, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      // 4 tầng cánh hoa từ ngoài vào tâm
       const layers = [
-        { count: 7, len: r * 1.02, wid: r * 0.68, rotOffset: 0.1, openFactor: 1.0 },
-        { count: 6, len: r * 0.82, wid: r * 0.58, rotOffset: 0.6, openFactor: 0.88 },
-        { count: 5, len: r * 0.62, wid: r * 0.46, rotOffset: 1.2, openFactor: 0.75 },
-        { count: 4, len: r * 0.40, wid: r * 0.32, rotOffset: 1.9, openFactor: 0.6 }
+        { count: 7, len: r * 1.02, wid: r * 0.68, rotOffset: 0.1 },
+        { count: 6, len: r * 0.82, wid: r * 0.58, rotOffset: 0.6 },
+        { count: 5, len: r * 0.62, wid: r * 0.46, rotOffset: 1.2 },
+        { count: 4, len: r * 0.40, wid: r * 0.32, rotOffset: 1.9 }
       ];
 
       layers.forEach((layer, lIdx) => {
         const layerUnfurl = Math.min(1, Math.max(0.15, bloomP * (1.15 - lIdx * 0.08)));
         for (let i = 0; i < layer.count; i++) {
-          const angle = (i / layer.count) * Math.PI * 2 + layer.rotOffset + (1 - bloomP) * 0.6;
+          const angle = (i / layer.count) * Math.PI * 2 + layer.rotOffset + (1 - bloomP) * 0.5;
           ctx.save();
           ctx.rotate(angle);
 
@@ -620,51 +587,30 @@
             grad.addColorStop(0, pal.mid);
             grad.addColorStop(0.65, pal.bright);
             grad.addColorStop(1, pal.edge);
-          } else if (lIdx === 1) {
-            grad.addColorStop(0, pal.deep);
-            grad.addColorStop(0.55, pal.mid);
-            grad.addColorStop(1, pal.edge);
           } else {
             grad.addColorStop(0, pal.deep);
-            grad.addColorStop(0.7, pal.mid);
+            grad.addColorStop(0.6, pal.mid);
             grad.addColorStop(1, pal.bright);
           }
 
-          drawCurvedPetal(ctx, pLen, pWid, grad, "rgba(255, 255, 255, 0.28)");
+          drawCurvedPetal(ctx, pLen, pWid, grad, "rgba(255, 255, 255, 0.22)");
           ctx.restore();
         }
       });
 
-      // Tâm xoáy nụ hoa hồng ở chính giữa
-      const coreGrad = ctx.createRadialGradient(-r * 0.05, -r * 0.05, 1, 0, 0, r * 0.28);
+      const coreGrad = ctx.createRadialGradient(0, 0, 1, 0, 0, r * 0.22);
       coreGrad.addColorStop(0, pal.deep);
-      coreGrad.addColorStop(0.7, pal.mid);
       coreGrad.addColorStop(1, pal.bright);
-
       ctx.fillStyle = coreGrad;
       ctx.beginPath();
-      ctx.arc(0, 0, r * 0.22, 0, Math.PI * 2);
+      ctx.arc(0, 0, r * 0.2, 0, Math.PI * 2);
       ctx.fill();
-
-      // Đường viền xoắn ốc mảnh ở tâm hoa
-      ctx.strokeStyle = pal.edge;
-      ctx.lineWidth = 1.2;
-      ctx.globalAlpha = 0.75;
-      ctx.beginPath();
-      ctx.arc(0, 0, r * 0.12, 0.2, Math.PI * 1.55);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(r * 0.03, -r * 0.02, r * 0.06, Math.PI * 0.8, Math.PI * 2.1);
-      ctx.stroke();
-      ctx.globalAlpha = 1;
     }
 
-    // 2. HOA MẪU ĐƠN (PEONY) CÁNH LƯỢN SÓNG BỒNG BỀNH
     function drawPeony(ctx, r, pal, bloomP) {
       const rings = [
-        { count: 10, rad: r * 0.98 },
-        { count: 8,  rad: r * 0.74 },
-        { count: 6,  rad: r * 0.50 }
+        { count: 9, rad: r * 0.95 },
+        { count: 7, rad: r * 0.7 }
       ];
 
       rings.forEach((ring, rIdx) => {
@@ -674,140 +620,71 @@
           ctx.rotate(ang);
 
           const len = ring.rad * bloomP;
-          const wid = len * 0.58;
+          const wid = len * 0.55;
           const grad = ctx.createLinearGradient(0, 0, 0, -len);
           grad.addColorStop(0, pal.deep);
-          grad.addColorStop(0.5, pal.bright);
-          grad.addColorStop(1, "#ffffff");
+          grad.addColorStop(1, pal.bright);
 
-          // Cánh mẫu đơn có khía lượn sóng ở đỉnh
           ctx.beginPath();
           ctx.moveTo(0, 0);
-          ctx.bezierCurveTo(-wid, -len * 0.3, -wid * 0.9, -len * 0.95, -wid * 0.25, -len * 0.92);
-          ctx.quadraticCurveTo(0, -len * 1.06, wid * 0.25, -len * 0.92);
-          ctx.bezierCurveTo(wid * 0.9, -len * 0.95, wid, -len * 0.3, 0, 0);
+          ctx.bezierCurveTo(-wid, -len * 0.35, -wid * 0.8, -len * 0.9, 0, -len);
+          ctx.bezierCurveTo(wid * 0.8, -len * 0.9, wid, -len * 0.35, 0, 0);
           ctx.closePath();
-
           ctx.fillStyle = grad;
           ctx.fill();
-          ctx.strokeStyle = "rgba(255,255,255,0.35)";
-          ctx.lineWidth = 0.7;
-          ctx.stroke();
           ctx.restore();
         }
       });
 
-      // Nhụy vàng óng ở tâm mẫu đơn
       ctx.fillStyle = "#ffd166";
-      for (let s = 0; s < 12; s++) {
-        const a = (s / 12) * Math.PI * 2;
-        ctx.beginPath();
-        ctx.arc(Math.cos(a) * r * 0.14, Math.sin(a) * r * 0.14, 2, 0, Math.PI * 2);
-        ctx.fill();
-      }
-      ctx.fillStyle = "#f77f00";
       ctx.beginPath();
-      ctx.arc(0, 0, r * 0.1, 0, Math.PI * 2);
+      ctx.arc(0, 0, r * 0.15, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // 3. HOA TULIP HÀ LAN ÔM BẦU CĂNG MỌNG
     function drawRealisticTulip(ctx, r, pal, bloomP) {
       ctx.save();
-      ctx.rotate((1 - bloomP) * 0.2);
+      ctx.rotate((1 - bloomP) * 0.15);
+      const h = r * 1.1;
+      const w = r * 0.75;
 
-      const h = r * 1.15;
-      const w = r * 0.78;
+      const grad = ctx.createLinearGradient(0, h * 0.3, 0, -h * 0.8);
+      grad.addColorStop(0, pal.deep);
+      grad.addColorStop(0.5, pal.bright);
+      grad.addColorStop(1, pal.edge);
 
-      // Cánh sau
-      const backGrad = ctx.createLinearGradient(0, h * 0.3, 0, -h * 0.8);
-      backGrad.addColorStop(0, pal.deep);
-      backGrad.addColorStop(0.7, pal.mid);
-      backGrad.addColorStop(1, pal.edge);
-
-      ctx.fillStyle = backGrad;
+      ctx.fillStyle = grad;
       ctx.beginPath();
-      ctx.ellipse(0, -h * 0.18, w * 0.46, h * 0.62, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Hai cánh ôm hai bên
-      [-1, 1].forEach(dir => {
-        ctx.save();
-        ctx.rotate(dir * 0.22 * bloomP);
-        const sideGrad = ctx.createLinearGradient(0, h * 0.3, dir * w * 0.5, -h * 0.7);
-        sideGrad.addColorStop(0, pal.deep);
-        sideGrad.addColorStop(0.55, pal.bright);
-        sideGrad.addColorStop(1, pal.edge);
-
-        ctx.fillStyle = sideGrad;
-        ctx.beginPath();
-        ctx.moveTo(0, h * 0.32);
-        ctx.bezierCurveTo(dir * w * 0.85, h * 0.15, dir * w * 0.72, -h * 0.65, dir * w * 0.12, -h * 0.72);
-        ctx.quadraticCurveTo(0, -h * 0.2, 0, h * 0.32);
-        ctx.closePath();
-        ctx.fill();
-        ctx.restore();
-      });
-
-      // Cánh chính diện căng bóng
-      const frontGrad = ctx.createRadialGradient(0, -h * 0.25, r * 0.08, 0, 0, h * 0.75);
-      frontGrad.addColorStop(0, pal.edge);
-      frontGrad.addColorStop(0.45, pal.bright);
-      frontGrad.addColorStop(1, pal.mid);
-
-      ctx.fillStyle = frontGrad;
-      ctx.beginPath();
-      ctx.moveTo(0, h * 0.35);
-      ctx.bezierCurveTo(-w * 0.55, h * 0.2, -w * 0.48, -h * 0.55, 0, -h * 0.68);
-      ctx.bezierCurveTo(w * 0.48, -h * 0.55, w * 0.55, h * 0.2, 0, h * 0.35);
+      ctx.moveTo(0, h * 0.3);
+      ctx.bezierCurveTo(-w * 0.6, h * 0.1, -w * 0.5, -h * 0.6, 0, -h * 0.7);
+      ctx.bezierCurveTo(w * 0.5, -h * 0.6, w * 0.6, h * 0.1, 0, h * 0.3);
       ctx.closePath();
       ctx.fill();
-
-      // Giọt sương long lanh trên cánh Tulip
-      ctx.fillStyle = "rgba(255, 255, 255, 0.75)";
-      ctx.beginPath();
-      ctx.ellipse(-w * 0.14, -h * 0.15, 2.2, 3.2, -0.2, 0, Math.PI * 2);
-      ctx.fill();
-
       ctx.restore();
     }
 
-    // 4. CÚC HỌA MI TRẮNG NHỤY VÀNG 3D
     function drawRealisticDaisy(ctx, r, bloomP) {
-      const petalCount = 14;
+      const petalCount = 12;
       for (let i = 0; i < petalCount; i++) {
         const ang = (i / petalCount) * Math.PI * 2;
         ctx.save();
         ctx.rotate(ang);
+        const pLen = r * 0.9 * bloomP;
+        const pWid = r * 0.2 * bloomP;
 
-        const pLen = r * 0.95 * bloomP;
-        const pWid = r * 0.22 * bloomP;
-
-        const pGrad = ctx.createLinearGradient(0, 0, 0, -pLen);
-        pGrad.addColorStop(0, "#ffdde6");
-        pGrad.addColorStop(0.35, "#ffffff");
-        pGrad.addColorStop(1, "#f8f9fa");
-
-        ctx.fillStyle = pGrad;
+        ctx.fillStyle = "#ffffff";
         ctx.beginPath();
-        ctx.ellipse(0, -pLen * 0.55, pWid, pLen * 0.48, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, -pLen * 0.5, pWid, pLen * 0.45, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       }
 
-      // Nhụy hoa vàng cam có hạt phấn nổi
-      const centerGrad = ctx.createRadialGradient(-2, -2, 1, 0, 0, r * 0.32);
-      centerGrad.addColorStop(0, "#ffe066");
-      centerGrad.addColorStop(0.7, "#fca311");
-      centerGrad.addColorStop(1, "#d97706");
-
-      ctx.fillStyle = centerGrad;
+      ctx.fillStyle = "#ffb703";
       ctx.beginPath();
-      ctx.arc(0, 0, r * 0.3, 0, Math.PI * 2);
+      ctx.arc(0, 0, r * 0.28, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // 5. CHÙM HOA BABY TRẮNG (GYPSOPHILA)
     function drawBabyBreath(ctx, b, progress) {
       const scale = easeOutBack(progress);
       ctx.save();
@@ -815,46 +692,35 @@
       ctx.rotate(b.rotation);
 
       const subBranches = [
-        { x: 0, y: 0, r: 4.8 },
-        { x: -b.size * 0.55, y: -b.size * 0.4, r: 4.0 },
-        { x: b.size * 0.55, y: -b.size * 0.35, r: 4.2 },
-        { x: 0, y: -b.size * 0.75, r: 3.6 }
+        { x: 0, y: 0, r: 4.2 },
+        { x: -b.size * 0.5, y: -b.size * 0.35, r: 3.5 },
+        { x: b.size * 0.5, y: -b.size * 0.35, r: 3.5 }
       ];
 
-      // Nhánh mảnh nối các bông baby nhỏ
-      ctx.strokeStyle = "rgba(116, 198, 157, 0.7)";
-      ctx.lineWidth = 1.1;
+      ctx.strokeStyle = "rgba(116, 198, 157, 0.6)";
+      ctx.lineWidth = 1;
       subBranches.forEach(sb => {
         ctx.beginPath();
-        ctx.moveTo(0, b.size * 0.5);
+        ctx.moveTo(0, b.size * 0.4);
         ctx.lineTo(sb.x, sb.y);
         ctx.stroke();
       });
 
-      // Vẽ từng bông hoa 5 cánh nhỏ li ti phát sáng
       subBranches.forEach(sb => {
         ctx.save();
         ctx.translate(sb.x, sb.y);
         ctx.fillStyle = "#ffffff";
-        ctx.shadowColor = "#ffe5ec";
-        ctx.shadowBlur = 6;
         for (let p = 0; p < 5; p++) {
           const a = (p * Math.PI * 2) / 5;
           ctx.beginPath();
-          ctx.arc(Math.cos(a) * sb.r * 0.5, Math.sin(a) * sb.r * 0.5, sb.r * 0.45, 0, Math.PI * 2);
+          ctx.arc(Math.cos(a) * sb.r * 0.4, Math.sin(a) * sb.r * 0.4, sb.r * 0.4, 0, Math.PI * 2);
           ctx.fill();
         }
-        ctx.fillStyle = "#ffe066";
-        ctx.beginPath();
-        ctx.arc(0, 0, sb.r * 0.25, 0, Math.PI * 2);
-        ctx.fill();
         ctx.restore();
       });
-
       ctx.restore();
     }
 
-    // 6. CÀNH LÁ KHUYNH DIỆP (EUCALYPTUS) & LÁ DƯƠNG XỈ
     function drawFoliageBranch(ctx, cx, cy, gatherX, gatherY, lf, progress) {
       const ep = easeOutCubic(progress);
       const endX = cx + lf.tx * ep;
@@ -862,56 +728,32 @@
 
       ctx.save();
       ctx.strokeStyle = "#2d6a4f";
-      ctx.lineWidth = 2.2;
+      ctx.lineWidth = 2;
       ctx.beginPath();
       ctx.moveTo(gatherX, gatherY);
-      ctx.quadraticCurveTo(gatherX + lf.tx * 0.35, gatherY - 90, endX, endY);
+      ctx.quadraticCurveTo(gatherX + lf.tx * 0.35, gatherY - 80, endX, endY);
       ctx.stroke();
 
-      // Vẽ các cặp lá dọc theo ngọn cành
       ctx.translate(endX, endY);
       ctx.rotate(lf.angle + Math.PI / 2);
       const leafScale = easeOutBack(progress);
       ctx.scale(leafScale, leafScale);
 
-      const pairCount = 4;
-      for (let i = 0; i < pairCount; i++) {
-        const yPos = -i * 13;
-        const sz = (14 - i * 2);
-
-        [-1, 1].forEach(side => {
-          ctx.save();
-          ctx.translate(side * 4, yPos);
-          ctx.rotate(side * 0.55);
-
-          const lGrad = ctx.createLinearGradient(0, -sz, 0, sz);
-          lGrad.addColorStop(0, "#74c69d");
-          lGrad.addColorStop(1, lf.hueShift);
-
-          ctx.fillStyle = lGrad;
-          ctx.beginPath();
-          if (lf.type === "eucalyptus") {
-            ctx.ellipse(0, 0, sz * 0.65, sz * 0.9, 0, 0, Math.PI * 2);
-          } else {
-            ctx.ellipse(0, 0, sz * 0.4, sz * 1.15, 0, 0, Math.PI * 2);
-          }
-          ctx.fill();
-
-          // Gân lá mảnh ở giữa
-          ctx.strokeStyle = "rgba(255,255,255,0.28)";
-          ctx.lineWidth = 0.8;
-          ctx.beginPath();
-          ctx.moveTo(0, sz * 0.7);
-          ctx.lineTo(0, -sz * 0.7);
-          ctx.stroke();
-          ctx.restore();
-        });
-      }
+      const sz = 12;
+      [-1, 1].forEach(side => {
+        ctx.save();
+        ctx.translate(side * 4, -10);
+        ctx.fillStyle = lf.hueShift;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, sz * 0.5, sz, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
       ctx.restore();
     }
 
     // =========================================================================
-    // 6. VẼ GIẤY GÓI HOA HÀN QUỐC NHIỀU LỚP & NƠ SATIN CAO CẤP
+    // 6. GIẤY GÓI & NƠ RUY-BĂNG
     // =========================================================================
     function drawBackWrappingPaper(ctx, cx, cy, gatherY, scaleFactor, progress) {
       const p = easeOutCubic(progress);
@@ -919,39 +761,20 @@
       ctx.translate(cx, gatherY);
       ctx.scale(scaleFactor * p, scaleFactor * p);
 
-      // Lớp 1: Vòm giấy lụa hồng phấn lớn phía sau
-      const backGrad = ctx.createLinearGradient(0, -310, 0, 20);
+      const backGrad = ctx.createLinearGradient(0, -300, 0, 20);
       backGrad.addColorStop(0, "#ffe5ec");
-      backGrad.addColorStop(0.6, "#ffc2d1");
       backGrad.addColorStop(1, "#ff8fa3");
 
       ctx.fillStyle = backGrad;
-      ctx.shadowColor = "rgba(0, 0, 0, 0.35)";
-      ctx.shadowBlur = 24;
       ctx.beginPath();
       ctx.moveTo(0, 20);
-      ctx.lineTo(-225, -175);
-      ctx.quadraticCurveTo(-155, -285, -35, -260);
-      ctx.quadraticCurveTo(0, -285, 35, -260);
-      ctx.quadraticCurveTo(155, -285, 225, -175);
+      ctx.lineTo(-210, -165);
+      ctx.quadraticCurveTo(0, -270, 210, -165);
       ctx.closePath();
       ctx.fill();
-
-      // Viền vàng kim (Gold Trim) trên mép giấy gói
-      ctx.strokeStyle = "rgba(255, 209, 102, 0.75)";
-      ctx.lineWidth = 2.2;
+      ctx.strokeStyle = "rgba(255, 209, 102, 0.6)";
+      ctx.lineWidth = 2;
       ctx.stroke();
-
-      // Lớp 2: Giấy voan trắng kem xếp nếp bên trong
-      ctx.fillStyle = "rgba(255, 250, 252, 0.82)";
-      ctx.beginPath();
-      ctx.moveTo(0, 10);
-      ctx.lineTo(-185, -195);
-      ctx.quadraticCurveTo(-80, -255, 0, -230);
-      ctx.quadraticCurveTo(80, -255, 185, -195);
-      ctx.closePath();
-      ctx.fill();
-
       ctx.restore();
     }
 
@@ -961,172 +784,98 @@
       ctx.translate(cx, gatherY);
       ctx.scale(scaleFactor * p, scaleFactor * p);
 
-      // 1. Phần chân giấy gói & bó cành hoa bên dưới nút thắt
-      const stemGrad = ctx.createLinearGradient(0, 0, 0, 120);
+      const stemGrad = ctx.createLinearGradient(0, 0, 0, 110);
       stemGrad.addColorStop(0, "#1b4332");
       stemGrad.addColorStop(1, "#40916c");
       ctx.fillStyle = stemGrad;
       ctx.beginPath();
-      ctx.moveTo(-18, 5);
-      ctx.lineTo(18, 5);
-      ctx.lineTo(32, 112);
-      ctx.lineTo(-32, 112);
+      ctx.moveTo(-15, 5);
+      ctx.lineTo(15, 5);
+      ctx.lineTo(26, 105);
+      ctx.lineTo(-26, 105);
       ctx.closePath();
       ctx.fill();
 
-      // 2. Vạt giấy gói gấp chéo bên trái
-      const leftFoldGrad = ctx.createLinearGradient(-160, -110, 20, 95);
-      leftFoldGrad.addColorStop(0, "#ffdde6");
-      leftFoldGrad.addColorStop(0.5, "#ffb3c6");
-      leftFoldGrad.addColorStop(1, "#ff8fa3");
+      // Giấy gói trước
+      const wrapGrad = ctx.createLinearGradient(0, -80, 0, 100);
+      wrapGrad.addColorStop(0, "#fffdf9");
+      wrapGrad.addColorStop(1, "#ffdde6");
 
-      ctx.fillStyle = leftFoldGrad;
-      ctx.shadowColor = "rgba(100, 13, 20, 0.18)";
-      ctx.shadowBlur = 12;
+      ctx.fillStyle = wrapGrad;
       ctx.beginPath();
-      ctx.moveTo(-175, -105);
-      ctx.quadraticCurveTo(-75, -45, 22, 12);
-      ctx.lineTo(-48, 102);
-      ctx.quadraticCurveTo(-92, 35, -175, -105);
-      ctx.closePath();
-      ctx.fill();
-      ctx.strokeStyle = "rgba(255, 209, 102, 0.7)";
-      ctx.lineWidth = 1.8;
-      ctx.stroke();
-
-      // 3. Vạt giấy gói gấp chéo bên phải
-      const rightFoldGrad = ctx.createLinearGradient(160, -110, -20, 95);
-      rightFoldGrad.addColorStop(0, "#ffdde6");
-      rightFoldGrad.addColorStop(0.5, "#ffccd5");
-      rightFoldGrad.addColorStop(1, "#ff758c");
-
-      ctx.fillStyle = rightFoldGrad;
-      ctx.beginPath();
-      ctx.moveTo(175, -105);
-      ctx.quadraticCurveTo(75, -45, -22, 12);
-      ctx.lineTo(48, 102);
-      ctx.quadraticCurveTo(92, 35, 175, -105);
-      ctx.closePath();
-      ctx.fill();
-      ctx.stroke();
-
-      // 4. Vạt giấy kem sữa ôm chính diện
-      const centerWrapGrad = ctx.createLinearGradient(0, -85, 0, 108);
-      centerWrapGrad.addColorStop(0, "#fffdf9");
-      centerWrapGrad.addColorStop(0.6, "#fff0f5");
-      centerWrapGrad.addColorStop(1, "#ffdde6");
-
-      ctx.fillStyle = centerWrapGrad;
-      ctx.beginPath();
-      ctx.moveTo(-120, -72);
-      ctx.quadraticCurveTo(0, -26, 120, -72);
-      ctx.lineTo(44, 98);
-      ctx.quadraticCurveTo(0, 112, -44, 98);
+      ctx.moveTo(-130, -95);
+      ctx.lineTo(0, 10);
+      ctx.lineTo(130, -95);
+      ctx.lineTo(40, 95);
+      ctx.quadraticCurveTo(0, 105, -40, 95);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = "#ffb3c6";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      // 5. CHIẾC NƠ RUY-BĂNG LỤA SATIN ĐỎ HỒNG
-      const ribbonSway = Math.sin(now * 0.0025) * 3;
-      const ribGrad = ctx.createLinearGradient(-45, 0, 45, 25);
-      ribGrad.addColorStop(0, "#c9184a");
-      ribGrad.addColorStop(0.5, "#ff4d6d");
-      ribGrad.addColorStop(1, "#a4133c");
-
-      ctx.fillStyle = ribGrad;
-      ctx.strokeStyle = "rgba(255, 224, 102, 0.65)";
-      ctx.lineWidth = 1.4;
-
-      // Dải ruy-băng thắt ngang eo bó hoa
+      // Nơ ruy-băng
+      const ribbonSway = Math.sin(now * 0.0025) * 2;
+      ctx.fillStyle = "#ff4d6d";
       ctx.beginPath();
-      ctx.roundRect(-38, -2, 76, 16, 8);
+      ctx.roundRect(-35, -2, 70, 14, 7);
       ctx.fill();
-      ctx.stroke();
 
-      // Hai đuôi ruy-băng rủ xuống đung đưa nhẹ
       ctx.beginPath();
-      ctx.moveTo(-10, 10);
-      ctx.quadraticCurveTo(-28, 52, -34 + ribbonSway, 92);
-      ctx.lineTo(-14 + ribbonSway, 84);
-      ctx.quadraticCurveTo(-12, 48, -2, 10);
+      ctx.moveTo(-8, 10);
+      ctx.lineTo(-26 + ribbonSway, 82);
+      ctx.lineTo(-12 + ribbonSway, 78);
       ctx.closePath();
       ctx.fill();
-      ctx.stroke();
 
       ctx.beginPath();
-      ctx.moveTo(10, 10);
-      ctx.quadraticCurveTo(28, 52, 34 - ribbonSway, 92);
-      ctx.lineTo(14 - ribbonSway, 84);
-      ctx.quadraticCurveTo(12, 48, 2, 10);
+      ctx.moveTo(8, 10);
+      ctx.lineTo(26 - ribbonSway, 82);
+      ctx.lineTo(12 - ribbonSway, 78);
       ctx.closePath();
       ctx.fill();
-      ctx.stroke();
 
-      // Hai cánh nơ phồng 3D
       [-1, 1].forEach(dir => {
         ctx.save();
-        ctx.rotate(dir * 0.18);
+        ctx.rotate(dir * 0.2);
         ctx.beginPath();
-        ctx.moveTo(0, 6);
-        ctx.bezierCurveTo(dir * 22, -22, dir * 56, -16, dir * 48, 8);
-        ctx.bezierCurveTo(dir * 42, 26, dir * 18, 20, 0, 8);
-        ctx.closePath();
+        ctx.ellipse(dir * 24, -2, 20, 11, dir * 0.3, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
         ctx.restore();
       });
 
-      // Nút thắt ngọc trai ánh vàng ở tâm chiếc nơ
-      const pearlGrad = ctx.createRadialGradient(-2, 3, 1, 0, 6, 11);
-      pearlGrad.addColorStop(0, "#ffffff");
-      pearlGrad.addColorStop(0.5, "#ffe066");
-      pearlGrad.addColorStop(1, "#d97706");
-      ctx.fillStyle = pearlGrad;
+      ctx.fillStyle = "#ffe066";
       ctx.beginPath();
-      ctx.arc(0, 6, 9.5, 0, Math.PI * 2);
+      ctx.arc(0, 5, 8, 0, Math.PI * 2);
       ctx.fill();
 
       ctx.restore();
     }
 
     // =========================================================================
-    // 7. VÒNG LẶP VẼ CHÍNH (ANIMATION LOOP)
+    // 7. VÒNG LẶP RENDER CHÍNH
     // =========================================================================
     initBouquetScene();
 
     function animate(now) {
       const elapsed = now - startTime;
 
-      // Tự động co giãn kích thước bó hoa vừa vặn mọi màn hình (Điện thoại & PC)
       const minDim = Math.min(W, H);
-      const bouquetScale = Math.max(0.68, Math.min(1.18, minDim / 640));
+      const bouquetScale = Math.max(0.65, Math.min(1.12, minDim / 660));
       const cx = W / 2;
-      const cy = H * 0.45;
+      const cy = H * 0.48; // Đẩy thấp xuống để có không gian cho khung ảnh phía trên
       const gatherX = cx;
-      const gatherY = cy + 148 * bouquetScale;
+      const gatherY = cy + 140 * bouquetScale;
 
-      // 1. Vẽ nền đêm Velvet Rose & Hào quang trung tâm
+      // Nền
       const bgGrad = ctx.createRadialGradient(cx, cy, 30, cx, cy, Math.max(W, H) * 0.75);
       bgGrad.addColorStop(0, "#431232");
-      bgGrad.addColorStop(0.45, "#230920");
+      bgGrad.addColorStop(0.5, "#230920");
       bgGrad.addColorStop(1, "#0b0310");
       ctx.fillStyle = bgGrad;
       ctx.fillRect(0, 0, W, H);
 
-      // Hào quang hồng ấm áp nở rộng sau bó hoa
-      const auraProgress = easeInOutSine(Math.min(1, elapsed / 2200));
-      const auraGrad = ctx.createRadialGradient(cx, cy - 10, 10, cx, cy - 10, 280 * bouquetScale * auraProgress);
-      auraGrad.addColorStop(0, "rgba(255, 117, 140, 0.34)");
-      auraGrad.addColorStop(0.5, "rgba(255, 182, 193, 0.12)");
-      auraGrad.addColorStop(1, "rgba(255, 117, 140, 0)");
-      ctx.fillStyle = auraGrad;
-      ctx.beginPath();
-      ctx.arc(cx, cy - 10, 280 * bouquetScale, 0, Math.PI * 2);
-      ctx.fill();
-
-      // 2. Vẽ các hạt Bokeh mờ ảo phía sau
+      // Bokeh ánh sáng mờ nhẹ phía sau
       bokehOrbs.forEach(orb => {
         orb.x += orb.vx;
         orb.y += orb.vy;
@@ -1134,171 +883,119 @@
         if (orb.x < -30) orb.x = W + 30;
         if (orb.x > W + 30) orb.x = -30;
 
-        const pulseAlpha = orb.alpha * (0.5 + 0.5 * Math.sin(now * 0.002 + orb.phase));
         ctx.save();
-        ctx.globalAlpha = pulseAlpha;
+        ctx.globalAlpha = orb.alpha * 0.65;
         ctx.fillStyle = orb.color;
-        ctx.shadowColor = orb.color;
-        ctx.shadowBlur = 12;
         ctx.beginPath();
         ctx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
 
-      // 3. Lớp giấy gói phía sau mở ra
-      const backWrapP = Math.min(1, elapsed / 1100);
+      // Giấy gói sau
+      const backWrapP = Math.min(1, elapsed / 900);
       if (backWrapP > 0) {
         drawBackWrappingPaper(ctx, cx, cy, gatherY, bouquetScale, backWrapP);
       }
 
-      // 4. Vẽ các nhánh lá Khuynh Diệp & Dương Xỉ trồi ra
+      // Cành lá
       foliageList.forEach(lf => {
         if (elapsed < lf.delay) return;
         const p = Math.min(1, (elapsed - lf.delay) / lf.dur);
         ctx.save();
-        const scaledLf = {
+        drawFoliageBranch(ctx, cx, cy, gatherX, gatherY, {
           ...lf,
           tx: lf.tx * bouquetScale,
           ty: lf.ty * bouquetScale
-        };
-        drawFoliageBranch(ctx, cx, cy, gatherX, gatherY, scaledLf, p);
+        }, p);
         ctx.restore();
       });
 
-      // 5. Vẽ từng bông hoa từ từ trồi lên từ điểm thắt nơ và bung cánh
+      // Hoa lớn
       flowerList.forEach(f => {
         if (elapsed < f.delay) return;
         const rawP = Math.min(1, (elapsed - f.delay) / f.dur);
         const posP = easeOutCubic(rawP);
         const bloomP = Math.max(0.05, easeOutBack(rawP));
 
-        // Phát hạt sáng lấp lánh ngay khoảnh khắc bông hoa vừa nở rộ
-        if (rawP > 0.85 && !f.sparkleEmitted) {
-          f.sparkleEmitted = true;
-          spawnInteractiveSpark(cx + f.tx * bouquetScale, cy + f.ty * bouquetScale, 2);
-        }
-
-        // Quỹ đạo vươn cong tự nhiên từ phần eo bó hoa lên vòm hoa
         const targetX = cx + f.tx * bouquetScale;
         const targetY = cy + f.ty * bouquetScale;
-        const arcLift = Math.sin(posP * Math.PI) * 32 * bouquetScale;
+        const arcLift = Math.sin(posP * Math.PI) * 28 * bouquetScale;
 
-        const windSwayX = rawP >= 1 ? Math.sin(now * 0.0022 + f.seed) * 2.5 : 0;
-        const windSwayY = rawP >= 1 ? Math.cos(now * 0.0018 + f.seed) * 1.6 : 0;
+        const curX = gatherX + (targetX - gatherX) * posP;
+        const curY = gatherY + (targetY - gatherY) * posP - arcLift;
 
-        const curX = gatherX + (targetX - gatherX) * posP + windSwayX;
-        const curY = gatherY + (targetY - gatherY) * posP - arcLift + windSwayY;
-
-        // Vẽ cành hoa uốn cong nối về nút thắt
         ctx.save();
         ctx.strokeStyle = "#2d6a4f";
-        ctx.lineWidth = 3.2 * bouquetScale;
+        ctx.lineWidth = 2.8 * bouquetScale;
         ctx.beginPath();
         ctx.moveTo(gatherX, gatherY);
-        ctx.quadraticCurveTo(
-          gatherX + (curX - gatherX) * 0.35,
-          gatherY - 75 * bouquetScale,
-          curX,
-          curY
-        );
+        ctx.quadraticCurveTo(gatherX + (curX - gatherX) * 0.35, gatherY - 70 * bouquetScale, curX, curY);
         ctx.stroke();
         ctx.restore();
 
-        // Vẽ đầu bông hoa
         ctx.save();
         ctx.translate(curX, curY);
         ctx.scale(bouquetScale * bloomP, bouquetScale * bloomP);
         ctx.rotate(f.rotation * 0.15 + f.tilt);
 
-        if (f.type === "rose") {
-          drawRealisticRose(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
-        } else if (f.type === "peony") {
-          drawPeony(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
-        } else if (f.type === "tulip") {
-          drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
-        } else {
-          drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
-        }
+        if (f.type === "rose") drawRealisticRose(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "peony") drawPeony(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else if (f.type === "tulip") drawRealisticTulip(ctx, f.size, f.palette, Math.min(1, rawP * 1.1));
+        else drawRealisticDaisy(ctx, f.size * 0.9, Math.min(1, rawP * 1.1));
         ctx.restore();
       });
 
-      // 6. Vẽ các chùm Hoa Baby Trắng điểm xuyết
+      // Hoa baby
       babyBreathList.forEach(b => {
         if (elapsed < b.delay) return;
         const p = Math.min(1, (elapsed - b.delay) / b.dur);
-        const swayX = Math.sin(now * 0.0025 + b.seed) * 2;
-        const bx = cx + b.tx * bouquetScale + swayX;
-        const by = cy + b.ty * bouquetScale;
-
         ctx.save();
-        ctx.translate(bx, by);
+        ctx.translate(cx + b.tx * bouquetScale, cy + b.ty * bouquetScale);
         ctx.scale(bouquetScale, bouquetScale);
         drawBabyBreath(ctx, b, p);
         ctx.restore();
       });
 
-      // 7. Vẽ giấy gói mặt trước & Nơ ruy-băng satin
-      if (elapsed > 350) {
-        const frontP = Math.min(1, (elapsed - 350) / 1200);
+      // Giấy gói trước & Nơ
+      if (elapsed > 300) {
+        const frontP = Math.min(1, (elapsed - 300) / 1000);
         drawFrontWrappingAndRibbon(ctx, cx, gatherY, bouquetScale, frontP, now);
       }
 
-      // 8. Hiệu ứng cánh hoa anh đào rơi nhẹ nhàng
+      // Cánh hoa rơi
       fallingPetals.forEach(pt => {
-        pt.x += pt.vx + Math.sin(now * 0.002 + pt.y * 0.01) * 0.4;
+        pt.x += pt.vx;
         pt.y += pt.vy;
         pt.rot += pt.vRot;
 
-        if (pt.y > H + 20) {
-          pt.y = -20;
-          pt.x = Math.random() * W;
-        }
+        if (pt.y > H + 20) { pt.y = -20; pt.x = Math.random() * W; }
         if (pt.x > W + 20) pt.x = -20;
 
         ctx.save();
         ctx.translate(pt.x, pt.y);
         ctx.rotate(pt.rot);
         ctx.fillStyle = pt.color;
-        ctx.globalAlpha = 0.75;
+        ctx.globalAlpha = 0.7;
         ctx.beginPath();
-        ctx.moveTo(0, -pt.size);
-        ctx.bezierCurveTo(pt.size * 0.8, -pt.size * 0.5, pt.size * 0.8, pt.size * 0.6, 0, pt.size);
-        ctx.bezierCurveTo(-pt.size * 0.8, pt.size * 0.6, -pt.size * 0.8, -pt.size * 0.5, 0, -pt.size);
+        ctx.ellipse(0, 0, pt.size, pt.size * 0.6, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
       });
 
-      // 9. Hiệu ứng bụi sao & trái tim khi chạm / nở hoa
-      for (let i = interactiveSparks.length - 1; i >= 0; i--) {
-        const sp = interactiveSparks[i];
-        sp.x += sp.vx;
-        sp.y += sp.vy;
-        sp.alpha -= 0.016;
-
-        if (sp.alpha <= 0) {
-          interactiveSparks.splice(i, 1);
-          continue;
-        }
-
-        ctx.save();
-        ctx.globalAlpha = sp.alpha;
-        if (sp.isHeart) {
-          ctx.font = "15px sans-serif";
-          ctx.fillText("💖", sp.x, sp.y);
-        } else {
-          ctx.fillStyle = sp.color;
-          ctx.shadowColor = sp.color;
-          ctx.shadowBlur = 8;
-          ctx.beginPath();
-          ctx.arc(sp.x, sp.y, sp.size, 0, Math.PI * 2);
-          ctx.fill();
-        }
-        ctx.restore();
-      }
-
       requestAnimationFrame(animate);
     }
+
+    const bokehOrbs = Array.from({ length: 24 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: 4 + Math.random() * 14,
+      vx: (Math.random() - 0.5) * 0.25,
+      vy: -(0.15 + Math.random() * 0.4),
+      alpha: 0.15 + Math.random() * 0.35,
+      phase: Math.random() * Math.PI * 2,
+      color: ["#ff8fa3", "#ffd166", "#fbc2eb", "#ffffff"][Math.floor(Math.random() * 4)]
+    }));
 
     requestAnimationFrame(animate);
   </script>
